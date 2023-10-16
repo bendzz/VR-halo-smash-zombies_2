@@ -132,10 +132,13 @@ public class myInputTests : NetworkBehaviour
         syncPlayerAndHeadset();
 
 
-        // Apply player movement
-        //VR_JoystickRunning();
-        PC_mouseRunning();
-        VR_Smash();
+        // Apply player movement inputs
+        if (IsOwner)
+        {
+            //VR_JoystickRunning();
+            PC_mouseRunning();
+            VR_Smash();
+        }
 
         // character model's scripts update
         //if (smashCharacter != null)

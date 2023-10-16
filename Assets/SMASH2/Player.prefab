@@ -417,6 +417,7 @@ GameObject:
   - component: {fileID: 956450887652756732}
   - component: {fileID: 6706489069495132816}
   - component: {fileID: 5902728314906543101}
+  - component: {fileID: 8929367354026613995}
   m_Layer: 0
   m_Name: XR_Headset_Synced
   m_TagString: Untagged
@@ -499,6 +500,37 @@ AudioListener:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 4898191084980764444}
   m_Enabled: 1
+--- !u!114 &8929367354026613995
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4898191084980764444}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f0d889db27804635ada6f9fa36c8e9ab, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  SyncPositionX: 1
+  SyncPositionY: 1
+  SyncPositionZ: 1
+  SyncRotAngleX: 1
+  SyncRotAngleY: 1
+  SyncRotAngleZ: 1
+  SyncScaleX: 1
+  SyncScaleY: 1
+  SyncScaleZ: 1
+  PositionThreshold: 0.001
+  RotAngleThreshold: 0.01
+  ScaleThreshold: 0.01
+  UseQuaternionSynchronization: 0
+  UseQuaternionCompression: 0
+  UseHalfFloatPrecision: 0
+  InLocalSpace: 0
+  Interpolate: 1
+  SlerpPosition: 0
+  authorityMode: 1
 --- !u!1 &5949736246900994264
 GameObject:
   m_ObjectHideFlags: 0
@@ -508,6 +540,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 6338138840823170338}
+  - component: {fileID: 3779000363672964138}
   m_Layer: 0
   m_Name: LeftHand_Synced
   m_TagString: Untagged
@@ -530,6 +563,37 @@ Transform:
   m_Children: []
   m_Father: {fileID: 980269250734180010}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &3779000363672964138
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5949736246900994264}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f0d889db27804635ada6f9fa36c8e9ab, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  SyncPositionX: 1
+  SyncPositionY: 1
+  SyncPositionZ: 1
+  SyncRotAngleX: 1
+  SyncRotAngleY: 1
+  SyncRotAngleZ: 1
+  SyncScaleX: 1
+  SyncScaleY: 1
+  SyncScaleZ: 1
+  PositionThreshold: 0.001
+  RotAngleThreshold: 0.01
+  ScaleThreshold: 0.01
+  UseQuaternionSynchronization: 0
+  UseQuaternionCompression: 0
+  UseHalfFloatPrecision: 0
+  InLocalSpace: 0
+  Interpolate: 1
+  SlerpPosition: 0
+  authorityMode: 1
 --- !u!1 &6348944520990644613
 GameObject:
   m_ObjectHideFlags: 0
@@ -539,6 +603,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 5947581177158496416}
+  - component: {fileID: 429277952992686149}
   m_Layer: 0
   m_Name: RightHand_Synced
   m_TagString: Untagged
@@ -561,6 +626,37 @@ Transform:
   m_Children: []
   m_Father: {fileID: 980269250734180010}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &429277952992686149
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 6348944520990644613}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f0d889db27804635ada6f9fa36c8e9ab, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  SyncPositionX: 1
+  SyncPositionY: 1
+  SyncPositionZ: 1
+  SyncRotAngleX: 1
+  SyncRotAngleY: 1
+  SyncRotAngleZ: 1
+  SyncScaleX: 1
+  SyncScaleY: 1
+  SyncScaleZ: 1
+  PositionThreshold: 0.001
+  RotAngleThreshold: 0.01
+  ScaleThreshold: 0.01
+  UseQuaternionSynchronization: 0
+  UseQuaternionCompression: 0
+  UseHalfFloatPrecision: 0
+  InLocalSpace: 0
+  Interpolate: 1
+  SlerpPosition: 0
+  authorityMode: 1
 --- !u!1 &6657108136455533513
 GameObject:
   m_ObjectHideFlags: 0
@@ -969,6 +1065,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 8790304678041964491}
+  - component: {fileID: 6725682888755125176}
   m_Layer: 0
   m_Name: HeadsetOffset
   m_TagString: Untagged
@@ -992,6 +1089,37 @@ Transform:
   - {fileID: 956450887652756732}
   m_Father: {fileID: 980269250734180010}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &6725682888755125176
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7754784151460374382}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f0d889db27804635ada6f9fa36c8e9ab, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  SyncPositionX: 1
+  SyncPositionY: 1
+  SyncPositionZ: 1
+  SyncRotAngleX: 1
+  SyncRotAngleY: 1
+  SyncRotAngleZ: 1
+  SyncScaleX: 1
+  SyncScaleY: 1
+  SyncScaleZ: 1
+  PositionThreshold: 0.001
+  RotAngleThreshold: 0.01
+  ScaleThreshold: 0.01
+  UseQuaternionSynchronization: 0
+  UseQuaternionCompression: 0
+  UseHalfFloatPrecision: 0
+  InLocalSpace: 0
+  Interpolate: 1
+  SlerpPosition: 0
+  authorityMode: 1
 --- !u!1 &7822012923684615047
 GameObject:
   m_ObjectHideFlags: 0
@@ -1109,6 +1237,7 @@ GameObject:
   m_Component:
   - component: {fileID: 980269250734180010}
   - component: {fileID: 2330029187877692654}
+  - component: {fileID: 2859845008232910137}
   m_Layer: 0
   m_Name: XR_Origin_Synced
   m_TagString: Untagged
@@ -1150,6 +1279,38 @@ MonoBehaviour:
   XR_Headset: {fileID: 956450887652756732}
   leftHandObject: {fileID: 6338138840823170338}
   rightHandObject: {fileID: 5947581177158496416}
+  isOwnerPublic: 0
+--- !u!114 &2859845008232910137
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8056004896971063641}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f0d889db27804635ada6f9fa36c8e9ab, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  SyncPositionX: 1
+  SyncPositionY: 1
+  SyncPositionZ: 1
+  SyncRotAngleX: 1
+  SyncRotAngleY: 1
+  SyncRotAngleZ: 1
+  SyncScaleX: 1
+  SyncScaleY: 1
+  SyncScaleZ: 1
+  PositionThreshold: 0.001
+  RotAngleThreshold: 0.01
+  ScaleThreshold: 0.01
+  UseQuaternionSynchronization: 0
+  UseQuaternionCompression: 0
+  UseHalfFloatPrecision: 0
+  InLocalSpace: 0
+  Interpolate: 1
+  SlerpPosition: 0
+  authorityMode: 1
 --- !u!1001 &8034181123984786666
 PrefabInstance:
   m_ObjectHideFlags: 0

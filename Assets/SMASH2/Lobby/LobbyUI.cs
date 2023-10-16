@@ -15,7 +15,10 @@ public class LobbyUI : MonoBehaviour
     /// Will spin this to indicate creating lobby
     /// </summary>
     [SerializeField] Transform sign;
+
+    [Header("outputs")]
     public bool finishedAndWaiting = false;
+    public bool searchedForLobby = false;
 
     // Start is called before the first frame update
     void Start()
@@ -23,6 +26,11 @@ public class LobbyUI : MonoBehaviour
         
     }
 
+    void spinSign()
+    {
+        if (sign != null)   // script keeps running even after scene has been destroyed ig
+            sign.rotation *= Quaternion.Euler(0, 360 * Time.deltaTime, 0);
+    }
 
     int deviceCount = 0;
     bool oldA = false;
@@ -35,11 +43,13 @@ public class LobbyUI : MonoBehaviour
     {
         if (finishedAndWaiting)
         {
-            if (sign != null)   // script keeps running even after scene has been destroyed ig
-                sign.rotation *= Quaternion.Euler(0, 360 * Time.deltaTime, 0);
+            spinSign();
 
             return;
         }
+        if (searchedForLobby)
+            spinSign();
+
 
         //print("waiting on host/client selection");
         List<InputDevice> devices = new List<InputDevice>();   // todo throw warning if multiples
@@ -96,6 +106,7 @@ public class LobbyUI : MonoBehaviour
         }
         if (J && !oldJ)
         {
+            searchedForLobby = true;
             JoinGame();
         }
         oldC = C;

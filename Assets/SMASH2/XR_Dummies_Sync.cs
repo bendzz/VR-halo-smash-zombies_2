@@ -16,6 +16,7 @@ public class XR_Dummies_Sync : NetworkBehaviour
     public Transform leftHandObject;
     public Transform rightHandObject;
 
+    public bool isOwnerPublic;  // debug
 
     // Start is called before the first frame update
     void Start()
@@ -31,7 +32,8 @@ public class XR_Dummies_Sync : NetworkBehaviour
 
     void setupItem(Transform imitator)
     {
-        imitator.gameObject.AddComponent<ClientNetworkTransform>();
+        //NetworkObject no = imitator.gameObject.AddComponent<NetworkObject>();
+        //imitator.gameObject.AddComponent<ClientNetworkTransform>();
     }
 
     void syncTransform(Transform original, Transform imitator)
@@ -52,16 +54,26 @@ public class XR_Dummies_Sync : NetworkBehaviour
 
     void syncXRPositions()
     {
+        isOwnerPublic = IsOwner;
         //MyMultiplayer mm = MyMultiplayer.instance;
 
         //syncTransform(mm.XR_Origin, XR_Origin);
+        if (!IsOwner)
+            return; // let the network sync the other players' XR stuff
+
         if (mm == null)
             return;
         syncTransform(mm.XR_Headset, XR_Headset);
         syncTransform(mm.leftHandObject, leftHandObject);
         syncTransform(mm.rightHandObject, rightHandObject);
 
-        //
+
+        // get the hands out of your face if the XR stuff isn't in use
+        if (XR_Headset.position == leftHandObject.position)
+            leftHandObject.position += Vector3.forward;
+        if (XR_Headset.position == rightHandObject.position)
+            rightHandObject.position += Vector3.forward;
+
     }
 
     /// <summary>
@@ -97,6 +109,7 @@ public class XR_Dummies_Sync : NetworkBehaviour
         //if (!IsOwner)
         if (!IsOwner)
         {
+            // disable other player instances cameras
             XR_Headset.GetComponent<AudioListener>().enabled = false;
             XR_Headset.GetComponent<Camera>().enabled = false;
             //Camera cam = XR_Headset.GetComponent<Camera>();
