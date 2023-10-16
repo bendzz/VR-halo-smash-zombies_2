@@ -5,6 +5,8 @@ using UnityEngine;
 using UnityEngine.UI;
 using UnityEngine.XR;
 
+
+// depreciated, just use Relay next time from the start. And LobbyUI.cs etc instead of this
 namespace Kart {
     public class NetworkStartUI : MonoBehaviour
     {

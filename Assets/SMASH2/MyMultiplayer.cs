@@ -35,14 +35,23 @@ public class MyMultiplayer : NetworkBehaviour
 
     void Awake()
     {
+        //if ( instance == null)
+        //    Startup();
+
         if (instance != null)
             Debug.LogError("More than one MyMultiplayer in scene");
         instance = this;
-
-
-
     }
 
+    ///// <summary>
+    ///// Sometimes scripts start up before MyMultiplayer and need to boot it early
+    ///// </summary>
+    //public static void Startup()
+    //{
+    //    if (instance != null)
+    //        Debug.LogError("More than one MyMultiplayer in scene");
+    //    instance = this;
+    //}
 
 
     public override void OnNetworkSpawn()
