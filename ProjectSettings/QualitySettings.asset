@@ -320,15 +320,15 @@ QualitySettings:
     excludedTargetPlatforms: []
   - serializedVersion: 4
     name: CustomQuality
-    pixelLightCount: 4
+    pixelLightCount: 2
     shadows: 2
     shadowResolution: 2
     shadowProjection: 0
-    shadowCascades: 2
-    shadowDistance: 13.23
+    shadowCascades: 4
+    shadowDistance: 100
     shadowNearPlaneOffset: 3
-    shadowCascade2Split: 0.14970747
-    shadowCascade4Split: {x: 0.0878182, y: 0.21292597, z: 0.46666664}
+    shadowCascade2Split: 0.098245345
+    shadowCascade4Split: {x: 0.007912171, y: 0.054289144, z: 0.15761815}
     shadowmaskMode: 1
     skinWeights: 4
     globalTextureMipmapLimit: 0
