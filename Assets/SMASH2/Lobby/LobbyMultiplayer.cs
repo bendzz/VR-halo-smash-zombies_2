@@ -1,6 +1,6 @@
 using System.Collections;
 using System.Collections.Generic;
-using System.Net.Security;
+//using System.Net.Security;
 using System.Threading.Tasks;
 using Unity.Netcode;
 using Unity.Netcode.Transports.UTP;
@@ -17,6 +17,7 @@ using Utilities;
 
 
 // namespace Lobby {     // TODO?
+[System.Serializable]
 public enum EncryptionType
 {
     DTLS,   // Datagram Transport Layer Security, for most builds
@@ -34,7 +35,7 @@ public class LobbyMultiplayer : MonoBehaviour
 
     public static LobbyMultiplayer instance;
 
-    public string PlayerID { get; private set; }
+    public string PlayerId { get; private set; }
     public string PlayerName { get; private set; }
 
 
@@ -113,7 +114,7 @@ public class LobbyMultiplayer : MonoBehaviour
         if (!AuthenticationService.Instance.IsSignedIn)
         {
             await AuthenticationService.Instance.SignInAnonymouslyAsync();
-            PlayerID = AuthenticationService.Instance.PlayerId;
+            PlayerId = AuthenticationService.Instance.PlayerId;
             PlayerName = playerName;
         }
     }
@@ -131,7 +132,9 @@ public class LobbyMultiplayer : MonoBehaviour
 
             CreateLobbyOptions options = new CreateLobbyOptions()
             {
+                
                 IsPrivate = false,
+
             };
 
             currentLobby = await LobbyService.Instance.CreateLobbyAsync(lobbyName, maxPlayers);
@@ -169,6 +172,7 @@ public class LobbyMultiplayer : MonoBehaviour
     {
         try
         {
+            //currentLobby = await LobbyService.Instance.QuickJoinLobbyAsync();
             currentLobby = await LobbyService.Instance.QuickJoinLobbyAsync();
             lobbyPollForUpdatesTimer.Start();
 
@@ -179,7 +183,7 @@ public class LobbyMultiplayer : MonoBehaviour
                                joinAllocation, connectionType));
 
             NetworkManager.Singleton.StartClient();
-        }
+    }
         catch (LobbyServiceException e)
         {
             Debug.LogError("Failed to join lobby: " + e.Message);
