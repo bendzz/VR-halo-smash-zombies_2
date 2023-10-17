@@ -3,6 +3,9 @@ using System.Collections.Generic;
 //using System.Drawing;
 using TMPro;
 using Unity.Netcode;
+using Unity.Services.Authentication;
+using Unity.Services.Lobbies;
+using Unity.Services.Lobbies.Models;
 using Unity.VisualScripting;
 using UnityEngine;
 
@@ -141,6 +144,10 @@ public class SmashCharacter : NetworkBehaviour
         // player info Card
         infoCard = new InfoCard(transform);
         infoCard.setDefaultFont();
+
+
+        if (IsOwner) 
+            playerName = LobbyMultiplayer.instance.PlayerName;
     }
 
 
@@ -229,6 +236,19 @@ public class SmashCharacter : NetworkBehaviour
                 }
             }
         }
+
+        //// get and print the playerName from networking
+        //if (NetworkManager.Singleton != null)
+        //{
+        //    if (NetworkManager.Singleton.ConnectedClients.TryGetValue(OwnerClientId, out var networkedClient))
+        //    {
+        //        //playerName = networkedClient.Player.DisplayName;
+        //        playerName = networkedClient.PlayerObject.name;
+        //        print("playerName: " + playerName);
+        //    }
+        //}
+        //print("playerControllerId " + LobbyPlayerJoined);
+
 
         infoCard.setTextValues(playerName, damage);
         if (input == null)
