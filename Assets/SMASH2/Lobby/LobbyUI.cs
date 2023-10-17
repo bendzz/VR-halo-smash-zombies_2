@@ -127,7 +127,7 @@ public class LobbyUI : MonoBehaviour
 
     void updatePlacard()
     {
-        placardText.text = "<size=30>Smash Multiplayer</size>\r\nCreate Lobby: Keyboard [C] or VR [B]\r\nQuick Join: Keyboard [J] or VR [A] \nLobbies:";
+        placardText.text = "<size=30><b>Smash Multiplayer</b></size>\r\nCreate Lobby: Keyboard [C] or VR [B]\r\nQuick Join: Keyboard [J] or VR [A] \nLobbies:";
 
         //print("LobbyMultiplayer.instance " + LobbyMultiplayer.instance);
         //print("LobbyMultiplayer.instance.lobbies " + LobbyMultiplayer.instance.lobbies);
@@ -146,9 +146,12 @@ public class LobbyUI : MonoBehaviour
         int counter = 0;
         foreach (var l in LobbyMultiplayer.instance.lobbies.Results)
         {
+            //print("test" + l.Data[LobbyMultiplayer.HOSTNAME].Value);
+
             //TimeSpan dt = l.Created - DateTime.Now;   // TODO a helper function to find elapsed time properly
-            placardText.text += "\r\n <size=15>#" + counter + ": Name: " + l.Name + " Players:" + l.Players.Count + "/" + l.MaxPlayers +
-                "\r\nCreated: D-" + l.Created.Day + " T-" + l.Created.Hour + ":" + l.Created.Minute + ":" + l.Created.Second
+            placardText.text += "\r\n <size=15><b>#" + counter + "</b> Host: <b>" + l.Data[LobbyMultiplayer.HOSTNAME].Value + "</b> Name: <b>" 
+                + l.Name + "</b> Players:<b>" + l.Players.Count + "/" + l.MaxPlayers +
+                "\r\n</b>Created: " + l.Created.Day + "th at: " + l.Created.Hour + ":" + l.Created.Minute + ":" + l.Created.Second
                 + " V#: " + l.Version + " Id: " + l.Id;
 
             //print("Id " + l.Id + " HostId " + l.HostId + " Name " + l.Name + " Upid " + l.Upid + " Version " + l.Version + " IsPublic " + l.AvailableSlots

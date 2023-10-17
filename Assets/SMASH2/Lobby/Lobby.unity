@@ -992,7 +992,7 @@ MonoBehaviour:
   m_enableAutoSizing: 0
   m_fontSizeMin: 18
   m_fontSizeMax: 72
-  m_fontStyle: 33
+  m_fontStyle: 32
   m_HorizontalAlignment: 2
   m_VerticalAlignment: 256
   m_textAlignment: 65535
@@ -1662,6 +1662,8 @@ MonoBehaviour:
   lobbyName: SmashVR Lobby
   maxPlayers: 8
   encryption: 0
+  PlayerId: 
+  PlayerName: 
 --- !u!4 &1247451036
 Transform:
   m_ObjectHideFlags: 0

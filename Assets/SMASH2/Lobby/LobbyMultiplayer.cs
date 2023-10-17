@@ -37,8 +37,8 @@ public class LobbyMultiplayer : MonoBehaviour
 
     public static LobbyMultiplayer instance;
 
-    public string PlayerId { get; private set; }
-    public string PlayerName { get; private set; }
+    public string PlayerId;// { get; private set; }
+    public string PlayerName;// { get; private set; }
 
 
     Lobby currentLobby;
@@ -54,7 +54,8 @@ public class LobbyMultiplayer : MonoBehaviour
     CountdownTimer heartBeatTimer = new CountdownTimer(HEARTBEAT_INTERVAL);
     CountdownTimer lobbyPollForUpdatesTimer = new CountdownTimer(LOBBY_POLL_FOR_UPDATES_INTERVAL);
 
-    const string KEYJOINCODE = "RelayJoinCode";
+    public const string KEYJOINCODE = "RelayJoinCode";
+    public const string HOSTNAME = "HostName";
     const string DTLS_Encryption = "dtls";
     const string WSS_Encryption = "wss";
     string connectionType => encryption == EncryptionType.DTLS ? DTLS_Encryption : WSS_Encryption;
@@ -155,7 +156,7 @@ public class LobbyMultiplayer : MonoBehaviour
 
         AuthenticationService.Instance.SignedIn += () =>    // hook into the SignedIn delegate and report it
         {
-            Debug.Log("Signed in as " + AuthenticationService.Instance.PlayerId);
+            Debug.Log("Signed in as " + AuthenticationService.Instance.PlayerId + " PlayerName: " + AuthenticationService.Instance.Profile);
         };
 
         // if not signed in, do it anonymously
@@ -164,7 +165,10 @@ public class LobbyMultiplayer : MonoBehaviour
             await AuthenticationService.Instance.SignInAnonymouslyAsync();
             PlayerId = AuthenticationService.Instance.PlayerId;
             PlayerName = playerName;
+            await AuthenticationService.Instance.UpdatePlayerNameAsync(playerName); // new
+
         }
+        PlayerName = playerName;
     }
 
 
@@ -197,7 +201,8 @@ public class LobbyMultiplayer : MonoBehaviour
             {
                 Data = new Dictionary<string, DataObject>
                 {
-                    { KEYJOINCODE, new DataObject(DataObject.VisibilityOptions.Member, relayJoinCode) }
+                    { KEYJOINCODE, new DataObject(DataObject.VisibilityOptions.Member, relayJoinCode) },
+                    { HOSTNAME, new DataObject(DataObject.VisibilityOptions.Public, PlayerName)}    // new
                 }
             });
 
@@ -328,7 +333,6 @@ public class LobbyMultiplayer : MonoBehaviour
 
     public async Task updateLobbiesListAsync()
     {
-
         // https://docs.unity.com/ugs/en-us/manual/lobby/manual/query-for-lobbies
         try
         {
@@ -363,6 +367,33 @@ public class LobbyMultiplayer : MonoBehaviour
 
     }
 
+
+    ///// <summary>
+    ///// 
+    ///// </summary>
+    ///// <param name="name"> No spaces?</param>
+    ///// <returns></returns>
+    //public async Task setName(string name)
+    //{
+    //    // https://stackoverflow.com/questions/76546659/unity-gaming-services-leaderboard-i-want-to-replace-the-player-id-with-a-player
+    //    await AuthenticationService.Instance.UpdatePlayerNameAsync("name");
+    //}
+
+
+    //// async get playername
+    //public async Task<string> GetPlayerName(string playerId)
+    //{
+    //    try
+    //    {
+    //        var player = await AuthenticationService.Instance.player(playerId);
+    //        return player.DisplayName;
+    //    }
+    //    catch (AuthenticationException e)
+    //    {
+    //        Debug.Log(e);
+    //        return null;
+    //    }
+    //}
 
 
 }
