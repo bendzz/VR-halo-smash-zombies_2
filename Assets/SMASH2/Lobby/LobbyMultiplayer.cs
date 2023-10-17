@@ -11,7 +11,9 @@ using Unity.Services.Lobbies;
 using Unity.Services.Lobbies.Models;
 using Unity.Services.Relay;
 using Unity.Services.Relay.Models;
+using Unity.VisualScripting;
 using UnityEngine;
+using UnityEngine.PlayerLoop;
 using Utilities;
 
 
@@ -58,6 +60,12 @@ public class LobbyMultiplayer : MonoBehaviour
     string connectionType => encryption == EncryptionType.DTLS ? DTLS_Encryption : WSS_Encryption;
 
 
+    // New stuff
+    public QueryResponse lobbies;
+    CountdownTimer refreshLobbiesTimer = new CountdownTimer(3f);    // I think the rate limit is 2.5 seconds
+    const float REFRESH_LOBBIES_INTERVAL = 3f;
+
+
     // Start is called before the first frame update
     async void Start()
     {
@@ -70,18 +78,58 @@ public class LobbyMultiplayer : MonoBehaviour
         await Authenticate();   // async method
 
 
-        heartBeatTimer.OnTimerStop += () =>
-        {
-            HandleHeartbeatAsync();
-            heartBeatTimer.Start();     // restart the timer    (TODO would this go on after the program ends..? Probably not..?)
-        };
-        lobbyPollForUpdatesTimer.OnTimerStop += () =>
-        {
-            HandlelobbyPollForUpdatesTimerAsync();
-            lobbyPollForUpdatesTimer.Start();   // restart the timer
-        };
+        // NOTE: NONE OF THESE TIMERS SEEM TO BE RUNNING!
+        //heartBeatTimer.OnTimerStop += () =>
+        //{
+        //    HandleHeartbeatAsync();
+        //    heartBeatTimer.Start();     // restart the timer    (TODO would this go on after the program ends..? Probably not..?)
+        //};
+        //lobbyPollForUpdatesTimer.OnTimerStop += () =>
+        //{
+        //    print("HandlelobbyPollForUpdatesTimerAsync");
+        //    HandlelobbyPollForUpdatesTimerAsync();
+        //    lobbyPollForUpdatesTimer.Start();   // restart the timer
+        //};
+
+
+        //// new
+        //refreshLobbiesTimer.OnTimerStop += () =>    
+        //{
+        //    print("refreshing lobbies1");   // TODO do these not work?? Never get called??
+        //    updateLobbiesListAsync();
+        //    refreshLobbiesTimer.Start();
+        //};
     }
 
+
+    float updateLobbiesCountdown = 0f;
+    float updateHeartbeatCountdown = 0f;
+    float lobbyPollForUpdatesCountdown = 0f;
+    void Update()
+    {
+        updateLobbiesCountdown -= Time.deltaTime;
+        if (updateLobbiesCountdown <= 0)
+        {
+            //print("refreshing lobbies, from Update()");
+            updateLobbiesCountdown = REFRESH_LOBBIES_INTERVAL;
+            updateLobbiesListAsync();
+        }
+
+        updateHeartbeatCountdown -= Time.deltaTime;
+        if (updateHeartbeatCountdown <= 0)
+        {
+            updateHeartbeatCountdown = HEARTBEAT_INTERVAL;
+            HandleHeartbeatAsync();
+        }
+
+        lobbyPollForUpdatesCountdown -= Time.deltaTime;
+        if (lobbyPollForUpdatesCountdown <= 0)
+        {
+            lobbyPollForUpdatesCountdown = LOBBY_POLL_FOR_UPDATES_INTERVAL;
+            HandlelobbyPollForUpdatesTimerAsync();
+        }
+
+    }
 
     // authenticate players
 
@@ -273,6 +321,48 @@ public class LobbyMultiplayer : MonoBehaviour
             Debug.LogError("Failed to poll for updates on lobby: " + e.Message);
         }
     }
+
+
+
+    // my new stuff
+
+    public async Task updateLobbiesListAsync()
+    {
+
+        // https://docs.unity.com/ugs/en-us/manual/lobby/manual/query-for-lobbies
+        try
+        {
+            QueryLobbiesOptions options = new QueryLobbiesOptions();
+            options.Count = 25;
+
+            // Filter for open lobbies only
+            options.Filters = new List<QueryFilter>()
+    {
+        new QueryFilter(
+            field: QueryFilter.FieldOptions.AvailableSlots,
+            op: QueryFilter.OpOptions.GT,
+            value: "0")
+    };
+
+            // Order by newest lobbies first
+            options.Order = new List<QueryOrder>()
+    {
+        new QueryOrder(
+            asc: false,
+            field: QueryOrder.FieldOptions.Created)
+    };
+
+            lobbies = await Lobbies.Instance.QueryLobbiesAsync(options);
+
+            //...
+        }
+        catch (LobbyServiceException e)
+        {
+            Debug.Log(e);
+        }
+
+    }
+
 
 
 }

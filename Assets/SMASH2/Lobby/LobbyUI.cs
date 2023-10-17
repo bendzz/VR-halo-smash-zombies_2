@@ -1,6 +1,10 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
+using TMPro;
 using Unity.Netcode;
+using Unity.Services.Lobbies;
 using Unity.VisualScripting;
 using UnityEngine;
 using UnityEngine.SceneManagement;
@@ -10,6 +14,9 @@ public class LobbyUI : MonoBehaviour
 {
     [Tooltip("The game scene to create/load when CreateLobby is called")]
     [SerializeField] string gameScene = "TestSmashScene";
+
+    [SerializeField] TextMeshProUGUI placardText;
+
 
     /// <summary>
     /// Will spin this to indicate creating lobby
@@ -51,6 +58,9 @@ public class LobbyUI : MonoBehaviour
             spinSign();
 
 
+        updatePlacard();
+
+
         //print("waiting on host/client selection");
         List<InputDevice> devices = new List<InputDevice>();   // todo throw warning if multiples
         InputDevice device;
@@ -84,10 +94,12 @@ public class LobbyUI : MonoBehaviour
 
                 if (B && !oldB)
                 {
+                    finishedAndWaiting = true;
                     CreateGame();
                 }
                 if (A && !oldA)
                 {
+                    searchedForLobby = true;
                     JoinGame();
                 }
 
@@ -113,6 +125,50 @@ public class LobbyUI : MonoBehaviour
         oldJ = J;
     }
 
+    void updatePlacard()
+    {
+        placardText.text = "<size=30>Smash Multiplayer</size>\r\nCreate Lobby: Keyboard [C] or VR [B]\r\nQuick Join: Keyboard [J] or VR [A] \nLobbies:";
+
+        //print("LobbyMultiplayer.instance " + LobbyMultiplayer.instance);
+        //print("LobbyMultiplayer.instance.lobbies " + LobbyMultiplayer.instance.lobbies);
+        //print("LobbyMultiplayer.instance.lobbies.Results " + LobbyMultiplayer.instance.lobbies.Results);
+
+        //print("1");
+        if (LobbyMultiplayer.instance.lobbies == null)
+            return;
+        //print("2");
+        if (LobbyMultiplayer.instance.lobbies.Results == null)
+            return;
+
+        placardText.text += LobbyMultiplayer.instance.lobbies.Results.Count;    // TODO appending strings makes new string objects, causes garbage collection
+
+        //print("Lobbies: " + LobbyMultiplayer.instance.lobbies.Results.Count);
+        int counter = 0;
+        foreach (var l in LobbyMultiplayer.instance.lobbies.Results)
+        {
+            //TimeSpan dt = l.Created - DateTime.Now;   // TODO a helper function to find elapsed time properly
+            placardText.text += "\r\n <size=15>#" + counter + ": Name: " + l.Name + " Players:" + l.Players.Count + "/" + l.MaxPlayers +
+                "\r\nCreated: D-" + l.Created.Day + " T-" + l.Created.Hour + ":" + l.Created.Minute + ":" + l.Created.Second
+                + " V#: " + l.Version + " Id: " + l.Id;
+
+            //print("Id " + l.Id + " HostId " + l.HostId + " Name " + l.Name + " Upid " + l.Upid + " Version " + l.Version + " IsPublic " + l.AvailableSlots
+            //    + " Created " + l.Created + " Data " + l.Data.ToString() + " EnvironmentId " + l.EnvironmentId + " HasPassword " + l.HasPassword
+            //    + " IsLocked " + l.IsLocked + " IsPrivate " + l.IsPrivate + " LastUpdated " + l.LastUpdated + " LobbyCode " + l.LobbyCode
+            //    + " MaxPlayers " + l.MaxPlayers + " Players " + l.Players.ToString());
+
+            //print("Id " + l.Id + " HostId " + l.HostId + " Name " + l.Name + " Upid " + l.Upid + " Version " + l.Version + " IsPublic " + l.AvailableSlots
+            //+ " Created " + l.Created +  " EnvironmentId " + l.EnvironmentId + " HasPassword " + l.HasPassword
+            //+ " IsLocked " + l.IsLocked + " IsPrivate " + l.IsPrivate + " LastUpdated " + l.LastUpdated 
+            //+ " MaxPlayers " + l.MaxPlayers + " Players " + l.Players.ToString());
+
+            //" Data " + l.Data.ToString() +
+            //" LobbyCode " + l.LobbyCode
+            counter++;
+        }
+
+        //placardText
+
+    }
 
 
     async void CreateGame()
