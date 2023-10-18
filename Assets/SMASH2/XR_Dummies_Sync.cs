@@ -5,8 +5,9 @@ using Unity.Netcode;
 using UnityEngine;
 
 
-[Tooltip("multiplayer synced duplicates of the XR head/hands, for player prefab copies to use on each machine")]
-public class XR_Dummies_Sync : NetworkBehaviour
+[Tooltip("multiplayer synced duplicates of the XR head/hands, for player prefab copies to use on each machine. Kept in sync with a an XR rig in the scene")]
+//public class XR_Dummies_Sync : NetworkBehaviour
+public class XR_Dummies_Sync : netBehaviour
 {
     //public SO_MyMultiplayer so_MyMultiplayer;
 
@@ -27,6 +28,8 @@ public class XR_Dummies_Sync : NetworkBehaviour
     public override void OnNetworkSpawn()
     {
         // trySettingUpXR()
+
+        // Note: Runs before the game scene scripts are loaded, so I can't reference singletons for a few frames
     }
 
 
@@ -91,6 +94,12 @@ public class XR_Dummies_Sync : NetworkBehaviour
             return; // already complete
 
         print("MyMultiplayer FOUND! Running setup");
+
+
+
+        //SmashMulti.instance.dummyXR_Rigs.Add(this);
+        SmashMulti.addXRRig(this);
+
 
         //NetworkObject no = XR_SyncedDummies.gameObject.AddComponent<NetworkObject>(); 
         //NetworkObject no = XR_SyncedDummies.gameObject.AddComponent<NetworkObject>(); 

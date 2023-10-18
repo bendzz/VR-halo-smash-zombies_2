@@ -1395,7 +1395,7 @@ public class Record : MonoBehaviour
                 clip = setUpPlayback(clipName);
             }
 
-            clipInitializedDelegate();
+            //clipInitializedDelegate();  // unused?
         }
 
         //foreach (AnimatedProperty property in testClip.animatedProperties)

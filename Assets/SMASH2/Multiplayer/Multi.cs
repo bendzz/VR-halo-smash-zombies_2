@@ -31,3 +31,18 @@ public class Multi : NetworkBehaviour
         
     }
 }
+
+
+
+/// <summary>
+/// Wrapper for NetworkBehaviour. Gives an isSimulating flag compatible with multiplayer and recording/playback.
+/// Be sure to register your gameobjects with your game's multiplayer singleton!
+public abstract class netBehaviour : NetworkBehaviour
+{
+    /// <summary>
+    /// Whether to run game logic, or just let the multiplayer or recording-playback system control this intance
+    /// </summary>
+    public bool isSimulating {  get; }
+
+
+}

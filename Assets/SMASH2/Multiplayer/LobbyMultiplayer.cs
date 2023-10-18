@@ -116,6 +116,7 @@ public class LobbyMultiplayer : MonoBehaviour
             updateLobbiesListAsync();
         }
 
+        //if (IsServer)   // TODO, somehow. Stop heartbeats from clients
         updateHeartbeatCountdown -= Time.deltaTime;
         if (updateHeartbeatCountdown <= 0)
         {
