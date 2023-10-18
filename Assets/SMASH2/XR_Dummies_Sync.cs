@@ -23,7 +23,7 @@ public class XR_Dummies_Sync : NetworkBehaviour
     {
     }
 
-    Multi mm = null;
+    SmashMulti mm = null;
     public override void OnNetworkSpawn()
     {
         // trySettingUpXR()
@@ -55,7 +55,7 @@ public class XR_Dummies_Sync : NetworkBehaviour
     void syncXRPositions()
     {
         isOwnerPublic = IsOwner;
-        //Multi mm = Multi.instance;
+        //SmashMulti mm = SmashMulti.instance;
 
         //syncTransform(mm.XR_Origin, XR_Origin);
         if (!IsOwner)
@@ -81,7 +81,7 @@ public class XR_Dummies_Sync : NetworkBehaviour
     /// </summary>
     void trySettingUpXR()
     {
-        if (Multi.instance == null)
+        if (SmashMulti.instance == null)
         { 
             print("MyMultiplayer not Awake yet"); 
             return;
@@ -96,9 +96,9 @@ public class XR_Dummies_Sync : NetworkBehaviour
         //NetworkObject no = XR_SyncedDummies.gameObject.AddComponent<NetworkObject>(); 
 
 
-        // damn network async calls load the player before the Multi singleton script awakes, so we have to find it manually
-        mm = Multi.instance;
-        //mm = FindFirstObjectByType<Multi>();
+        // damn network async calls load the player before the SmashMulti singleton script awakes, so we have to find it manually
+        mm = SmashMulti.instance;
+        //mm = FindFirstObjectByType<SmashMulti>();
         //print("mm " + mm);
 
         //setupItem(XR_Origin);

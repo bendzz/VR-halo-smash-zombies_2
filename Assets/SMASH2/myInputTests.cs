@@ -76,17 +76,17 @@ public class myInputTests : NetworkBehaviour
         // multiplayer setup
         //if (IsOwner)
         //{
-        //XR_Origin = Multi.instance.XR_Origin_Synced;
-        //XR_Headset = Multi.instance.XR_Headset_Synced;
-        //leftHandObject = Multi.instance.leftHandObject_Synced;
-        //rightHandObject = Multi.instance.rightHandObject_Synced;
+        //XR_Origin = SmashMulti.instance.XR_Origin_Synced;
+        //XR_Headset = SmashMulti.instance.XR_Headset_Synced;
+        //leftHandObject = SmashMulti.instance.leftHandObject_Synced;
+        //rightHandObject = SmashMulti.instance.rightHandObject_Synced;
 
         //print("used XR dummies");
 
-            //XR_Headset = Multi.instance.XR_Headset;
+            //XR_Headset = SmashMulti.instance.XR_Headset;
 
-            //leftHandObject = Multi.instance.leftHandObject;
-            //rightHandObject = Multi.instance.rightHandObject;
+            //leftHandObject = SmashMulti.instance.leftHandObject;
+            //rightHandObject = SmashMulti.instance.rightHandObject;
         //} else
         //{
         //    // spawn network synced dummy objects representing the other player's hands  

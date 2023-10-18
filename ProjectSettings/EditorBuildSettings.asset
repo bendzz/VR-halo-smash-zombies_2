@@ -6,7 +6,7 @@ EditorBuildSettings:
   serializedVersion: 2
   m_Scenes:
   - enabled: 1
-    path: Assets/SMASH2/Lobby/Lobby.unity
+    path: Assets/SMASH2/Multiplayer/Lobby.unity
     guid: 7b5e63969b1270c448787b076ecaf007
   - enabled: 1
     path: Assets/SMASH2/TestSmashScene.unity
