@@ -95,7 +95,7 @@ namespace TMPro.Examples
         }
 
 
-        //void Update()
+        //void update()
         //{
         //    if (SpawnType == 0)
         //    {

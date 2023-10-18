@@ -52,7 +52,7 @@ public class HandJetAnimate : MonoBehaviour
     }
 
 
-    // Update is called once per frame
+    // update is called once per frame
     void Update()
     {
         // point thrust direction

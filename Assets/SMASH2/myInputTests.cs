@@ -76,17 +76,17 @@ public class myInputTests : NetworkBehaviour
         // multiplayer setup
         //if (IsOwner)
         //{
-        //XR_Origin = MyMultiplayer.instance.XR_Origin_Synced;
-        //XR_Headset = MyMultiplayer.instance.XR_Headset_Synced;
-        //leftHandObject = MyMultiplayer.instance.leftHandObject_Synced;
-        //rightHandObject = MyMultiplayer.instance.rightHandObject_Synced;
+        //XR_Origin = Multi.instance.XR_Origin_Synced;
+        //XR_Headset = Multi.instance.XR_Headset_Synced;
+        //leftHandObject = Multi.instance.leftHandObject_Synced;
+        //rightHandObject = Multi.instance.rightHandObject_Synced;
 
         //print("used XR dummies");
 
-            //XR_Headset = MyMultiplayer.instance.XR_Headset;
+            //XR_Headset = Multi.instance.XR_Headset;
 
-            //leftHandObject = MyMultiplayer.instance.leftHandObject;
-            //rightHandObject = MyMultiplayer.instance.rightHandObject;
+            //leftHandObject = Multi.instance.leftHandObject;
+            //rightHandObject = Multi.instance.rightHandObject;
         //} else
         //{
         //    // spawn network synced dummy objects representing the other player's hands  
@@ -434,7 +434,7 @@ public class myInputTests : NetworkBehaviour
     }
 
 
-    // Update is called once per frame
+    // update is called once per frame
     void Update()
     {
         syncPlayerAndHeadset(); // cause otherwise the headset falls behind the player model

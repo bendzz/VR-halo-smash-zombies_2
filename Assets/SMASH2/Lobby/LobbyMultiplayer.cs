@@ -111,7 +111,7 @@ public class LobbyMultiplayer : MonoBehaviour
         updateLobbiesCountdown -= Time.deltaTime;
         if (updateLobbiesCountdown <= 0)
         {
-            //print("refreshing lobbies, from Update()");
+            //print("refreshing lobbies, from update()");
             updateLobbiesCountdown = REFRESH_LOBBIES_INTERVAL;
             updateLobbiesListAsync();
         }

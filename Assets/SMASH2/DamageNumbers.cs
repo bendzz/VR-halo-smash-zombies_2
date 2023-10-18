@@ -24,7 +24,7 @@ public class DamageNumbers : MonoBehaviour
         //camInstance = cam;
     }
 
-    // Update is called once per frame
+    // update is called once per frame
     void Update()
     {
         Card.UpdateAll();

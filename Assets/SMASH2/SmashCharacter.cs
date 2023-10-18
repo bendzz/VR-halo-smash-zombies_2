@@ -2,6 +2,7 @@ using System.Collections;
 using System.Collections.Generic;
 //using System.Drawing;
 using TMPro;
+using Unity.Collections;
 using Unity.Netcode;
 using Unity.Services.Authentication;
 using Unity.Services.Lobbies;
@@ -116,7 +117,8 @@ public class SmashCharacter : NetworkBehaviour
         if (input != null)
         {
             print("init " + this.name + " input " + input.name);
-            print(input.leftie);
+            //print(input.leftie);
+            //leftie = new Hand();
             leftie.transform = input.leftie.transform;
             rightie.transform = input.rightie.transform;
             head = input.XR_Headset;
@@ -148,6 +150,7 @@ public class SmashCharacter : NetworkBehaviour
 
         if (IsOwner) 
             playerName = LobbyMultiplayer.instance.PlayerName;
+        // todo sync
     }
 
 
@@ -155,10 +158,8 @@ public class SmashCharacter : NetworkBehaviour
 
 
 
-
-
-    // Update is called once per frame
-    //void Update()
+    // update is called once per frame
+    //void update()
     private void FixedUpdate()
     {
         if (damage != oldDamage)
@@ -187,7 +188,8 @@ public class SmashCharacter : NetworkBehaviour
 
         foreach (Hand hand in hands)
         {
-            hand.Update();
+            //hand.update();
+            hand.update();
         }
         
         // apply damage to enemies
@@ -280,12 +282,13 @@ public class SmashCharacter : NetworkBehaviour
     /// <summary>
     /// play jet thruster animations etc
     /// </summary>
-    public class Hand
+    public class Hand// : NetworkBehaviour
     {
         public GameObject handJet;
 
         public Transform transform;
         public float thruster = 0;
+        //NetworkVariable<float> thrusterSynced = new NetworkVariable<float>();
         public Vector3 thrusterDirection = Vector3.zero;
 
         public ParticleSystem handJetFlames;
@@ -297,10 +300,18 @@ public class SmashCharacter : NetworkBehaviour
             handJetFlames = Instantiate(handJetParticles, transform).GetComponent<ParticleSystem>();
             handJetStartSize = handJetFlames.transform.localScale;
             handJetFlames.Stop();
+            print("thrusterSynced");
+            //thrusterSynced = new NetworkVariable<float>(0f);
+            //thrusterSynced.Value = 0f;
         }
 
-        public void Update()
+        public void update()
         {
+            //thrusterSynced.Value = thruster;
+            //if (IsOwner)
+            //    thrusterSynced.Value = thruster;
+            //thruster = thrusterSynced.Value;
+
             if (thruster > 0)
             {
                 if (!handJetFlames.isPlaying)
@@ -321,6 +332,12 @@ public class SmashCharacter : NetworkBehaviour
                 script.direction = thrusterDirection;
             }
         }
+
+        // test
+        //private void onChange(float previous, float current)
+        //{
+        //    print(current);
+        //}
     }
 
 }

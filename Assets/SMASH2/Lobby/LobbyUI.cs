@@ -45,7 +45,7 @@ public class LobbyUI : MonoBehaviour
 
     bool oldC = false;
     bool oldJ = false;
-    // Update is called once per frame
+    // update is called once per frame
     void Update()
     {
         if (finishedAndWaiting)
