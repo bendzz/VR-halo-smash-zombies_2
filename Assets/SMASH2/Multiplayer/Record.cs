@@ -358,7 +358,7 @@ public class Record : MonoBehaviour
 
         //public AnimatedProperty(object _property, System.Type _FrameType)
         /// <summary>
-        /// 
+        /// TODO does this one not fucking work at all?? Delete? (Kept throwing errors about "This is type single.float or single.bool, not a fieldinfo" etc in the factory step)
         /// </summary>
         /// <param name="_obj">The property to be animated</param>
         public AnimatedProperty(object _obj, GameObject _gameObject, Clip _clip)

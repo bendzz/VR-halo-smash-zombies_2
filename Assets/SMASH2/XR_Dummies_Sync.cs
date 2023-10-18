@@ -19,6 +19,9 @@ public class XR_Dummies_Sync : netBehaviour
 
     public bool isOwnerPublic;  // debug
 
+    public float testfloat = 2;
+    public float testFloat2 = 2;
+
     // Start is called before the first frame update
     void Start()
     {
@@ -53,6 +56,8 @@ public class XR_Dummies_Sync : netBehaviour
 
         syncXRPositions();
 
+        testfloat += 1; 
+        testFloat2 = testfloat + Time.time;
     }
 
     void syncXRPositions()
@@ -86,14 +91,14 @@ public class XR_Dummies_Sync : netBehaviour
     {
         if (SmashMulti.instance == null)
         { 
-            print("MyMultiplayer not Awake yet"); 
+            print("SmashMulti not Awake yet"); 
             return;
         }
 
         if (mm != null)
             return; // already complete
 
-        print("MyMultiplayer FOUND! Running setup");
+        print("SmashMulti FOUND! Running setup");
 
 
 

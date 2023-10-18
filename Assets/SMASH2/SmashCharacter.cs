@@ -155,28 +155,28 @@ public class SmashCharacter : NetworkBehaviour
 
 
 
-    // test
-    [ServerRpc]
-    public void pingServerRpc(float time, ServerRpcParams pars = default)
-    {
-        var clientId = pars.Receive.SenderClientId;
-        if (NetworkManager.ConnectedClients.ContainsKey(clientId))
-        {
-            var client = NetworkManager.ConnectedClients[clientId];
-            // Do things for the client (our local copy) that sent the RPC
-            // client.PlayerObject.GetComponent<SmashCharacter>().pingServerRpc(time);
-        }
-        print(clientId + " pinged the server with " + time);
+    //// test
+    //[ServerRpc]
+    //public void pingServerRpc(float time, ServerRpcParams pars = default)
+    //{
+    //    var clientId = pars.Receive.SenderClientId;
+    //    if (NetworkManager.ConnectedClients.ContainsKey(clientId))
+    //    {
+    //        var client = NetworkManager.ConnectedClients[clientId];
+    //        // Do things for the client (our local copy) that sent the RPC
+    //        // client.PlayerObject.GetComponent<SmashCharacter>().pingServerRpc(time);
+    //    }
+    //    print(clientId + " pinged the server with " + time);
 
-        pingClientRpc(time, clientId);  // send to all clients
-    }
+    //    pingClientRpc(time, clientId);  // send to all clients
+    //}
 
-    [ClientRpc]
-    public void pingClientRpc(float time, ulong originalSender, ClientRpcParams pars = default)
-    {
-        var thisClientId = NetworkManager.Singleton.LocalClientId;
-        print("Server pinged client " + thisClientId + " (originally from client "+ originalSender + ") with " + time);
-    }
+    //[ClientRpc]
+    //public void pingClientRpc(float time, ulong originalSender, ClientRpcParams pars = default)
+    //{
+    //    var thisClientId = NetworkManager.Singleton.LocalClientId;
+    //    print("Server pinged client " + thisClientId + " (originally from client "+ originalSender + ") with " + time);
+    //}
 
 
 
@@ -184,8 +184,8 @@ public class SmashCharacter : NetworkBehaviour
     //void update()
     private void FixedUpdate()
     {
-        if (IsOwner)
-            pingServerRpc(Time.time);   // send to server
+        //if (IsOwner)
+        //    pingServerRpc(Time.time);   // send to server
 
 
 
