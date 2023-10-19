@@ -357,12 +357,12 @@ public class Record : MonoBehaviour
 
 
 
-        /// <summary>
-        /// DON'T USE! Empty constructor required for INetworkSerializable. 
-        /// </summary>
-        public AnimatedProperty()
-        {
-        }
+        ///// <summary>
+        ///// DON'T USE! Empty constructor required for INetworkSerializable. 
+        ///// </summary>
+        //public AnimatedProperty()
+        //{
+        //}
 
         //public AnimatedProperty(object _property, System.Type _FrameType)
         /// <summary>
