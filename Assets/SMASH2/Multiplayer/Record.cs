@@ -356,6 +356,14 @@ public class Record : MonoBehaviour
         public List<FrameData> frames;
 
 
+
+        /// <summary>
+        /// DON'T USE! Empty constructor required for INetworkSerializable. 
+        /// </summary>
+        public AnimatedProperty()
+        {
+        }
+
         //public AnimatedProperty(object _property, System.Type _FrameType)
         /// <summary>
         /// TODO does this one not fucking work at all?? Delete? (Kept throwing errors about "This is type single.float or single.bool, not a fieldinfo" etc in the factory step)
@@ -711,6 +719,7 @@ public class Record : MonoBehaviour
 
 
     /// <summary>
+    /// Frames hold the data and get/set the original script variables and methods, using the script-variable reference stored in their parent AnimatedProperty
     /// Base class for all animation frames holding arbitrary data. (Treat it like it's an abstract class and use its derrived types)
     /// </summary>
     public class FrameData

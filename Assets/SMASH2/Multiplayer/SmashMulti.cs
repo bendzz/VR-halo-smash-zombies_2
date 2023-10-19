@@ -82,7 +82,7 @@ public class SmashMulti : NetworkBehaviour
                 prop.sync();
         }
 
-        syncSyncedProperty();
+        //syncSyncedProperty();
     }
 
 
@@ -146,8 +146,8 @@ public class SmashMulti : NetworkBehaviour
     /// Because you can't do network RPCs in classes that don't fucking inherit from NetworkBehaviour, and those are hard/expensive to spawn
     /// </summary>
     /// <param name="prop"></param>
-    //public static void syncSyncedProperty(SyncedProperty prop)
-    public static void syncSyncedProperty()
+    public static void syncSyncedProperty(SyncedProperty prop)
+    //public static void syncSyncedProperty()
     {
         //if (prop.IsOwner)
         //if (instance.IsOwner)
@@ -157,11 +157,11 @@ public class SmashMulti : NetworkBehaviour
             //object data = prop.getCurrentValue();
             //instance.pingServerRpc((FieldInfo)data);
 
-            //instance.pingServerRpc(prop);
+            instance.pingServerRpc(prop);
 
 
             
-            instance.pingServerRpc(instance.testVal);
+            //instance.pingServerRpc(instance.testVal);
         //}
         //else
         //{
@@ -170,42 +170,30 @@ public class SmashMulti : NetworkBehaviour
     }
     //[ServerRpc]
     [ServerRpc(RequireOwnership = false)]
-    //public void pingServerRpc(object data, ServerRpcParams pars = default)
-    //public void pingServerRpc(ForceNetworkSerializeByMemcpy<object> data, ServerRpcParams pars = default)
-    //public void pingServerRpc(FieldInfo data, ServerRpcParams pars = default)
-    //public void pingServerRpc(ForceNetworkSerializeByMemcpy<FieldInfo> data, ServerRpcParams pars = default)
-    //public void pingServerRpc(object data, ServerRpcParams pars = default)
-    //{
-    //    var clientId = pars.Receive.SenderClientId;
-    //    print(clientId + " pinged the server with " + data.ToString());
-
-    //    pingClientRpc(data, clientId);  // send to all clients
-    //}
-
-    public void pingServerRpc(NetData data, ServerRpcParams pars = default)
+    //public void pingServerRpc(NetData data, ServerRpcParams pars = default)
+    public void pingServerRpc(SyncedProperty data, ServerRpcParams pars = default)
     {
         //data.setDataType(42.GetType());
         var clientId = pars.Receive.SenderClientId;
         //print(clientId + " pinged the server with " + data.ToString());
-        print(clientId + " pinged the server with " + data.ToString() + " data " + data.GetData().ToString());
+        //print(clientId + " pinged the server with " + data.ToString() + " data " + data.GetData().ToString());
+        print(clientId + " pinged the server with " + data.getCurrentValue().ToString());
 
         pingClientRpc(data, clientId);  // send to all clients
     }
 
 
     [ClientRpc]
-    //public void pingClientRpc(object data, ulong originalSender, ClientRpcParams pars = default)
-    //public void pingClientRpc(FieldInfo data, ulong originalSender, ClientRpcParams pars = default)
-    //{
-    //    var thisClientId = NetworkManager.Singleton.LocalClientId;
-    //    print("Server pinged client " + thisClientId + " (originally from client " + originalSender + ") with " + data.ToString());
-    //}
-
-    public void pingClientRpc(NetData data, ulong originalSender, ClientRpcParams pars = default)
+    //public void pingClientRpc(NetData data, ulong originalSender, ClientRpcParams pars = default)
+    public void pingClientRpc(SyncedProperty data, ulong originalSender, ClientRpcParams pars = default)
     {
         var thisClientId = NetworkManager.Singleton.LocalClientId;
-        print("Server pinged client " + thisClientId + " (originally from client " + originalSender + ") with " + data.GetData().ToString());
+        //print("Server pinged client " + thisClientId + " (originally from client " + originalSender + ") with " + data.GetData().ToString());
+        print("Server pinged client " + thisClientId + " (originally from client " + originalSender + ") with " + data.getCurrentValue().ToString());
     }
+
+
+
 
 
 
@@ -222,6 +210,10 @@ public class SmashMulti : NetworkBehaviour
         //RPC // todo
 
         public bool IsOwner;
+        /// <summary>
+        /// Datatype used in networking. See TypeToInt class for types
+        /// </summary>
+        private int _dataType = 0;
 
 
         //public SyncedProperty(object _obj, GameObject _gameObject, Record.Clip _clip, bool isOwner) : base(_obj, _gameObject, _clip)
@@ -232,6 +224,12 @@ public class SmashMulti : NetworkBehaviour
             // TODO
         }
 
+        /// <summary>
+        /// DON'T USE! Empty constructor required for INetworkSerializable. 
+        /// </summary>
+        public SyncedProperty()
+        {
+        }
 
         public void sync()
         {
@@ -248,7 +246,7 @@ public class SmashMulti : NetworkBehaviour
 
 
 
-            //SmashMulti.syncSyncedProperty(this);
+            SmashMulti.syncSyncedProperty(this);
         }
 
         /// <summary>
@@ -270,16 +268,107 @@ public class SmashMulti : NetworkBehaviour
             {
                 data = ((PropertyInfo)obj).GetValue(animatedComponent);
             }
+            // TODO transforms?
 
             return data;
+        }
+
+        public void setCurrentValue(object data)
+        {
+            // from Record.cs's "GenericFrame"
+            //if (property.obj is FieldInfo)
+            if (obj is FieldInfo)
+            {
+                ((FieldInfo)obj).SetValue(animatedComponent, data);
+            }
+            else if (obj is PropertyInfo)
+            {
+                ((PropertyInfo)obj).SetValue(animatedComponent, data);
+            }
+            // TODO transforms?
         }
 
 
 
         public void NetworkSerialize<T>(BufferSerializer<T> serializer) where T : IReaderWriter
         {
-            throw new NotImplementedException();
+            object _data = null;
+
+            if (serializer.IsWriter)
+            {
+                _data = getCurrentValue();
+                if (_dataType == 0)
+                    _dataType = TypeToInt.Int(_data.GetType());
+            }
+
+            //if (serializer.IsWriter)
+            //{
+            serializer.SerializeValue(ref _dataType);   // these calls handle both sending/serializing data and receiving/deserializing data
+            switch (_dataType)
+            {
+                case int when _dataType == TypeToInt.Int(typeof(int)):
+                    int intData = 0;
+                    if (serializer.IsWriter)
+                        intData = (int)_data;
+                    serializer.SerializeValue(ref intData);
+                    _data = intData;    // if receiving data, update the local copy
+                    break;
+
+                case int when _dataType == TypeToInt.Int(typeof(float)):
+                    float floatData = 0;
+                    if (serializer.IsWriter)
+                        floatData = (float)_data;
+                    serializer.SerializeValue(ref floatData);
+                    _data = floatData;
+                    break;
+
+                case int when _dataType == TypeToInt.Int(typeof(string)):
+                    string stringData = "";
+                    if (serializer.IsWriter)
+                        stringData = (string)_data;
+                    serializer.SerializeValue(ref stringData);
+                    _data = stringData;
+                    break;
+
+                case int when _dataType == TypeToInt.Int(typeof(Vector3)):
+                    Vector3 vector3Data = Vector3.zero;
+                    if (serializer.IsWriter)
+                        vector3Data = (Vector3)_data;
+                    serializer.SerializeValue(ref vector3Data);
+                    _data = vector3Data;
+                    break;
+
+                case int when _dataType == TypeToInt.Int(typeof(Transform)):
+                    Transform transformData = SmashMulti.instance.transform;    // just need a random non-null value
+                    if (serializer.IsWriter)
+                        transformData = (Transform)_data;
+                    Vector3 position = transformData.position;
+                    Quaternion rotation = transformData.rotation;
+                    Vector3 scale = transformData.localScale;
+                    serializer.SerializeValue(ref position);
+                    serializer.SerializeValue(ref rotation);
+                    serializer.SerializeValue(ref scale);
+                    // receiving data
+                    transformData.position = position;
+                    transformData.rotation = rotation;
+                    transformData.localScale = scale;
+                    _data = transformData;
+                    break;
+
+                // ... add other types similarly
+
+                default:
+                    // Handle the case where the type is not recognized.
+                    // This could be an error or a default serialization logic.
+                    Debug.LogError("Type not recognized: Type: " + _dataType + " data: " + _data);
+                    break;
+            }
+
+            if (serializer.IsReader)
+                setCurrentValue(_data);
         }
+
+
     }
 
 
