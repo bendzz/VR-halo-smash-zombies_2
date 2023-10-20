@@ -8,8 +8,9 @@ using UnityEngine;
 
 
 /// <summary>
-/// Generic code for multiplayer and recording/playback of gameplay. This is the only script that should be networked.
+/// Generic code for multiplayer and recording/playback of gameplay. This is the only script that should be networked (hopefully, we'll see)
 /// Use for all networked variables and functions.
+/// Note: Can only sync public variables and methods
 /// </summary>
 public class Multi : NetworkBehaviour
 {
@@ -49,6 +50,9 @@ public class Multi : NetworkBehaviour
     private void LateUpdate()
     {
         
+
+        if (SyncedProperty.SyncedProperties == null)
+            return;
         // Add sync calls scripts can use. (syncProperty(ref variable or method) etc)
         foreach (SyncedProperty prop in SyncedProperty.SyncedProperties.Values)
         {
@@ -96,7 +100,6 @@ public class Multi : NetworkBehaviour
 
 
 
-    // todo move to Multi.cs
 
     /// <summary>
     /// Multiplayer synced and recorded/played-back property, for animating a variable or method in another script
@@ -104,6 +107,8 @@ public class Multi : NetworkBehaviour
     /// </summary>
     public class SyncedProperty : Record.AnimatedProperty
     {
+
+        // TODO have the server make sure this dict is synced up sometimes
         /// <summary>
         /// All synced properties (ints are unique identifiers)
         /// </summary>
@@ -132,12 +137,30 @@ public class Multi : NetworkBehaviour
         /// </summary>
         public NetData netData;
 
+
+
+
+
+        // god I fucking hate C# constructor chaining I want to slap the bitch that decided you can't call them from within the constructor body
+
+        public SyncedProperty(int _identifier, object _animatedObject, object propertyOrField, GameObject _gameObject, Record.Clip _clip, bool isOwner) : base(_animatedObject, propertyOrField, _gameObject, _clip)
+        {
+            constructor(_identifier, _animatedObject, propertyOrField, _gameObject, _clip, isOwner);
+        }
+
+
+
         //public SyncedProperty(object _obj, GameObject _gameObject, Record.Clip _clip, bool isOwner) : base(_obj, _gameObject, _clip)
         public SyncedProperty(object _animatedObject, object propertyOrField, GameObject _gameObject, Record.Clip _clip, bool isOwner) : base(_animatedObject, propertyOrField, _gameObject, _clip)
         {
-            print("syncedProperty: " + propertyOrField);
-            IsOwner = isOwner;
+            constructor(getUniqueIdentifier(), _animatedObject, propertyOrField, _gameObject, _clip, isOwner);
+        }
 
+        void constructor(int _identifier, object _animatedObject, object propertyOrField, GameObject _gameObject, Record.Clip _clip, bool isOwner)
+        {
+            identifier = _identifier;
+            print("syncedProperty: " + propertyOrField + " identifier: " + identifier);
+            IsOwner = isOwner;
 
 
             if (IsOwner)
@@ -154,13 +177,14 @@ public class Multi : NetworkBehaviour
 
                 SyncedProperties.Add(identifier, this);
             }
-
-
-
             // TODO
+
+
         }
 
-        int getUniqueIdentifier()
+
+
+        public int getUniqueIdentifier()
         {
             int id;
             do

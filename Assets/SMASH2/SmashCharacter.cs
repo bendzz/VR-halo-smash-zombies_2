@@ -27,7 +27,8 @@ public class SmashCharacter : NetworkBehaviour
 
 
     // game settings
-    string playerName = "default player";
+    public string playerName = "default player";
+    public string PlayerId;
 
 
     [Tooltip("A particle system prefab to shoot out of the jets")]
@@ -148,8 +149,11 @@ public class SmashCharacter : NetworkBehaviour
         infoCard.setDefaultFont();
 
 
-        if (IsOwner) 
+        if (IsOwner)
+        {
             playerName = LobbyMultiplayer.instance.PlayerName;
+            PlayerId = LobbyMultiplayer.instance.PlayerId;
+        }
         // todo sync
     }
 
@@ -180,12 +184,24 @@ public class SmashCharacter : NetworkBehaviour
 
 
 
+    bool alertedSmashMulti = false;
+
     // update is called once per frame
     //void update()
     private void FixedUpdate()
     {
         //if (IsOwner)
         //    pingServerRpc(Time.time);   // send to server
+
+        if (!alertedSmashMulti)
+        {
+            // Need to do these damn checks cause Players spawn several frames before the other scripts
+            if (SmashMulti.instance != null)
+            {
+                SmashMulti.characterSpawned(this);
+                alertedSmashMulti = true;
+            }
+        }
 
 
 
