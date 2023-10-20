@@ -249,6 +249,8 @@ MonoBehaviour:
   body: {fileID: 2143016132424502222}
   feetCollider: {fileID: 8269268441555100728}
   input: {fileID: 7165952322142439820}
+  playerName: default player
+  PlayerId: 
   handJetsParticlesPrefab: {fileID: 3562877123868809897, guid: 7212a4c48f76a8643a1b9edbdd71dfc3,
     type: 3}
   handJetPrefab: {fileID: 7178577322115202236, guid: 9bf6f8a8c77bd8140a41ca2844c34b3c,
@@ -262,7 +264,7 @@ MonoBehaviour:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 868190568883321972}
-  m_Enabled: 1
+  m_Enabled: 0
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: f0d889db27804635ada6f9fa36c8e9ab, type: 3}
   m_Name: 
@@ -293,7 +295,7 @@ MonoBehaviour:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 868190568883321972}
-  m_Enabled: 1
+  m_Enabled: 0
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: f6c0be61502bb534f922ebb746851216, type: 3}
   m_Name: 
@@ -1280,6 +1282,8 @@ MonoBehaviour:
   leftHandObject: {fileID: 6338138840823170338}
   rightHandObject: {fileID: 5947581177158496416}
   isOwnerPublic: 0
+  testfloat: 2
+  testFloat2: 2
 --- !u!114 &2859845008232910137
 MonoBehaviour:
   m_ObjectHideFlags: 0

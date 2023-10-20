@@ -184,8 +184,10 @@ public class Multi : NetworkBehaviour
 
 
 
-        public int getUniqueIdentifier()
+        public static int getUniqueIdentifier()
         {
+            if (SyncedProperties == null)
+                SyncedProperties = new Dictionary<int, SyncedProperty>();
             int id;
             do
             {

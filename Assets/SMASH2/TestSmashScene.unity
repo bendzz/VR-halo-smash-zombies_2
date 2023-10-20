@@ -4046,6 +4046,8 @@ MonoBehaviour:
   XR_Headset: {fileID: 963194228}
   leftHandObject: {fileID: 1728657556}
   rightHandObject: {fileID: 541096546}
+  playerPrefab: {fileID: 7420264138600701504, guid: 4719a346b1af1244b8a8ffc3558a1b30,
+    type: 3}
 --- !u!114 &1241747569
 MonoBehaviour:
   m_ObjectHideFlags: 0

@@ -102,8 +102,7 @@ public class XR_Dummies_Sync : NetBehaviour
 
 
 
-        //SmashMulti.instance.dummyXR_Rigs.Add(this);
-        SmashMulti.addXRRig(this);
+        //SmashMulti.addXRRig(this);
 
 
         //NetworkObject no = XR_SyncedDummies.gameObject.AddComponent<NetworkObject>(); 

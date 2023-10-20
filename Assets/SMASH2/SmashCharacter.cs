@@ -193,15 +193,15 @@ public class SmashCharacter : NetworkBehaviour
         //if (IsOwner)
         //    pingServerRpc(Time.time);   // send to server
 
-        if (!alertedSmashMulti)
-        {
-            // Need to do these damn checks cause Players spawn several frames before the other scripts
-            if (SmashMulti.instance != null)
-            {
-                SmashMulti.characterSpawned(this);
-                alertedSmashMulti = true;
-            }
-        }
+        //if (!alertedSmashMulti)
+        //{
+        //    // Need to do these damn checks cause Players spawn several frames before the other scripts
+        //    if (SmashMulti.instance != null)
+        //    {
+        //        SmashMulti.characterSpawned(this);
+        //        alertedSmashMulti = true;
+        //    }
+        //}
 
 
 
