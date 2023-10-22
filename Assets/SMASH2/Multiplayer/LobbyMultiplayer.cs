@@ -300,7 +300,7 @@ public class LobbyMultiplayer : MonoBehaviour
     }
 
 
-
+    // TODO make it so only the server sends heartbeats
     // lobby heartbeats
     async Task HandleHeartbeatAsync()
     {

@@ -77,7 +77,10 @@ public class SmashMulti : NetworkBehaviour
         dummyXR_Rigs = new List<XR_Dummies_Sync>();
 
         print("OnNetworkSpawn. IsHost " + IsHost + " IsServer " + IsServer + " IsClient " + IsClient + " IsOwner " + IsOwner + " IsOwnedByServer " + IsOwnedByServer);
-        spawnPlayer();
+
+
+        //spawnPlayer();
+        GameObject c = Multi.netSpawnPrefab_ToServer(playerPrefab, true);
     }
 
 
@@ -116,52 +119,52 @@ public class SmashMulti : NetworkBehaviour
 
     //}
 
-    public void spawnPlayer()
-    {
-        GameObject c;
-        if (playerPrefab)
-            c = Instantiate(playerPrefab, transform.position, Quaternion.identity);
-        else
-        {
-            Debug.LogError("Player prefab is not assigned!"); return;
-        }
+    //public void spawnPlayer()
+    //{
+    //    GameObject c;
+    //    if (playerPrefab)
+    //        c = Instantiate(playerPrefab, transform.position, Quaternion.identity);
+    //    else
+    //    {
+    //        Debug.LogError("Player prefab is not assigned!"); return;
+    //    }
 
 
-        // Tell the server to replicate it to clients
-        // create SyncedProperties for each player variable/method, with unique IDs, then pass those IDs in order to other clients to spawn and sync theirs
+    //    //// Tell the server to replicate it to clients
+    //    //// create SyncedProperties for each player variable/method, with unique IDs, then pass those IDs in order to other clients to spawn and sync theirs
 
-        //make a string of IDs in order, and then pass those into a method to attach them to the player script variables, again in orde
-        List<int> paramIDs = new List<int>();
-        for (int i = 0; i < 3; i++)
-        {
-            paramIDs.Add(SyncedProperty.getUniqueIdentifier());
-        }
-        addSyncedParametersToPlayer(c, paramIDs);
-    }
+    //    ////make a string of IDs in order, and then pass those into a method to attach them to the player script variables, again in orde
+    //    //List<int> paramIDs = new List<int>();
+    //    //for (int i = 0; i < 3; i++)
+    //    //{
+    //    //    paramIDs.Add(SyncedProperty.getUniqueIdentifier());
+    //    //}
+    //    //addSyncedParametersToPlayer(c, paramIDs);
+    //}
 
-    /// <summary>
-    /// 
-    /// </summary>
-    /// <param name="c">top level Character gameobject</param>
-    /// <param name="paramIDs">SyncedProperty unique IDs, enough for every parameter</param>
-    public void addSyncedParametersToPlayer(GameObject c, List<int> paramIDs)
-    {
-        print("setting up character " + c);
-        myInputTests inputTests = c.GetComponentInChildren<myInputTests>();
-        SmashCharacter smashCharacter = c.GetComponentInChildren<SmashCharacter>(); 
-        XR_Dummies_Sync xrDummiesSync = c.GetComponentInChildren<XR_Dummies_Sync>();
-        FeetCollider feetCollider = c.GetComponentInChildren<FeetCollider>();
+    ///// <summary>
+    ///// 
+    ///// </summary>
+    ///// <param name="c">top level Character gameobject</param>
+    ///// <param name="paramIDs">SyncedProperty unique IDs, enough for every parameter</param>
+    //public void addSyncedParametersToPlayer(GameObject c, List<int> paramIDs)
+    //{
+    //    print("setting up character " + c);
+    //    myInputTests inputTests = c.GetComponentInChildren<myInputTests>();
+    //    SmashCharacter smashCharacter = c.GetComponentInChildren<SmashCharacter>(); 
+    //    XR_Dummies_Sync xrDummiesSync = c.GetComponentInChildren<XR_Dummies_Sync>();
+    //    FeetCollider feetCollider = c.GetComponentInChildren<FeetCollider>();
 
-        if (inputTests == null) Debug.LogError("MyInputTests is missing!");
-        if (smashCharacter == null) Debug.LogError("SmashCharacter is missing!");
-        if (xrDummiesSync == null) Debug.LogError("XR_Dummies_Sync is missing!");
-        if (feetCollider == null) Debug.LogError("FeetCollider is missing!");
+    //    if (inputTests == null) Debug.LogError("MyInputTests is missing!");
+    //    if (smashCharacter == null) Debug.LogError("SmashCharacter is missing!");
+    //    if (xrDummiesSync == null) Debug.LogError("XR_Dummies_Sync is missing!");
+    //    if (feetCollider == null) Debug.LogError("FeetCollider is missing!");
 
-        // link SyncedProperties to the player script variables, in order
-        new Multi.SyncedProperty(paramIDs[0], smashCharacter, smashCharacter.hands[0].thruster, smashCharacter.gameObject, clip, smashCharacter.IsOwner);
-        new Multi.SyncedProperty(paramIDs[1], smashCharacter, smashCharacter.hands[1].thruster, smashCharacter.gameObject, clip, smashCharacter.IsOwner);
-        new Multi.SyncedProperty(paramIDs[2], smashCharacter, smashCharacter.transform, smashCharacter.gameObject, clip, smashCharacter.IsOwner);
-    }
+    //    // link SyncedProperties to the player script variables, in order
+    //    new Multi.SyncedProperty(paramIDs[0], smashCharacter, smashCharacter.hands[0].thruster, smashCharacter.gameObject, clip, smashCharacter.IsOwner);
+    //    new Multi.SyncedProperty(paramIDs[1], smashCharacter, smashCharacter.hands[1].thruster, smashCharacter.gameObject, clip, smashCharacter.IsOwner);
+    //    new Multi.SyncedProperty(paramIDs[2], smashCharacter, smashCharacter.transform, smashCharacter.gameObject, clip, smashCharacter.IsOwner);
+    //}
 
 
     // pass spawn ID strings over the network in a list, for syncing the SyncedParamater IDs 
@@ -349,7 +352,7 @@ public class SmashMulti : NetworkBehaviour
 
     // TODO move to Multi.cs later
 
-    //public static void addSyncedProperty_Player(SmashCharacter c, object propertyOrField)
+    //public static void addSyncedProperty_Player(SmashCharacter c, object animatedComponent)
     public static void addSyncedProperty_Player(SmashCharacter c, string varName)
     {
         
@@ -390,7 +393,7 @@ public class SmashMulti : NetworkBehaviour
 
     public static void addSyncedObject(Transform obj, bool IsOwner)
     {
-        //instance.clip.addProperty(obj, obj.gameObject);
+        //instance.clip.addSyncedProperty(obj, obj.gameObject);
         // TODO
 
     }

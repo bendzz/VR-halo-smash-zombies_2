@@ -37,7 +37,10 @@ namespace Utilities {
         
         public abstract void Tick(float deltaTime);
     }
-    
+
+    /// <summary>
+    /// WARNING This class doesn't seem to work!
+    /// </summary>
     public class CountdownTimer : Timer {
         public CountdownTimer(float value) : base(value) { }
 

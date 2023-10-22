@@ -9,7 +9,8 @@ using UnityEngine.XR;
 using static myInputTests;
 
 //public class myInputTests : MonoBehaviour
-public class myInputTests : NetworkBehaviour
+//public class myInputTests : NetworkBehaviour
+public class myInputTests : NetBehaviour
 {
     //public InputDevice rightHand;
 
@@ -379,7 +380,7 @@ public class myInputTests : NetworkBehaviour
         //Vector3 vel = new Vector3(Input.GetAxis("Horizontal"), 0, Input.GetAxis("Vertical")) * runAccelerate;   // lets you use VR joystick, bad >_>
         // letter T pressed on keyboard
         Vector3 vel = new Vector3(Input.GetKey(KeyCode.A) ? -1 : Input.GetKey(KeyCode.D) ? 1 : 0, 0, Input.GetKey(KeyCode.S) ? -1 : Input.GetKey(KeyCode.W) ? 1 : 0) * runAccelerate;
-
+        //print("vev" + vel);
 
 
 

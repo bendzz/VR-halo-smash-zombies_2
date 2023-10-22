@@ -16,7 +16,8 @@ using UnityEngine;
 /// Script to control smash bros style gameplay stuff, and enemy visuals
 /// </summary>
 //public class myInputTests : MonoBehaviour
-public class SmashCharacter : NetworkBehaviour
+//public class SmashCharacter : NetworkBehaviour
+public class SmashCharacter : NetBehaviour
 {
     public Rigidbody body;
     public FeetCollider feetCollider;
@@ -108,6 +109,8 @@ public class SmashCharacter : NetworkBehaviour
         //infoCard.setDefaultFont();
     }
 
+    Multi.Entity entity;
+
     public override void OnNetworkSpawn()   // TODO haven't changed anything for networking yet...
     {
         if (!characters.Contains(this))
@@ -154,7 +157,22 @@ public class SmashCharacter : NetworkBehaviour
             playerName = LobbyMultiplayer.instance.PlayerName;
             PlayerId = LobbyMultiplayer.instance.PlayerId;
         }
-        // todo sync
+        print("SmashCharacter IsOwner " + IsOwner);
+
+
+        // set up SyncedParameters for all variables and synced function calls, in a fixed order
+        entity = new Multi.Entity();
+        entity.addToLocalEntities();
+
+        entity.setCurrents(this, gameObject, IsOwner);
+        entity.addSyncedProperty(transform);
+        entity.setCurrents(hands[0], gameObject, IsOwner);
+        entity.addSyncedProperty(hands[0].thruster);
+        entity.setCurrents(hands[1], gameObject, IsOwner);
+        entity.addSyncedProperty(hands[1].thruster);
+            
+            
+        body.isKinematic = false;   // why the hell is this suddenly getting set to true upon spawn? Bloody weird
     }
 
 
@@ -343,7 +361,7 @@ public class SmashCharacter : NetworkBehaviour
             handJetFlames = Instantiate(handJetParticles, transform).GetComponent<ParticleSystem>();
             handJetStartSize = handJetFlames.transform.localScale;
             handJetFlames.Stop();
-            print("thrusterSynced");
+            //print("thrusterSynced");
             //thrusterSynced = new NetworkVariable<float>(0f);
             //thrusterSynced.Value = 0f;
         }

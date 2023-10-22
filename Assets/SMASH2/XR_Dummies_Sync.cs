@@ -7,6 +7,7 @@ using UnityEngine;
 
 [Tooltip("multiplayer synced duplicates of the XR head/hands, for player prefab copies to use on each machine. Kept in sync with a an XR rig in the scene")]
 //public class XR_Dummies_Sync : NetworkBehaviour
+//public class XR_Dummies_Sync : NetBehaviour
 public class XR_Dummies_Sync : NetBehaviour
 {
     //public SO_MyMultiplayer so_MyMultiplayer;

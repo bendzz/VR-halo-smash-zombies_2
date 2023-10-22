@@ -345,7 +345,7 @@ public class Record : MonoBehaviour
 
 
         /// <summary>
-        /// (Used for Reflection based keyframes) The actual script component or transform or gameobject or whatever that the propertyOrField belongs to.
+        /// (Used for Reflection based keyframes) The actual script component or transform or gameobject or whatever that the animatedComponent belongs to.
         /// </summary>
         public object animatedComponent;
         /// <summary>
@@ -406,43 +406,55 @@ public class Record : MonoBehaviour
         /// For setting up Reflection based keyframes, like modifying variables using FieldInfo or PropertyInfo
         /// </summary>
         /// <param name="_gameObject">The base gameobject</param>
-        /// <param name="animatedObject">The actual script component that propertyOrField belongs to.</param>
+        /// <param name="animatedObject">The actual script component that animatedComponent belongs to.</param>
         /// <param name="propertyOrField">The specific value of the script/gameobject to be animated (will be grabbed via reflection)</param>
         /// <param name="_clip">parent clip</param>
         /// 
         public AnimatedProperty(object _animatedObject, object propertyOrField, GameObject _gameObject, Clip _clip)
         {
-            startConstructor(propertyOrField, _gameObject, _clip);
-
-            animatedComponent = _animatedObject;
-            animatedComponentString = animatedComponent.ToString();
-
-            obj = null;
-            foreach (PropertyInfo property in animatedComponent.GetType().GetProperties())
+            if (!(propertyOrField is Transform))
             {
-                try
+                startConstructor(propertyOrField, _gameObject, _clip);
+
+                animatedComponent = _animatedObject;
+                animatedComponentString = animatedComponent.ToString();
+
+                // get a ref to the property/field that got passed in
+                // TODO I think GPT 4 can find the obj without loops
+                obj = null;
+                foreach (PropertyInfo property in animatedComponent.GetType().GetProperties())
                 {
-                    if (propertyOrField.Equals(property.GetValue(animatedComponent)))
+                    try
                     {
-                        obj = property;
+                        //print("property " + property.ToString());
+                        if (propertyOrField.Equals(property.GetValue(animatedComponent)))
+                        {
+                            obj = property;
+                            break;
+                        }
+                    }
+                    catch (System.Exception e)
+                    { }
+                }
+                foreach (FieldInfo field in animatedComponent.GetType().GetFields())
+                {
+                    //print("field " + field.ToString());
+                    if (propertyOrField.Equals(field.GetValue(animatedComponent)))
+                    {
+                        obj = field;
                         break;
                     }
                 }
-                catch (System.Exception e)
-                { }
-            }
-            foreach (FieldInfo field in animatedComponent.GetType().GetFields())
-            {
-                if (propertyOrField.Equals(field.GetValue(animatedComponent)))
-                {
-                    obj = field;
-                    break;
-                }
-            }
-            if (obj == null)
-                Debug.LogError("Reflection failed");
+                if (obj == null)
+                    Debug.LogError("Reflection failed");
 
-            finishConstructor();
+                finishConstructor();
+            }
+            else
+            {
+                // temp, TODO do this right with a constructor here in AnimatedProperty later
+                _clip.addProperty(propertyOrField, _gameObject);
+            }
         }
 
         /// <summary>
@@ -1336,7 +1348,7 @@ public class Record : MonoBehaviour
         //foreach (Ghost ghost in ghosts)
         //{
         //    // TODO these gameobject refs seem redundant..?
-        //    newClip.addProperty(ghost.transform, ghost.gameObject);
+        //    newClip.addSyncedProperty(ghost.transform, ghost.gameObject);
         //    new AnimatedProperty(ghost, ghost.direction, ghost.gameObject, newClip);
         //    new AnimatedProperty(ghost, ghost.state, ghost.gameObject, newClip);
         //    new AnimatedProperty(ghost, ghost.target, ghost.gameObject, newClip);
