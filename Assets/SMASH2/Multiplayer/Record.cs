@@ -820,6 +820,7 @@ public class Record : MonoBehaviour
 
         public override void playBack(float lerpForward, FrameData nextFrame)
         {
+            // TODO looks like there's no actual lerping atm..?     -2023 multiplayer notes
             Transform obj = (Transform)property.obj;
 
             Vector3 nPos = ((TransformFrame)nextFrame).lPos;

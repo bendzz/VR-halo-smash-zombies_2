@@ -16,6 +16,9 @@ using UnityEngine;
 /// </summary>
 public class Multi : NetworkBehaviour
 {
+    [Tooltip("If enabled, prepare for a bajillion old print statements")]
+    public bool debug = false;
+
     public static Multi instance;
 
     /// <summary>
@@ -90,7 +93,8 @@ public class Multi : NetworkBehaviour
 
             foreach(KeyValuePair<int, GameObject> prefabInstance in syncedPrefabs)
             {
-                print("Sending prefab " + prefabInstance.Value.name + ", ID " + prefabInstance.Key);
+                if (debug)
+                    print("Sending prefab " + prefabInstance.Value.name + ", ID " + prefabInstance.Key);
                 //if (prefabInstance.Value.GetComponentInChildren<SmashCharacter>())
                 //    print("is smashCharacter for " + prefabInstance.Value.GetComponentInChildren<SmashCharacter>().playerName); // debug
                 sendExistingPrefab(clientId, prefabInstance.Value, prefabInstance.Key);
@@ -112,7 +116,8 @@ public class Multi : NetworkBehaviour
         List<Multi.Entity> prefabEntities = getAllEntitysInPrefab(Go);
         if (prefabEntities[0].ownerClientID == newClientId)
         {
-            Debug.Log(Go.name + ", key "+ GoKey + " has ownerClientID#" + prefabEntities[0].ownerClientID + ", same as newClientId " + newClientId + ". Prefab " +
+            if (instance.debug)
+                Debug.Log(Go.name + ", key "+ GoKey + " has ownerClientID#" + prefabEntities[0].ownerClientID + ", same as newClientId " + newClientId + ". Prefab " +
                 "probably already exists over there, aborting send");
             return;
         }
@@ -148,7 +153,8 @@ public class Multi : NetworkBehaviour
             {
                 //entity.PropertyIDs.Add(SyncedProperty.getUniqueIdentifier());   // (The whole point of all this entity bullshit tbh)
                 entity.PropertyIDs.Add(entity.properties[p].identifier);   // (The whole point of all this entity bullshit tbh)
-                print(p + " " + entity.PropertyIDs[p]);
+                if (instance.debug)
+                    print(p + " " + entity.PropertyIDs[p]);
 
             }
             // assign entity back to list?
@@ -220,17 +226,18 @@ public class Multi : NetworkBehaviour
 
     private void LateUpdate()
     {
-        
 
-        //if (SyncedProperty.SyncedProperties == null)
-        //    return;
-        //// Add sync calls scripts can use. (syncProperty(ref variable or method) etc)
-        //foreach (SyncedProperty prop in SyncedProperty.SyncedProperties.Values)
-        //{
-        //    print("prop " + prop.identifier + " isOwner " + prop.IsOwner + " value " + prop.getCurrentValue());
-        //    if (prop.IsOwner)
-        //        prop.sync();
-        //}
+
+        if (SyncedProperty.SyncedProperties == null)
+            return;
+        // Add sync calls scripts can use. (syncProperty(ref variable or method) etc)
+        foreach (SyncedProperty prop in SyncedProperty.SyncedProperties.Values)
+        {
+            if (debug)
+                print("prop " + prop.identifier + " isOwner " + prop.IsOwner + " value " + prop.getCurrentValue());
+            if (prop.IsOwner)
+                prop.sync();
+        }
     }
 
 
@@ -291,7 +298,8 @@ public class Multi : NetworkBehaviour
 
         var clientId = NetworkManager.Singleton.LocalClientId;
 
-        print("Spawning Client (ID: " + clientId + "): netSpawnPrefab_ToServer complete for: " + prefab.name + 
+        if (instance.debug)
+            print("Spawning Client (ID: " + clientId + "): netSpawnPrefab_ToServer complete for: " + prefab.name + 
             ", sent " + prefabEntities.Count + " entity to the server for global IDs");
 
         //instance.netSpawnPrefab_ServerRpc(serverPrefabEntities);
@@ -334,7 +342,8 @@ public class Multi : NetworkBehaviour
 
         List<Multi.Entity> prefabEntities = (List<Multi.Entity>)data.GetData();
 
-        print("Server: " + clientId + " pinged the server with " + prefabEntities.Count + " entities for syncing.");
+        if (debug)
+            print("Server: " + clientId + " pinged the server with " + prefabEntities.Count + " entities for syncing.");
 
 
         int uniquePrefabID = getSyncedPrefabID();
@@ -347,7 +356,8 @@ public class Multi : NetworkBehaviour
         // -send the info back to all clients
         foreach (var entity in prefabEntities)
         {
-            print("Entity found, has " + entity.propertiesCount + " properties, local_entityID " + entity.local_entityID);
+            if (debug)
+                print("Entity found, has " + entity.propertiesCount + " properties, local_entityID " + entity.local_entityID);
             entity.syncedPrefabId = uniquePrefabID;
             
             entity.serverEntityId = Entity.getUniqueServerIdentifier();
@@ -360,7 +370,8 @@ public class Multi : NetworkBehaviour
             for (int p = 0; p < entity.propertiesCount; p++)
             {
                 entity.PropertyIDs.Add(SyncedProperty.getUniqueIdentifier());   // (The whole point of all this entity bullshit tbh)
-                print(p + " " + entity.PropertyIDs[p]);
+                if (debug)
+                    print(p + " " + entity.PropertyIDs[p]);
             }
             // assign entity back to list?
         }
@@ -420,7 +431,8 @@ public class Multi : NetworkBehaviour
         // TODO originalSender is broken! 0!
 
         List<Multi.Entity> serverPrefabEntities = (List<Multi.Entity>)data.GetData();
-        print("entities received " + serverPrefabEntities.Count);
+        if (debug)
+            print("entities received " + serverPrefabEntities.Count);
 
         int syncedPrefabId = -1;
         GameObject c;
@@ -433,30 +445,34 @@ public class Multi : NetworkBehaviour
 
             // give entities their global IDs
             List<Multi.Entity> localPrefabEntities = getAllEntitysInPrefab(c);
-            print("localPrefabEntities.Count " + localPrefabEntities.Count);
+            if (debug)
+                print("localPrefabEntities.Count " + localPrefabEntities.Count);
             if (localPrefabEntities.Count != serverPrefabEntities.Count)
-                Debug.LogError("localPrefabEntities.Count != prefabEntities.Count. (Should be impossible? Hacking?)");
+                Debug.LogError("localPrefabEntities.Count != prefabEntities.Count. (Should be impossible? Hacking?). Values: localPrefabEntities.Count "
+                    + localPrefabEntities.Count + " serverPrefabEntities.Count " + serverPrefabEntities.Count);
 
             for (int i = 0; i < localPrefabEntities.Count; i++) // just counting on this getting the entities in the same order every time tbh
             {
                 Entity localEnt = localPrefabEntities[i];
                 Entity serverEnt = serverPrefabEntities[i];
 
-                // TODO pull all this out into a function
+                // TODO pull all this out into a function, it's duplicated with below
                 localEnt.serverEntityId = serverEnt.serverEntityId;
                 localEnt.syncedPrefabId = serverEnt.syncedPrefabId;
                 localEnt.ownerClientID = serverEnt.ownerClientID;
                 syncedPrefabId = serverEnt.syncedPrefabId;
                 localEnt.originalPrefabRef = prefab;
 
-                // todo debug.logerror if different
-                print("i " + i + ": localEnt.propertiesCount" + localEnt.properties.Count + " serverEnt.PropertyIDs.Count " + serverEnt.PropertyIDs.Count);
+                if (localEnt.properties.Count != serverEnt.PropertyIDs.Count)
+                    Debug.LogError("Different property counts for entity " + i + "! localEnt.propertiesCount" + localEnt.properties.Count + " serverEnt.PropertyIDs.Count " + serverEnt.PropertyIDs.Count);
+                
                 for (int p = 0; p < localEnt.properties.Count; p++)
                 {
                     //SyncedProperty localProp = SyncedProperty.SyncedProperties[i];
                     SyncedProperty localProp = localEnt.properties[p];
                     localProp.identifier = serverEnt.PropertyIDs[p];  // all that work for this ONE LITTLE value...
-                    print("localProp.identifier " + localProp.identifier);
+                    if (debug)
+                        print("localProp.identifier " + localProp.identifier);
                     SyncedProperty.SyncedProperties.Add(localProp.identifier, localProp);   // they're not actually in the list until they have synced IDs
                 }
             }
@@ -465,6 +481,7 @@ public class Multi : NetworkBehaviour
         {
             int localPrefabID = serverPrefabEntities[0].localPrefabId;    // find original spawned prefab
             c = localPrefabs[localPrefabID];
+            
             print("prefab " + c.name + " FOUND on original client, SyncedPrefabID " + serverPrefabEntities[0].syncedPrefabId);
 
             // connect to original entities, transfer server IDs
@@ -477,12 +494,16 @@ public class Multi : NetworkBehaviour
                 syncedPrefabId = serverEnt.syncedPrefabId;
                 localEnt.originalPrefabRef = prefabIds_GOs[prefabString];
 
+                if (localEnt.properties.Count != serverEnt.PropertyIDs.Count)
+                    Debug.LogError("Different property counts for entity (unknown)! localEnt.propertiesCount" + localEnt.properties.Count + " serverEnt.PropertyIDs.Count " + serverEnt.PropertyIDs.Count);
+
                 for (int i = 0; i < serverEnt.propertiesCount; i++)
                 {
                     //SyncedProperty localProp = SyncedProperty.SyncedProperties[i];
                     SyncedProperty localProp = localEnt.properties[i];
                     localProp.identifier = serverEnt.PropertyIDs[i];  // all that work for this ONE LITTLE value...
-                    print("localProp.identifier " + localProp.identifier);
+                    if (debug)
+                        print("localProp.identifier " + localProp.identifier);
                     SyncedProperty.SyncedProperties.Add(localProp.identifier, localProp);
                 }
             }
@@ -491,6 +512,7 @@ public class Multi : NetworkBehaviour
         //if (IsServer)
         //{
             syncedPrefabs.Add(syncedPrefabId, c);
+        if (debug)
             print("added syncedPrefab to list: " + syncedPrefabId + ", " + c.name);
         //}
 
@@ -511,7 +533,8 @@ public class Multi : NetworkBehaviour
         //}
 
         //asdasda
-        print("Server pinged client " + thisClientId + " (originally from client " + originalSender + ") with " + data.GetData().ToString());
+        if (debug)
+            print("Server pinged client " + thisClientId + " (originally from client " + originalSender + ") with " + data.GetData().ToString());
     }
 
 
@@ -529,7 +552,8 @@ public class Multi : NetworkBehaviour
         NetBehaviour[] allNetworkBehaviours = prefabToSearch.GetComponentsInChildren<NetBehaviour>();
         List<NetBehaviour> foundNetworkBehaviours = new List<NetBehaviour>(allNetworkBehaviours);
 
-        Debug.Log($"Found {foundNetworkBehaviours.Count} scripts inheriting from NetworkBehaviour in the prefab.");
+        if (instance.debug)
+            Debug.Log($"Found {foundNetworkBehaviours.Count} scripts inheriting from NetworkBehaviour in the prefab.");
         return foundNetworkBehaviours;
     }
 
@@ -564,7 +588,8 @@ public class Multi : NetworkBehaviour
             }
         }
 
-        Debug.Log($"Found {foundEntities.Count} instances of Multi.Entity in the prefab: " + prefabToSearch.name);
+        if (instance.debug)
+            Debug.Log($"Found {foundEntities.Count} instances of Multi.Entity in the prefab: " + prefabToSearch.name);
 
         return foundEntities;
     }
@@ -876,7 +901,9 @@ public class Multi : NetworkBehaviour
         //print(clientId + " pinged the server with " + data.ToString());
         //print(clientId + " pinged the server with " + data.ToString() + " data " + data.GetData().ToString());
         //print(clientId + " pinged the server with " + data.getCurrentValue().ToString());
-        print(clientId + " pinged the server with " + data.GetData().ToString());
+
+        if (debug)
+            print(clientId + " pinged the server with " + data.GetData().ToString());
 
 
         syncParam_ClientRpc(identifier, data, clientId);  // send to all clients
@@ -888,15 +915,30 @@ public class Multi : NetworkBehaviour
     //public void syncParam_ClientRpc(SyncedProperty data, ulong originalSender, ClientRpcParams pars = default)
     {
         var thisClientId = NetworkManager.Singleton.LocalClientId;
-        
-        SyncedProperty localProp = SyncedProperty.SyncedProperties[identifier];
+
+        if (originalSender == thisClientId)
+        {
+            if (debug)
+                print("syncParam received from self; ignoring");
+            return;
+        }
+
+        // won't be able to sync if the host hasn't sent back a property ID yet
+        SyncedProperty localProp;
+        if (SyncedProperty.SyncedProperties.ContainsKey(identifier))    // TODO should make keep some counter of the number of misses each frame
+        {
+            localProp = SyncedProperty.SyncedProperties[identifier];
+        }
+        else
+            return;
 
         localProp.netData = data;   // idk if this helps
         localProp.setCurrentValue(data.GetData());
-        
-        
+
+
         //print("Server pinged client " + thisClientId + " (originally from client " + originalSender + ") with " + data.getCurrentValue().ToString());
-        print("Server pinged client " + thisClientId + " (originally from client " + originalSender + ") with " + data.GetData().ToString());
+        if (debug)
+            print("Server pinged client " + thisClientId + " (originally from client " + originalSender + ") with " + data.GetData().ToString());
     }
 
 
@@ -1079,7 +1121,16 @@ public class Multi : NetworkBehaviour
             // TODO transforms?
             else if (obj is Transform)
             {
-                print("transform!");
+                Transform tf = (Transform)obj;
+
+                tf.position = ((Transform)data).position;
+                tf.rotation = ((Transform)data).rotation;
+                tf.localScale = ((Transform)data).localScale;
+
+                if (instance.debug)
+                    print("transform! Local " + ((Transform)obj).position +" "+ ((Transform)obj).rotation);
+                if (instance.debug)
+                    print("transform! DATA " + ((Transform)data).position +" "+ ((Transform)data).rotation);
             } else
             {
                 Debug.LogError("unknown type");
@@ -1400,21 +1451,6 @@ public class Multi : NetworkBehaviour
 
 
 
-
-
-//// TODO, use?
-///// <summary>
-///// Wrapper for NetworkBehaviour. Gives an isSimulating flag compatible with multiplayer and recording/playback.
-///// Be sure to register your gameobjects with your game's multiplayer singleton!
-//public abstract class NetBehaviour : NetworkBehaviour
-//{
-//    /// <summary>
-//    /// Whether to run game logic, or just let the multiplayer or recording-playback system control this intance
-//    /// </summary>
-//    public bool isSimulating {  get; }
-
-
-//}
 
 
 /// <summary>
