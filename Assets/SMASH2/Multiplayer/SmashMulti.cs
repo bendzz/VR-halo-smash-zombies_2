@@ -81,6 +81,9 @@ public class SmashMulti : NetworkBehaviour
 
         //spawnPlayer();
         GameObject c = Multi.netSpawnPrefab_ToServer(playerPrefab, true);
+
+
+
     }
 
 
@@ -365,7 +368,7 @@ public class SmashMulti : NetworkBehaviour
         var clientId = pars.Receive.SenderClientId;
         print(clientId + " pinged the server with " + data.GetData().ToString());
 
-        //pingClientRpc(data, clientId);  // send to all clients
+        //syncParam_ClientRpc(data, clientId);  // send to all clients
 
 
     }

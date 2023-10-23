@@ -19,6 +19,15 @@ public class Multi : NetworkBehaviour
     public static Multi instance;
 
     /// <summary>
+    /// Unique strings for every prefab in the project (when it was last run in editor anyway), for spawning them across the network
+    /// </summary>
+    public static Dictionary<string, GameObject> prefabIds_GOs;
+    /// <summary>
+    /// Opposite direction dictionary, for finding the string ID of a given prefab
+    /// </summary>
+    public static Dictionary<GameObject, string> prefabIds_Strings;
+
+    /// <summary>
     /// All prefab instances that have server IDs (ie the same on all clients)
     /// </summary>
     public Dictionary<int,GameObject> syncedPrefabs { get; private set; }
@@ -49,6 +58,13 @@ public class Multi : NetworkBehaviour
         clip = new Record.Clip("SmashClip " + UnityEngine.Random.value * 1000);
 
         syncedPrefabs = new Dictionary<int, GameObject>();
+
+        prefabIds_GOs = PrefabDictionaryUpdater.createDictionary_S_to_GO();
+        prefabIds_Strings = PrefabDictionaryUpdater.createDictionary_GO_to_S();
+        //foreach (KeyValuePair<string, GameObject> kvp in prefabIds_GOs)
+        //{
+        //    print("prefab string: " + kvp.Key + ", GameObject: " + kvp.Value);
+        //}
     }
 
 
@@ -75,6 +91,10 @@ public class Multi : NetworkBehaviour
 
 
 
+    
+
+    // SPAWNING:
+
     // netspawnprefab
     // - finds all entities and tags then with a global prefab code
     // - tells the server to tell all clients to spawn the prefab
@@ -92,19 +112,23 @@ public class Multi : NetworkBehaviour
         else
             Debug.LogError("Prefab is not assigned!");
 
+        string prefabString = prefabIds_Strings[prefab];
+        //print("prefab string: " + prefabString);
+
         //if (instance.IsServer)
         //{
         //    instance.syncedPrefabs.Add(0, c);
         //}
 
         // setup netbehaviours
-        List<NetBehaviour> netBehaviours = GetAllNetBehavioursInPrefab(c);
-        foreach (var netBehaviour in netBehaviours)
-        {
-            netBehaviour.OnNetworkSpawn();
-            netBehaviour.IsOwner = IsOwner;
-            netBehaviour.IsServer = instance.IsServer;
-        }
+        //List<NetBehaviour> netBehaviours = GetAllNetBehavioursInPrefab(c);
+        //foreach (var netBehaviour in netBehaviours)
+        //{
+        //    netBehaviour.OnNetworkSpawn();
+        //    netBehaviour.IsOwner = IsOwner;
+        //    netBehaviour.IsServer = instance.IsServer;
+        //}
+        setupNetBehaviours(c, IsOwner);
 
         // give entities temp local-client codes, before the server gives them real ones
         List<Multi.Entity> prefabEntities = getAllEntitysInPrefab(c);
@@ -122,15 +146,28 @@ public class Multi : NetworkBehaviour
         print("Spawning Client (ID: " + clientId + "): netSpawnPrefab_ToServer complete for: " + prefab.name + 
             ", sent " + prefabEntities.Count + " entity to the server for global IDs");
 
-        //instance.netSpawnPrefab_ServerRpc(prefabEntities);
+        //instance.netSpawnPrefab_ServerRpc(serverPrefabEntities);
         NetData data = new NetData(prefabEntities);
-        instance.netSpawnPrefab_ServerRpc(data);    // one call per prefab, not per entity
+        instance.netSpawnPrefab_ServerRpc(prefabString, data);    // one call per prefab, not per entity
 
         return c;
     }
 
-
-
+    /// <summary>
+    /// run on just-spawned prefab instances, to trigger stuff like OnNetworkSpawn()
+    /// </summary>
+    /// <param name="c"></param>
+    /// <param name="IsOwner"></param>
+    static void setupNetBehaviours(GameObject c, bool IsOwner)
+    {
+        List<NetBehaviour> netBehaviours = GetAllNetBehavioursInPrefab(c);
+        foreach (var netBehaviour in netBehaviours)
+        {
+            netBehaviour.OnNetworkSpawn();
+            netBehaviour.IsOwner = IsOwner;
+            netBehaviour.IsServer = instance.IsServer;
+        }
+    }
 
 
 
@@ -141,7 +178,7 @@ public class Multi : NetworkBehaviour
     /// <param name="data"></param>
     /// <param name="pars"></param>
     [ServerRpc(RequireOwnership = false)]   // Note: This singleton class always runs as !IsOwner on non server clients, for some reason.
-    void netSpawnPrefab_ServerRpc(NetData data, ServerRpcParams pars = default)
+    void netSpawnPrefab_ServerRpc(string prefabString, NetData data, ServerRpcParams pars = default)
     {
         ulong clientId = pars.Receive.SenderClientId;
 
@@ -182,7 +219,7 @@ public class Multi : NetworkBehaviour
         data.setData(prefabEntities);
 
         //netSpawnPrefab_ClientRpc(data, clientId);  // send to all clients
-        netSpawnPrefab_ClientRpc(clientId, data);  // send to all clients
+        netSpawnPrefab_ClientRpc(prefabString, clientId, data);  // send to all clients
     }
 
     /// <summary>
@@ -226,29 +263,85 @@ public class Multi : NetworkBehaviour
     /// <param name="originalSender"></param>
     /// <param name="pars"></param>
     [ClientRpc]
-    public void netSpawnPrefab_ClientRpc(ulong originalSender, NetData data, ClientRpcParams pars = default)
+    public void netSpawnPrefab_ClientRpc(string prefabString, ulong originalSender, NetData data, ClientRpcParams pars = default)
     {
+        
         // WARNING the datastream seems to be getting corrupted after the NetData?? TODO
         var thisClientId = NetworkManager.Singleton.LocalClientId;
         // TODO originalSender is broken! 0!
 
-        List<Multi.Entity> prefabEntities = (List<Multi.Entity>)data.GetData();
-        print("entities received " + prefabEntities.Count);
-        foreach(Multi.Entity entity in prefabEntities)
+        List<Multi.Entity> serverPrefabEntities = (List<Multi.Entity>)data.GetData();
+        print("entities received " + serverPrefabEntities.Count);
+
+        GameObject c;
+        if (thisClientId != originalSender) // spawn prefab on other clients
         {
-            // print all entity data
-            print("Entity found, syncedPrefabId ID " + entity.syncedPrefabId + " localPrefabId " + entity.localPrefabId + ", has " +
-                entity.propertiesCount + " properties, local_entityID " + entity.local_entityID + " serverEntityId " + entity.serverEntityId +
-                "");
-            foreach(int propertyID in entity.PropertyIDs)
+            GameObject prefab = prefabIds_GOs[prefabString];
+            c = Instantiate(prefab, Vector3.zero, Quaternion.identity);
+            setupNetBehaviours(c, false);
+            print("prefab " + c.name + " SPAWNED on this client)");
+
+            // give entities their global IDs
+            List<Multi.Entity> localPrefabEntities = getAllEntitysInPrefab(c);
+            if (localPrefabEntities.Count != serverPrefabEntities.Count)
+                Debug.LogError("localPrefabEntities.Count != prefabEntities.Count. (Should be impossible? Hacking?)");
+
+            for (int i = 0; i < localPrefabEntities.Count; i++) // just counting on this getting the entities in the same order every time tbh
             {
-                print("propertyID " + propertyID);
+                Entity localEnt = localPrefabEntities[i];
+                Entity serverEnt = serverPrefabEntities[i];
+
+                // TODO pull all this out into a function
+                localEnt.serverEntityId = serverEnt.serverEntityId;
+                localEnt.syncedPrefabId = serverEnt.syncedPrefabId;
+
+                for (int p = 0; p < localEnt.propertiesCount; p++)
+                {
+                    //SyncedProperty localProp = SyncedProperty.SyncedProperties[i];
+                    SyncedProperty localProp = localEnt.properties[p];
+                    localProp.identifier = serverEnt.PropertyIDs[p];  // all that work for this ONE LITTLE value...
+                }
+            }
+
+        } else
+        {
+            int localPrefabID = serverPrefabEntities[0].localPrefabId;    // find original spawned prefab
+            c = localPrefabs[localPrefabID];
+            print("prefab " + c.name + " FOUND on original client)");
+
+            // connect to original entities, transfer server IDs
+            foreach (Multi.Entity serverEnt in serverPrefabEntities)
+            {
+                Entity localEnt = Entity.localEntities[serverEnt.local_entityID];
+                localEnt.serverEntityId = serverEnt.serverEntityId;
+                localEnt.syncedPrefabId = serverEnt.syncedPrefabId;
+
+                for(int i = 0; i < serverEnt.propertiesCount; i++)
+                {
+                    //SyncedProperty localProp = SyncedProperty.SyncedProperties[i];
+                    SyncedProperty localProp = localEnt.properties[i];
+                    localProp.identifier = serverEnt.PropertyIDs[i];  // all that work for this ONE LITTLE value...
+                }
             }
         }
 
+        //getAllEntitysInPrefab
+
+
+        //foreach (Multi.Entity entity in serverPrefabEntities) // debug
+        //{
+        //    print("Entity found, syncedPrefabId ID " + entity.syncedPrefabId + " localPrefabId " + entity.localPrefabId + ", has " +
+        //        entity.propertiesCount + " properties, local_entityID " + entity.local_entityID + " serverEntityId " + entity.serverEntityId +
+        //        "");
+        //    foreach(int propertyID in entity.PropertyIDs)
+        //    {
+        //        print("propertyID " + propertyID);
+        //    }
+        //}
+
+        //asdasda
         print("Server pinged client " + thisClientId + " (originally from client " + originalSender + ") with " + data.GetData().ToString());
     }
-
 
 
 
@@ -300,8 +393,8 @@ public class Multi : NetworkBehaviour
             }
         }
 
-        //// Set the prefabID for each found Multi.Entity
-        //foreach (var entity in prefabEntities)
+        //// Set the prefabString for each found Multi.Entity
+        //foreach (var entity in serverPrefabEntities)
         //{
         //    entity.syncedPrefabId = 11;   // TODO
         //}
@@ -575,41 +668,49 @@ public class Multi : NetworkBehaviour
 
 
 
-
+    // SYNCING:
 
 
 
     /// <summary>
     /// Because you can't do network RPCs in classes that don't fucking inherit from NetworkBehaviour, and those are hard/expensive to spawn
     /// </summary>
-    /// <param name="prop"></param>
-    public static void syncSyncedProperty(NetData prop)
+    /// <param name="value"></param>
+    public static void syncSyncedProperty(int identifier, NetData value)
     {
-        instance.pingServerRpc(prop);
+        instance.syncParam_ServerRpc(identifier, value);
     }
     //[ServerRpc]
     [ServerRpc(RequireOwnership = false)]   // Note: This singleton class always runs as !IsOwner on non server clients, for some reason.
-    public void pingServerRpc(NetData data, ServerRpcParams pars = default)
-    //public void pingServerRpc(SyncedProperty data, ServerRpcParams pars = default)
+    public void syncParam_ServerRpc(int identifier, NetData data, ServerRpcParams pars = default)
+    //public void syncParam_ServerRpc(SyncedProperty data, ServerRpcParams pars = default)
     {
         //data.setDataType(42.GetType());
         var clientId = pars.Receive.SenderClientId;
         //print(clientId + " pinged the server with " + data.ToString());
         //print(clientId + " pinged the server with " + data.ToString() + " data " + data.GetData().ToString());
-        print(clientId + " pinged the server with " + data.GetData().ToString());
         //print(clientId + " pinged the server with " + data.getCurrentValue().ToString());
+        //print(clientId + " pinged the server with " + data.GetData().ToString());
 
-        pingClientRpc(data, clientId);  // send to all clients
+
+        syncParam_ClientRpc(identifier, data, clientId);  // send to all clients
     }
 
 
     [ClientRpc]
-    public void pingClientRpc(NetData data, ulong originalSender, ClientRpcParams pars = default)
-    //public void pingClientRpc(SyncedProperty data, ulong originalSender, ClientRpcParams pars = default)
+    public void syncParam_ClientRpc(int identifier, NetData data, ulong originalSender, ClientRpcParams pars = default)
+    //public void syncParam_ClientRpc(SyncedProperty data, ulong originalSender, ClientRpcParams pars = default)
     {
         var thisClientId = NetworkManager.Singleton.LocalClientId;
-        print("Server pinged client " + thisClientId + " (originally from client " + originalSender + ") with " + data.GetData().ToString());
+        
+        SyncedProperty localProp = SyncedProperty.SyncedProperties[identifier];
+
+        localProp.netData = data;   // idk if this helps
+        localProp.setCurrentValue(data.GetData());
+        
+        
         //print("Server pinged client " + thisClientId + " (originally from client " + originalSender + ") with " + data.getCurrentValue().ToString());
+        print("Server pinged client " + thisClientId + " (originally from client " + originalSender + ") with " + data.GetData().ToString());
     }
 
 
@@ -737,7 +838,7 @@ public class Multi : NetworkBehaviour
                 netData.setData(getCurrentValue());
 
             //SmashMulti.syncSyncedProperty(netData);
-            Multi.syncSyncedProperty(netData);
+            Multi.syncSyncedProperty(identifier, netData);
 
         }
 
@@ -781,6 +882,10 @@ public class Multi : NetworkBehaviour
                 ((PropertyInfo)obj).SetValue(animatedComponent, data);
             }
             // TODO transforms?
+            else if (obj is Transform)
+            {
+                print("transform!");
+            }
         }
 
 
