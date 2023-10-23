@@ -61,9 +61,7 @@ public class SmashMulti : NetworkBehaviour
             Debug.LogError("More than one SmashMulti in scene");
         instance = this;
 
-        //NetworkManager.Singleton.OnServerStarted += HandleServerStarted;  // doesn't work
-        NetworkManager.Singleton.OnClientConnectedCallback += OnClientConnectedCallback;
-        NetworkManager.Singleton.OnClientDisconnectCallback += OnClientDisconnectCallback;
+
     }
 
     public override void OnNetworkSpawn()
@@ -79,42 +77,18 @@ public class SmashMulti : NetworkBehaviour
         print("OnNetworkSpawn. IsHost " + IsHost + " IsServer " + IsServer + " IsClient " + IsClient + " IsOwner " + IsOwner + " IsOwnedByServer " + IsOwnedByServer);
 
 
+
+
+
         //spawnPlayer();
-        GameObject c = Multi.netSpawnPrefab_ToServer(playerPrefab, true);
+        GameObject c = Multi.netSpawnPrefab_ToServer(playerPrefab, true, NetworkManager.Singleton.LocalClientId);
 
 
 
     }
 
 
-    //private void HandleServerStarted()
-    //{
-    //    print("HandleServerStarted");
-    //    // This will be called when the host starts the game (server-side logic)
-    //    if (NetworkManager.Singleton.IsHost)
-    //    {
-    //        //SpawnPlayer();
-    //        print("Host started game, spawning player");
-    //    }
-    //}
 
-    private void OnClientConnectedCallback(ulong clientId)
-    {
-        // https://docs-multiplayer.unity3d.com/netcode/current/components/networkmanager/
-        Debug.Log($"Player with ClientId {clientId} connected!");
-
-        // If you want to spawn a player object only on the server when a client connects:
-        if (NetworkManager.Singleton.IsServer)
-        {
-            // Your player spawning logic here
-        }
-    }
-
-    //private void OnPlayerDisconnected(ulong clientId)
-    private void OnClientDisconnectCallback(ulong clientId)
-    {
-        Debug.Log($"Player with ClientId {clientId} disconnected!");
-    }
 
 
     //public void playerJoined(ulong clientId)

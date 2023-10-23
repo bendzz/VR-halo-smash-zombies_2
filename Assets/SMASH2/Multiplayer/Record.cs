@@ -366,6 +366,7 @@ public class Record : MonoBehaviour
 
         //public AnimatedProperty(object _property, System.Type _FrameType)
         /// <summary>
+        /// ONLY FOR TRANSFORMS ATM! (TODO)
         /// TODO does this one not fucking work at all?? Delete? (Kept throwing errors about "This is type single.float or single.bool, not a fieldinfo" etc in the factory step)
         /// </summary>
         /// <param name="_obj">The property to be animated</param>
@@ -453,7 +454,11 @@ public class Record : MonoBehaviour
             else
             {
                 // temp, TODO do this right with a constructor here in AnimatedProperty later
-                _clip.addProperty(propertyOrField, _gameObject);
+                //_clip.addProperty(propertyOrField, _gameObject);
+
+                // for transforms; keep it simple, just save a ref to the transform, no Reflection
+                startConstructor(propertyOrField, _gameObject, _clip);
+                finishConstructor();
             }
         }
 

@@ -156,6 +156,7 @@ public class SmashCharacter : NetBehaviour
         {
             playerName = LobbyMultiplayer.instance.PlayerName;
             PlayerId = LobbyMultiplayer.instance.PlayerId;
+            transform.parent.name = "Player:" + playerName;
         }
         print("SmashCharacter IsOwner " + IsOwner);
 
@@ -221,7 +222,7 @@ public class SmashCharacter : NetBehaviour
         //    }
         //}
 
-
+        transform.parent.name = "Player:" + playerName;
 
         if (damage != oldDamage)
         {
