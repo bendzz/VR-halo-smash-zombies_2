@@ -62,8 +62,8 @@ public class SmashCharacter : NetBehaviour
 
     InfoCard infoCard;
 
-
-
+    // multiplayer use
+    public Multi.SyncedProperty applyDamageSynced;  
 
 
 
@@ -169,6 +169,12 @@ public class SmashCharacter : NetBehaviour
         entity.addSyncedProperty(head.transform);
         entity.addSyncedProperty(playerName);
         entity.addSyncedProperty(damage);
+
+        //object[] parameters = { 42.2f, Vector3.zero };
+        //applyDamageSynced = entity.addSyncedMethodCall("applyDamage", parameters);
+
+        //applyDamage(float Damage, Vector3 throwBack)
+        applyDamageSynced = entity.addSyncedMethodCall("applyDamage", new object[] {42.2f, Vector3.zero});
 
         entity.setCurrents(body, gameObject, IsOwner);  // rigidbody
         entity.addSyncedProperty(body.velocity);
@@ -306,7 +312,8 @@ public class SmashCharacter : NetBehaviour
                         //enemy.damage += damageInstant;  // why does this not throw an error??
 
 
-                        enemy.applyDamage(damageInstant, hand.transform.position);
+                        enemy.applyDamageHit(damageInstant, hand.transform.position);
+                        //enemy.applyDamageSynced.callMethod(new object[] { damageInstant, hand.transform.position });    // calls it on our copy of the enemy, which syncs it across the network
 
 
                         //print("angleOffset: " + angleOffset + " angleScale: " + angleScale + " distanceScale: " + distanceScale + " hand.thruster " + hand.thruster + " flameMaxDamage " + flameMaxDamage + " damage: " + damage );
@@ -340,14 +347,36 @@ public class SmashCharacter : NetBehaviour
     /// apply damage with character throwback. (TODO, pausing upon punch)
     /// </summary>
     /// <param name="Damage"></param>
-    public void applyDamage(float Damage, Vector3 source)
+    public void applyDamageHit(float Damage, Vector3 source)
     {
+        //print("Damage applied: " + Damage + " from distance " + (transform.position - source).ToString());
         //Vector3 throwback = (transform.position - source).normalized * (damage + (10 * Mathf.Clamp01(damage - 2))) * .05f;
         Vector3 throwback = (transform.position - source).normalized * damage * .02f * Damage;
-        body.AddForce(throwback, ForceMode.Impulse);
+
+
+        //applyDamage
+        if (Damage > .1f)
+        {
+            if (IsOwner)
+                applyDamageSynced.callMethod(new object[] { Damage, throwback });
+        }
+
+
+        //body.AddForce(throwback, ForceMode.Impulse);
+        //damage += Damage;
+    }
+    /// <summary>
+    /// Used as part of network syncing damage
+    /// </summary>
+    public void applyDamage(float Damage, Vector3 throwBack)
+    {
+        print("Damage applied: " + Damage + " from distance " + (throwBack).ToString());
+        
 
         damage += Damage;
+        body.AddForce(throwBack, ForceMode.Impulse);
     }
+
     public float getDamage() { return damage; }
 
 

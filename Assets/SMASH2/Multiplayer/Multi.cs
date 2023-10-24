@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Reflection;
 using Unity.Netcode;
 using Unity.VisualScripting.FullSerializer;
+//using UnityEditor.UIElements;
 //using UnityEditor.PackageManager;
 using UnityEngine;
 
@@ -336,7 +337,8 @@ public class Multi : NetworkBehaviour
 
 
     /// <summary>
-    /// Called by the spawning client, runs on the server to generate global IDs and sync them to all clients
+    /// Called by the spawning client, runs on the server to generate global IDs and sync them to all clients.
+    /// (Doesn't actually do any spawning on the server, leaves that for the client call)
     /// </summary>
     /// <param name="data"></param>
     /// <param name="pars"></param>
@@ -439,13 +441,16 @@ public class Multi : NetworkBehaviour
         if (debug)
             print("entities received " + serverPrefabEntities.Count);
 
+        bool IsOwner = false;
+
         int syncedPrefabId = -1;
         GameObject c;
         if (thisClientId != originalSender) // spawn prefab on other clients
         {
+            IsOwner = false;
             GameObject prefab = prefabIds_GOs[prefabString];
             c = Instantiate(prefab, Vector3.zero, Quaternion.identity);
-            setupNetBehaviours(c, false);
+            setupNetBehaviours(c, IsOwner);
             print("prefab " + c.name + " SPAWNED on this client, SyncedPrefabID " + serverPrefabEntities[0].syncedPrefabId);
 
             // give entities their global IDs
@@ -476,6 +481,7 @@ public class Multi : NetworkBehaviour
                     //SyncedProperty localProp = SyncedProperty.SyncedProperties[i];
                     SyncedProperty localProp = localEnt.properties[p];
                     localProp.identifier = serverEnt.PropertyIDs[p];  // all that work for this ONE LITTLE value...
+                    localProp.IsOwner = IsOwner;
                     if (debug)
                         print("localProp.identifier " + localProp.identifier);
                     SyncedProperty.SyncedProperties.Add(localProp.identifier, localProp);   // they're not actually in the list until they have synced IDs
@@ -484,6 +490,7 @@ public class Multi : NetworkBehaviour
 
         } else
         {
+            IsOwner = true;
             int localPrefabID = serverPrefabEntities[0].localPrefabId;    // find original spawned prefab
             c = localPrefabs[localPrefabID];
             
@@ -507,6 +514,7 @@ public class Multi : NetworkBehaviour
                     //SyncedProperty localProp = SyncedProperty.SyncedProperties[i];
                     SyncedProperty localProp = localEnt.properties[i];
                     localProp.identifier = serverEnt.PropertyIDs[i];  // all that work for this ONE LITTLE value...
+                    localProp.IsOwner = IsOwner;
                     if (debug)
                         print("localProp.identifier " + localProp.identifier);
                     SyncedProperty.SyncedProperties.Add(localProp.identifier, localProp);
@@ -782,6 +790,24 @@ public class Multi : NetworkBehaviour
             // TODO some sort of check to see if the current component/GO values match up? Or just use those derived values entirely?
         }
 
+        /// <summary>
+        /// Returns a SyncedProperty which is how you call the method over the network now!
+        /// </summary>
+        /// <param name="methodName"></param>
+        /// <param name="parameters"></param>
+        /// <returns></returns>
+        public SyncedProperty addSyncedMethodCall(string methodName, object[] parameters)
+        {
+            SyncedProperty prop = new SyncedProperty(SyncedProperty.invalidIdentifier, (Component)current_AnimatedComponent,
+            methodName, parameters, Multi.instance.clip, current_IsOwner);
+            properties.Add(prop);
+
+            return prop;
+        }
+
+
+
+
         // 
         public void NetworkSerialize<T>(BufferSerializer<T> serializer) where T : IReaderWriter
         {
@@ -937,8 +963,14 @@ public class Multi : NetworkBehaviour
         else
             return;
 
-        localProp.netData = data;   // idk if this helps
-        localProp.setCurrentValue(data.GetData());
+
+        if (!(localProp.obj is MethodInfo)) {
+            localProp.netData = data;   // idk if this helps
+            localProp.setCurrentValue(data.GetData());
+        } else { 
+            print("Calling method replicated over the network, with "+ ((object[])data.GetData()).Length + " parameters");  // kinda expensive print?
+            localProp.callMethod_LocalClientOnly((object[])data.GetData());
+        }
 
 
         //print("Server pinged client " + thisClientId + " (originally from client " + originalSender + ") with " + data.getCurrentValue().ToString());
@@ -998,21 +1030,90 @@ public class Multi : NetworkBehaviour
 
 
         // god I fucking hate C# constructor chaining I want to slap the bitch that decided you can't call them from within the constructor body
-
+        /// <summary>
+        /// default constructor
+        /// </summary>
+        /// <param name="_identifier"></param>
+        /// <param name="_animatedObject"></param>
+        /// <param name="propertyOrField"></param>
+        /// <param name="_gameObject"></param>
+        /// <param name="_clip"></param>
+        /// <param name="isOwner"></param>
         public SyncedProperty(int _identifier, object _animatedObject, object propertyOrField, GameObject _gameObject, Record.Clip _clip, bool isOwner) : base(_animatedObject, propertyOrField, _gameObject, _clip)
         {
-            constructor(_identifier, _animatedObject, propertyOrField, _gameObject, _clip, isOwner);
+            //constructor(_identifier, _animatedObject, propertyOrField, _gameObject, _clip, isOwner);
+            constructor(_identifier, isOwner);
+        }
+
+        /// <summary>
+        /// For adding method calls
+        /// </summary>
+        public SyncedProperty(int _identifier, Component script, string methodName, object[] parameters, Record.Clip _clip, bool isOwner) : base(script, methodName, parameters, _clip)
+        {
+            constructor(_identifier, isOwner);
+        }
+
+        /// <summary>
+        /// Make sure to only call this on one client, so you don't double up effects!
+        /// </summary>
+        /// <param name="parameters"></param>
+        public void callMethod(object[] parameters)
+        {
+            // TODO
+
+            callMethod_LocalClientOnly(parameters);
+
+
+            // sync across network
+            // half copy pasted from the sync() function tbh
+            if (netData == null)
+                netData = new NetData(parameters);
+            else
+                netData.setData(parameters);
+
+            //SmashMulti.syncSyncedProperty(netData);
+            Multi.syncSyncedProperty(identifier, netData);
+        }
+
+        /// <summary>
+        /// Used by networking system to do method calls it's received over the net
+        /// </summary>
+        /// <param name="parameters"></param>
+        public void callMethod_LocalClientOnly(object[] parameters)
+        {
+            //if (instance.debug)
+            {
+                print("method call: " + ((MethodInfo)obj).ToString() + ", parameters " + parameters.Length);
+                foreach (object o in parameters)
+                {
+                    print("parameter " + o.ToString());
+                }
+            }
+
+            ((MethodInfo)obj).Invoke(animatedComponent, parameters);
+
+
         }
 
 
 
         //public SyncedProperty(object _obj, GameObject _gameObject, Record.Clip _clip, bool isOwner) : base(_obj, _gameObject, _clip)
+        /// <summary>
+        /// generates new SyncedProperty ID
+        /// </summary>
+        /// <param name="_animatedObject"></param>
+        /// <param name="propertyOrField"></param>
+        /// <param name="_gameObject"></param>
+        /// <param name="_clip"></param>
+        /// <param name="isOwner"></param>
         public SyncedProperty(object _animatedObject, object propertyOrField, GameObject _gameObject, Record.Clip _clip, bool isOwner) : base(_animatedObject, propertyOrField, _gameObject, _clip)
         {
-            constructor(getUniqueIdentifier(), _animatedObject, propertyOrField, _gameObject, _clip, isOwner);
+            //constructor(getUniqueIdentifier(), _animatedObject, propertyOrField, _gameObject, _clip, isOwner);
+            constructor(getUniqueIdentifier(), isOwner);
         }
 
-        void constructor(int _identifier, object _animatedObject, object propertyOrField, GameObject _gameObject, Record.Clip _clip, bool isOwner)
+        //void constructor(int _identifier, object _animatedObject, object propertyOrField, GameObject _gameObject, Record.Clip _clip, bool isOwner)
+        void constructor(int _identifier, bool isOwner)
         {
             identifier = _identifier;
             //print("syncedProperty: " + propertyOrField + " identifier: " + identifier);
@@ -1065,6 +1166,9 @@ public class Multi : NetworkBehaviour
 
             //if (IsOwner)
 
+            if (obj is MethodInfo)
+                return;     // don't try and sync these every frame. Just wait for them to be called and replicate them then
+
             if (netData == null)
                 netData = new NetData(getCurrentValue());
             else
@@ -1098,6 +1202,10 @@ public class Multi : NetworkBehaviour
             {
                 //print("transform");
                 data = obj;
+            }
+            else if (obj is MethodInfo)
+            {
+                // do nothing
             }
             else
             {
@@ -1136,7 +1244,12 @@ public class Multi : NetworkBehaviour
                     print("transform! Local " + ((Transform)obj).position +" "+ ((Transform)obj).rotation);
                 if (instance.debug)
                     print("transform! DATA " + ((Transform)data).position +" "+ ((Transform)data).rotation);
-            } else
+            }
+            else if (obj is MethodInfo)
+            {
+                // do nothing
+            }
+            else
             {
                 Debug.LogError("unknown type");
             }
@@ -1284,6 +1397,7 @@ public class Multi : NetworkBehaviour
 
         private int _dataType = 0;
         private bool isList = false;
+        private bool isObjectList = false;
 
         public NetData()
         {
@@ -1303,7 +1417,10 @@ public class Multi : NetworkBehaviour
             //_data = data; 
 
             _data = data;
-            if (data is IList)
+            if (data is object[])
+            {
+                isObjectList = true;
+            } else if (data is IList)   // object[] arrays/lists will trigger this too, then cause an error lol
             {
                 isList = true;
                 _dataType = TypeToInt.Int(data.GetType().GetGenericArguments()[0]);
@@ -1314,12 +1431,57 @@ public class Multi : NetworkBehaviour
 
         public void NetworkSerialize<T>(BufferSerializer<T> serializer) where T : IReaderWriter
         {
-            //if (serializer.IsWriter)
-            //{
-            serializer.SerializeValue(ref isList);   // these calls handle both sending/serializing data and receiving/deserializing data
+            // these calls handle both sending/serializing data and receiving/deserializing data
+            serializer.SerializeValue(ref isList);   
+            serializer.SerializeValue(ref isObjectList); 
             serializer.SerializeValue(ref _dataType);
 
-            if (isList)
+
+            if (isObjectList)
+            {
+                // Handle object array serialization and deserialization
+                object[] dataArray = null;
+                int arrayLength = 0;
+
+                if (serializer.IsWriter)
+                {
+                    dataArray = (object[])_data;
+                    arrayLength = dataArray.Length;
+                }
+                serializer.SerializeValue(ref arrayLength);
+
+                if (serializer.IsReader)
+                    dataArray = new object[arrayLength];
+
+
+                for (int i = 0; i < arrayLength; i++)
+                {
+                    int objType = 0;
+                    object item = null;
+
+                    if (serializer.IsWriter)
+                    {
+                        item = dataArray[i];
+                        //print("item.GetType() " + item.GetType());
+                        objType = TypeToInt.Int(item.GetType());
+                    }
+                    serializer.SerializeValue(ref objType);
+
+                    if (serializer.IsReader)
+                        item = Activator.CreateInstance(TypeToInt.Type(objType));
+
+                    item = serializeVariable(item, objType, serializer);
+
+                    if (serializer.IsReader)
+                        dataArray[i] = item;
+                }
+
+                if (serializer.IsReader)
+                {
+                    _data = dataArray;
+                }
+            }
+            else if (isList)
             {
                 int listCount = 0;
                 if (serializer.IsWriter)
