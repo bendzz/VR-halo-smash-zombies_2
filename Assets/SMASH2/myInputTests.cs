@@ -319,7 +319,8 @@ public class myInputTests : NetBehaviour
                 float speedDilution = Mathf.Clamp01(Vector3.Dot((deltaWorld - body.velocity * 10), deltaWorld));    // so you can only accelerate so fast in 1 direction, but can stop instantly
                 
 
-                Vector3 push = deltaWorld * speedDilution * 1;
+                //Vector3 push = deltaWorld * speedDilution * 1;
+                Vector3 push = deltaWorld * speedDilution * 2;
 
                 // apply results
                 //hand.thrusterOutput = push.magnitude;

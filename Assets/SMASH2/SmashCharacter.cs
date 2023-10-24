@@ -39,7 +39,7 @@ public class SmashCharacter : NetBehaviour
     public GameObject handJetPrefab;
 
 
-    private float damage = 0;    // smash bros damage, amplifies knockback
+    public float damage = 0;    // smash bros damage, amplifies knockback
     float oldDamage = 0;
 
     // Output
@@ -161,29 +161,30 @@ public class SmashCharacter : NetBehaviour
         print("SmashCharacter IsOwner " + IsOwner);
 
 
-        // set up SyncedParameters for all variables and synced function calls, in a fixed order
+        // set up SyncedProperties for all variables and synced function calls, in a fixed order
         entity = new Multi.Entity();
         entity.addToLocalEntities();
 
         entity.setCurrents(this, head.gameObject, IsOwner);
         entity.addSyncedProperty(head.transform);
         entity.addSyncedProperty(playerName);
-        //entity.setCurrents(body, gameObject, IsOwner);
-        //entity.addSyncedProperty(body);
-        entity.setCurrents(body, gameObject, IsOwner);
+        entity.addSyncedProperty(damage);
+
+        entity.setCurrents(body, gameObject, IsOwner);  // rigidbody
         entity.addSyncedProperty(body.velocity);
         entity.addSyncedProperty(body.angularVelocity);
         entity.addSyncedProperty(body.useGravity);
         entity.addSyncedProperty(transform);
 
-        //entity.setCurrents(this, gameObject, IsOwner);
-        //entity.addSyncedProperty(transform);
-        entity.setCurrents(hands[0], gameObject, IsOwner);
-        entity.addSyncedProperty(hands[0].thruster);
-        entity.addSyncedProperty(hands[0].transform);
-        entity.setCurrents(hands[1], gameObject, IsOwner);
-        entity.addSyncedProperty(hands[1].thruster);
-        entity.addSyncedProperty(hands[1].transform);
+        foreach(Hand hand in hands)
+        {
+            entity.setCurrents(hand, gameObject, IsOwner);
+            entity.addSyncedProperty(hand.thruster);
+            entity.addSyncedProperty(hand.handJet.transform);
+            entity.addSyncedProperty(hand.thrusterDirection);
+            entity.addSyncedProperty(hand.handJetFlames.transform); // this should never move, but it's desyncing, so let's try this
+        }
+
 
 
         body.isKinematic = false;   // why the hell is this suddenly getting set to true upon spawn? Bloody weird
