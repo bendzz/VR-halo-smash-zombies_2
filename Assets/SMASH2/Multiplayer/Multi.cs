@@ -1081,7 +1081,7 @@ public class Multi : NetworkBehaviour
         /// <param name="parameters"></param>
         public void callMethod_LocalClientOnly(object[] parameters)
         {
-            //if (instance.debug)
+            if (instance.debug)
             {
                 print("method call: " + ((MethodInfo)obj).ToString() + ", parameters " + parameters.Length);
                 foreach (object o in parameters)

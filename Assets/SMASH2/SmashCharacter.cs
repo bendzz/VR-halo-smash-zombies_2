@@ -311,8 +311,8 @@ public class SmashCharacter : NetBehaviour
                         float damageInstant = damage * Time.fixedDeltaTime;
                         //enemy.damage += damageInstant;  // why does this not throw an error??
 
-
-                        enemy.applyDamageHit(damageInstant, hand.transform.position);
+                        if (IsOwner)
+                            enemy.applyDamageHit(damageInstant, hand.transform.position);
                         //enemy.applyDamageSynced.callMethod(new object[] { damageInstant, hand.transform.position });    // calls it on our copy of the enemy, which syncs it across the network
 
 
@@ -357,7 +357,7 @@ public class SmashCharacter : NetBehaviour
         //applyDamage
         if (Damage > .1f)
         {
-            if (IsOwner)
+            //if (IsOwner)
                 applyDamageSynced.callMethod(new object[] { Damage, throwback });
         }
 
@@ -366,7 +366,8 @@ public class SmashCharacter : NetBehaviour
         //damage += Damage;
     }
     /// <summary>
-    /// Used as part of network syncing damage
+    /// This function exists on dummy copies of players on the local client. The client calls it for damage, 
+    /// it replicates over the network, and applies damage to the real players too
     /// </summary>
     public void applyDamage(float Damage, Vector3 throwBack)
     {
