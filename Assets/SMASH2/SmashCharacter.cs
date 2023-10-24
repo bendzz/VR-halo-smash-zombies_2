@@ -165,14 +165,27 @@ public class SmashCharacter : NetBehaviour
         entity = new Multi.Entity();
         entity.addToLocalEntities();
 
-        entity.setCurrents(this, gameObject, IsOwner);
+        entity.setCurrents(this, head.gameObject, IsOwner);
+        entity.addSyncedProperty(head.transform);
+        entity.addSyncedProperty(playerName);
+        //entity.setCurrents(body, gameObject, IsOwner);
+        //entity.addSyncedProperty(body);
+        entity.setCurrents(body, gameObject, IsOwner);
+        entity.addSyncedProperty(body.velocity);
+        entity.addSyncedProperty(body.angularVelocity);
+        entity.addSyncedProperty(body.useGravity);
         entity.addSyncedProperty(transform);
+
+        //entity.setCurrents(this, gameObject, IsOwner);
+        //entity.addSyncedProperty(transform);
         entity.setCurrents(hands[0], gameObject, IsOwner);
         entity.addSyncedProperty(hands[0].thruster);
+        entity.addSyncedProperty(hands[0].transform);
         entity.setCurrents(hands[1], gameObject, IsOwner);
         entity.addSyncedProperty(hands[1].thruster);
-            
-            
+        entity.addSyncedProperty(hands[1].transform);
+
+
         body.isKinematic = false;   // why the hell is this suddenly getting set to true upon spawn? Bloody weird
     }
 

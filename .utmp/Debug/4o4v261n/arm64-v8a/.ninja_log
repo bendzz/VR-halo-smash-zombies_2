@@ -1,17 +1,17 @@
 # ninja log v5
-4	341	7190827544054387	GameActivity/CMakeFiles/game.dir/UGAEntry.cpp.o	a5018cf765992001
-26	357	7190827544226555	GameActivity/CMakeFiles/game.dir/UGAInputKeyEvent.cpp.o	1f2c88638f61110d
-439	515	7190827545619717	C:/Users/Mike/Documents/Unity 2023/VR halo-smash-zombies_2/Library/Bee/Android/Prj/IL2CPP/Gradle/unityLibrary/build/intermediates/cxx/Debug/4o4v261n/obj/arm64-v8a/libgame.so	7a4bfdfaa1458d90
-6	376	7190827544444322	GameActivity/CMakeFiles/game.dir/UGADebug.cpp.o	a63e8c2860cb757b
-9	369	7190827544368472	GameActivity/CMakeFiles/game.dir/UGAInputMotionEvent.cpp.o	a0bd6cc1d33f1ab
-32	391	7190827544596834	GameActivity/CMakeFiles/game.dir/UGASoftKeyboard.cpp.o	27d5458977fe9cf9
-1	415	7190827544808922	GameActivity/CMakeFiles/game.dir/UGAApplication.cpp.o	a5cd943a6993417c
-29	439	7190827545011798	GameActivity/CMakeFiles/game.dir/UGAInput.cpp.o	b3a23b77dafe342a
+5	714	7191437158653207	GameActivity/CMakeFiles/game.dir/UGAEntry.cpp.o	a5018cf765992001
 14	646	7191437157973836	GameActivity/CMakeFiles/game.dir/UGAInputKeyEvent.cpp.o	1f2c88638f61110d
 21	653	7191437158037863	GameActivity/CMakeFiles/game.dir/UGAInputMotionEvent.cpp.o	a0bd6cc1d33f1ab
-17	666	7191437158150864	GameActivity/CMakeFiles/game.dir/UGASoftKeyboard.cpp.o	27d5458977fe9cf9
 8	699	7191437158485462	GameActivity/CMakeFiles/game.dir/UGADebug.cpp.o	a63e8c2860cb757b
-5	714	7191437158653207	GameActivity/CMakeFiles/game.dir/UGAEntry.cpp.o	a5018cf765992001
-11	736	7191437158863849	GameActivity/CMakeFiles/game.dir/UGAInput.cpp.o	b3a23b77dafe342a
-2	761	7191437159105591	GameActivity/CMakeFiles/game.dir/UGAApplication.cpp.o	a5cd943a6993417c
 761	929	7191437160464165	C:/Users/Mike/Documents/Unity 2023/VR halo-smash-zombies_2/Library/Bee/Android/Prj/IL2CPP/Gradle/unityLibrary/build/intermediates/cxx/Debug/4o4v261n/obj/arm64-v8a/libgame.so	7a4bfdfaa1458d90
+17	666	7191437158150864	GameActivity/CMakeFiles/game.dir/UGASoftKeyboard.cpp.o	27d5458977fe9cf9
+2	761	7191437159105591	GameActivity/CMakeFiles/game.dir/UGAApplication.cpp.o	a5cd943a6993417c
+11	736	7191437158863849	GameActivity/CMakeFiles/game.dir/UGAInput.cpp.o	b3a23b77dafe342a
+24	540	7198123497890005	GameActivity/CMakeFiles/game.dir/UGAInputKeyEvent.cpp.o	1f2c88638f61110d
+13	552	7198123498017773	GameActivity/CMakeFiles/game.dir/UGAEntry.cpp.o	a5018cf765992001
+16	555	7198123498053269	GameActivity/CMakeFiles/game.dir/UGAInputMotionEvent.cpp.o	a0bd6cc1d33f1ab
+20	563	7198123498135452	GameActivity/CMakeFiles/game.dir/UGASoftKeyboard.cpp.o	27d5458977fe9cf9
+9	578	7198123498283064	GameActivity/CMakeFiles/game.dir/UGADebug.cpp.o	a63e8c2860cb757b
+6	615	7198123498644399	GameActivity/CMakeFiles/game.dir/UGAInput.cpp.o	b3a23b77dafe342a
+2	640	7198123498888343	GameActivity/CMakeFiles/game.dir/UGAApplication.cpp.o	a5cd943a6993417c
+640	772	7198123499946889	C:/Users/Mike/Documents/Unity 2023/VR halo-smash-zombies_2/Library/Bee/Android/Prj/IL2CPP/Gradle/unityLibrary/build/intermediates/cxx/Debug/4o4v261n/obj/arm64-v8a/libgame.so	7a4bfdfaa1458d90

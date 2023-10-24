@@ -1639,6 +1639,7 @@ GameObject:
   - component: {fileID: 1247451036}
   - component: {fileID: 1247451035}
   - component: {fileID: 1247451037}
+  - component: {fileID: 1247451038}
   m_Layer: 0
   m_Name: LobbyMultiplayer
   m_TagString: Untagged
@@ -1695,6 +1696,47 @@ MonoBehaviour:
   sign: {fileID: 1721024702}
   finishedAndWaiting: 0
   searchedForLobby: 0
+--- !u!114 &1247451038
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1247451034}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 2a882a3fe5e80a647872a9b130771ff8, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  keys:
+  - Assets/_Project/Prefabs/NetworkStartUI.prefabNetworkStartUI
+  - Assets/ExampleAssets/Prefabs/XRControllerLeft.prefabXRControllerLeft
+  - Assets/ExampleAssets/Prefabs/XRControllerRight.prefabXRControllerRight
+  - Assets/SMASH2/hand Jet.prefabhand Jet
+  - Assets/SMASH2/Player.prefabPlayer
+  - Assets/SMASH2/stopBurstParticles.prefabstopBurstParticles
+  - Assets/TextMesh Pro/Examples & Extras/Prefabs/Text Popup.prefabText Popup
+  - Assets/TextMesh Pro/Examples & Extras/Prefabs/TextMeshPro - Prefab 1.prefabTextMeshPro
+    - Prefab 1
+  - Assets/TextMesh Pro/Examples & Extras/Prefabs/TextMeshPro - Prefab 2.prefabTextMeshPro
+    - Prefab 2
+  - Packages/com.unity.learn.iet-framework/Tests/Editor/TestPrefab1.prefabTestPrefab1
+  - Packages/com.unity.learn.iet-framework/Tests/Editor/TestPrefab2.prefabTestPrefab2
+  - Packages/com.unity.xr.legacyinputhelpers/Prefabs/XRRig.prefabXRRig
+  values:
+  - {fileID: 6206875093998293802, guid: 4aca3efdd079e5e459bbeedfc4a32240, type: 3}
+  - {fileID: 8758423527188247893, guid: 5b158b94c373d4b4f9e98cdb92789343, type: 3}
+  - {fileID: 4283425761326543017, guid: 1f4d373a613d0466fbd8849470265852, type: 3}
+  - {fileID: 7178577322115202236, guid: 9bf6f8a8c77bd8140a41ca2844c34b3c, type: 3}
+  - {fileID: 7420264138600701504, guid: 4719a346b1af1244b8a8ffc3558a1b30, type: 3}
+  - {fileID: 3562877123868809897, guid: 7212a4c48f76a8643a1b9edbdd71dfc3, type: 3}
+  - {fileID: 188050, guid: b06f0e6c1dfa4356ac918da1bb32c603, type: 3}
+  - {fileID: 100000, guid: a6e39ced0ea046bcb636c3f0b2e2a745, type: 3}
+  - {fileID: 100000, guid: fdad9d952ae84cafb74c63f2e694d042, type: 3}
+  - {fileID: 1973035144834676, guid: e094db015e58a40a482cc8d30e011d3e, type: 3}
+  - {fileID: 1973035144834676, guid: a8c38beafbe4c408d97dfd6e0f781dae, type: 3}
+  - {fileID: 5843497292548984443, guid: c116b7497ab8ca34c9188965d4295e27, type: 3}
+  updateDict: 0
 --- !u!1 &1283425838
 GameObject:
   m_ObjectHideFlags: 0

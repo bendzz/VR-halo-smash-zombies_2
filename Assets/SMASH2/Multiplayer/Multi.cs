@@ -4,7 +4,7 @@ using System.Collections.Generic;
 using System.Reflection;
 using Unity.Netcode;
 using Unity.VisualScripting.FullSerializer;
-using UnityEditor.PackageManager;
+//using UnityEditor.PackageManager;
 using UnityEngine;
 
 
@@ -198,7 +198,7 @@ public class Multi : NetworkBehaviour
 
 
 
-    public override void OnNetworkSpawn()
+    public override void OnNetworkSpawn() 
     {
         if (instance != null)
             Debug.LogError("More than one Multi singleton in scene");
@@ -208,12 +208,17 @@ public class Multi : NetworkBehaviour
 
         syncedPrefabs = new Dictionary<int, GameObject>();
 
-        prefabIds_GOs = PrefabDictionaryUpdater.createDictionary_S_to_GO();
-        prefabIds_Strings = PrefabDictionaryUpdater.createDictionary_GO_to_S();
-        //foreach (KeyValuePair<string, GameObject> kvp in prefabIds_GOs)
-        //{
-        //    print("prefab string: " + kvp.Key + ", GameObject: " + kvp.Value);
-        //}
+        //prefabIds_GOs = PrefabDictionaryBuild.createDictionary_S_to_GO();
+        //prefabIds_Strings = PrefabDictionaryBuild.createDictionary_GO_to_S();
+
+        prefabIds_GOs = PrefabStrings.CreateDictionary_S_to_GO();
+        prefabIds_Strings = PrefabStrings.CreateDictionary_GO_to_S();
+        print("PrefabStrings.CreateDictionary_S_to_GO " + prefabIds_GOs.Count);
+
+        foreach (KeyValuePair<string, GameObject> kvp in prefabIds_GOs)
+        {
+            print("prefab string: " + kvp.Key + ", GameObject: " + kvp.Value);
+        }
     }
 
 
@@ -1239,9 +1244,10 @@ public class Multi : NetworkBehaviour
             if (type == typeof(Vector3)) return 5;
             if (type == typeof(Transform)) return 6;
             if (type == typeof(Entity)) return 7;
+            if (type == typeof(bool)) return 8;
             // ... Add other types as needed
 
-            throw new ArgumentException("Unsupported type");
+            throw new ArgumentException("Unsupported type: " + type);
         }
 
         /// <summary>
@@ -1258,9 +1264,10 @@ public class Multi : NetworkBehaviour
                 case 5: return typeof(Vector3);
                 case 6: return typeof(Transform);
                 case 7: return typeof(Entity);
+                case 8: return typeof(bool);
                 // ... Add other types as needed
 
-                default: throw new ArgumentException("Unsupported code");
+                default: throw new ArgumentException("Unsupported code: " + code);
             }
         }
 
@@ -1427,6 +1434,16 @@ public class Multi : NetworkBehaviour
                     // receiving data
                     _data = entityData;
                     break;
+
+                case int when _dataType == TypeToInt.Int(typeof(bool)):
+                    bool boolData = false;
+                    if (serializer.IsWriter)
+                        boolData = (bool)_data;
+                    serializer.SerializeValue(ref boolData);
+                    _data = boolData;    // if receiving data, update the local copy
+                    break;
+
+
 
                 // ... add other types similarly
 
