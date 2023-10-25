@@ -38,6 +38,8 @@ public class SmashCharacter : NetBehaviour
     [Tooltip("jet prefab with script")]
     public GameObject handJetPrefab;
 
+    public GameObject Head_VR;
+    public GameObject Head_PC;
 
     public float damage = 0;    // smash bros damage, amplifies knockback
     float oldDamage = 0;
@@ -64,7 +66,7 @@ public class SmashCharacter : NetBehaviour
 
     // multiplayer use
     public Multi.SyncedProperty applyDamageSynced;  
-
+    public bool VR_mode = false;
 
 
     // Start is called before the first frame update
@@ -170,6 +172,10 @@ public class SmashCharacter : NetBehaviour
         entity.addSyncedProperty(playerName);
         entity.addSyncedProperty(damage);
 
+        //entity.setCurrents(Head_VR.gameObject, Head_VR.gameObject, Head_VR.gameObject.active);
+        entity.addSyncedProperty(VR_mode);
+
+
         //object[] parameters = { 42.2f, Vector3.zero };
         //applyDamageSynced = entity.addSyncedMethodCall("applyDamage", parameters);
 
@@ -243,6 +249,31 @@ public class SmashCharacter : NetBehaviour
         //}
 
         transform.parent.name = "Player:" + playerName;
+
+        if (input != null)
+        {
+            if (IsOwner)
+            {
+                Head_VR.SetActive(false);
+                Head_PC.SetActive(false);
+            }
+            else
+            {
+                if (VR_mode)
+                {
+                    Head_VR.SetActive(true);
+                    Head_PC.SetActive(false);
+                }
+                else
+                {
+                    Head_VR.SetActive(false);
+                    Head_PC.SetActive(true);
+                }
+            }
+            VR_mode = input.VR_mode;
+        }
+
+
 
         if (damage != oldDamage)
         {

@@ -43,6 +43,12 @@ public class myInputTests : NetBehaviour
     public Quaternion cameraTilt = Quaternion.identity;
 
 
+    // output
+    public bool PC_mode = true;
+    public bool VR_mode = false;
+
+
+
     // work values
     Vector3 oldHeadset;
     quaternion oldextraRotation;
@@ -267,6 +273,12 @@ public class myInputTests : NetBehaviour
     // throw yourself around
     void VR_Smash()
     {
+        if (leftie.transform.position != Vector3.zero)
+        {
+            VR_mode = true;
+            PC_mode = false;
+        }
+
         // rotation
         if (leftie.trigger > .5f && rightie.trigger > .5f)
         {
@@ -384,7 +396,11 @@ public class myInputTests : NetBehaviour
         //print("vev" + vel);
 
 
-
+        if (vel.magnitude > 0)
+        {
+            VR_mode = false;
+            PC_mode = true;
+        }    
 
         vel = Quaternion.Euler(0,body.rotation.eulerAngles.y, 0) * vel;
         body.AddForce(vel, ForceMode.Acceleration);
