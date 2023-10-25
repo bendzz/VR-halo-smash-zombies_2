@@ -230,19 +230,28 @@ public class Multi : NetworkBehaviour
         
     }
 
+    float countdown = 0;
     private void LateUpdate()
     {
+        //countdown++;
+        countdown += Time.deltaTime;
 
 
-        if (SyncedProperty.SyncedProperties == null)
-            return;
-        // Add sync calls scripts can use. (syncProperty(ref variable or method) etc)
-        foreach (SyncedProperty prop in SyncedProperty.SyncedProperties.Values)
+        if (countdown >= (1 / 30)) // attempting to fix the *minutes* of latency in our 5 person test run
         {
-            if (debug)
-                print("prop " + prop.identifier + " isOwner " + prop.IsOwner + " value " + prop.getCurrentValue());
-            if (prop.IsOwner)
-                prop.sync();
+            countdown = 0;
+            if (SyncedProperty.SyncedProperties == null)
+                return;
+            // sync everything
+            // TODO Add sync calls scripts can use. (syncProperty(ref variable or method) etc)
+            //   OR, it doesn't matter? RPCs always sent at end of frame? https://docs-multiplayer.unity3d.com/netcode/current/advanced-topics/message-system/serverrpc/
+            foreach (SyncedProperty prop in SyncedProperty.SyncedProperties.Values)
+            {
+                if (debug)
+                    print("prop " + prop.identifier + " isOwner " + prop.IsOwner + " value " + prop.getCurrentValue());
+                if (prop.IsOwner)
+                    prop.sync();
+            }
         }
     }
 
@@ -910,7 +919,7 @@ public class Multi : NetworkBehaviour
 
 
 
-    // SYNCING:
+    // SYNCING GAMEPLAY:
 
 
 
@@ -923,7 +932,8 @@ public class Multi : NetworkBehaviour
         instance.syncParam_ServerRpc(identifier, value);
     }
     //[ServerRpc]
-    [ServerRpc(RequireOwnership = false)]   // Note: This singleton class always runs as !IsOwner on non server clients, for some reason.
+    //[ServerRpc(RequireOwnership = false)]   // Note: This singleton class always runs as !IsOwner on non server clients, for some reason.
+    [ServerRpc(RequireOwnership = false, Delivery = RpcDelivery.Unreliable)]   // Note: This singleton class always runs as !IsOwner on non server clients, for some reason.
     public void syncParam_ServerRpc(int identifier, NetData data, ServerRpcParams pars = default)
     //public void syncParam_ServerRpc(SyncedProperty data, ServerRpcParams pars = default)
     {
@@ -941,7 +951,8 @@ public class Multi : NetworkBehaviour
     }
 
 
-    [ClientRpc]
+    //[ClientRpc]
+    [ClientRpc(Delivery = RpcDelivery.Unreliable)]
     public void syncParam_ClientRpc(int identifier, NetData data, ulong originalSender, ClientRpcParams pars = default)
     //public void syncParam_ClientRpc(SyncedProperty data, ulong originalSender, ClientRpcParams pars = default)
     {
