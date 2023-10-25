@@ -1715,6 +1715,7 @@ MonoBehaviour:
   - Assets/SMASH2/hand Jet.prefabhand Jet
   - Assets/SMASH2/Player.prefabPlayer
   - Assets/SMASH2/stopBurstParticles.prefabstopBurstParticles
+  - Assets/SMASH2/sword.prefabsword
   - Assets/TextMesh Pro/Examples & Extras/Prefabs/Text Popup.prefabText Popup
   - Assets/TextMesh Pro/Examples & Extras/Prefabs/TextMeshPro - Prefab 1.prefabTextMeshPro
     - Prefab 1
@@ -1730,6 +1731,7 @@ MonoBehaviour:
   - {fileID: 7178577322115202236, guid: 9bf6f8a8c77bd8140a41ca2844c34b3c, type: 3}
   - {fileID: 7420264138600701504, guid: 4719a346b1af1244b8a8ffc3558a1b30, type: 3}
   - {fileID: 3562877123868809897, guid: 7212a4c48f76a8643a1b9edbdd71dfc3, type: 3}
+  - {fileID: 210457118349521409, guid: 700a0873705ecd747819d5bb57279fdd, type: 3}
   - {fileID: 188050, guid: b06f0e6c1dfa4356ac918da1bb32c603, type: 3}
   - {fileID: 100000, guid: a6e39ced0ea046bcb636c3f0b2e2a745, type: 3}
   - {fileID: 100000, guid: fdad9d952ae84cafb74c63f2e694d042, type: 3}

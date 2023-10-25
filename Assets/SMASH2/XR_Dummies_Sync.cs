@@ -23,6 +23,8 @@ public class XR_Dummies_Sync : NetBehaviour
     public float testfloat = 2;
     public float testFloat2 = 2;
 
+    public bool VR_InUse = false;
+
     // Start is called before the first frame update
     void Start()
     {
@@ -72,16 +74,20 @@ public class XR_Dummies_Sync : NetBehaviour
 
         if (mm == null)
             return;
-        syncTransform(mm.XR_Headset, XR_Headset);
-        syncTransform(mm.leftHandObject, leftHandObject);
-        syncTransform(mm.rightHandObject, rightHandObject);
 
+        if (mm.leftHandObject.localPosition != mm.XR_Headset.localPosition)   // sync if actually active
+        {
+            syncTransform(mm.XR_Headset, XR_Headset);
+            syncTransform(mm.leftHandObject, leftHandObject);
+            syncTransform(mm.rightHandObject, rightHandObject);
+            VR_InUse = true;
+        }
 
-        // get the hands out of your face if the XR stuff isn't in use
-        if (XR_Headset.position == leftHandObject.position)
-            leftHandObject.position += Vector3.forward;
-        if (XR_Headset.position == rightHandObject.position)
-            rightHandObject.position += Vector3.forward;
+        //// get the hands out of your face if the XR stuff isn't in use
+        //if (XR_Headset.position == leftHandObject.position)
+        //    leftHandObject.position += Vector3.forward;
+        //if (XR_Headset.position == rightHandObject.position)
+        //    rightHandObject.position += Vector3.forward;
 
     }
 

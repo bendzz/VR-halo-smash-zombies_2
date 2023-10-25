@@ -8,6 +8,7 @@ using Unity.Services.Authentication;
 using Unity.Services.Lobbies;
 using Unity.Services.Lobbies.Models;
 using Unity.VisualScripting;
+using Unity.XR.CoreUtils;
 using UnityEngine;
 
 
@@ -23,9 +24,10 @@ public class SmashCharacter : NetBehaviour
     public FeetCollider feetCollider;
 
 
+    // other scripts
     // To get the hands and head positions; going to try and keep the enemy decoupled from this tho, for later AI and networking etc
     public myInputTests input;
-
+    public XR_Dummies_Sync xr_Dummies_Sync;
 
     // game settings
     public string playerName = "default player";
@@ -38,8 +40,10 @@ public class SmashCharacter : NetBehaviour
     [Tooltip("jet prefab with script")]
     public GameObject handJetPrefab;
 
+    // model assets
     public GameObject Head_VR;
     public GameObject Head_PC;
+    public GameObject Sword;
 
     public float damage = 0;    // smash bros damage, amplifies knockback
     float oldDamage = 0;
@@ -195,6 +199,8 @@ public class SmashCharacter : NetBehaviour
             entity.addSyncedProperty(hand.handJet.transform);
             entity.addSyncedProperty(hand.thrusterDirection);
             entity.addSyncedProperty(hand.handJetFlames.transform); // this should never move, but it's desyncing, so let's try this
+
+            entity.addSyncedProperty(hand.transform);
         }
 
 
@@ -250,6 +256,7 @@ public class SmashCharacter : NetBehaviour
 
         transform.parent.name = "Player:" + playerName;
 
+        // head visuals
         if (input != null)
         {
             if (IsOwner)
@@ -263,14 +270,38 @@ public class SmashCharacter : NetBehaviour
                 {
                     Head_VR.SetActive(true);
                     Head_PC.SetActive(false);
+                    //print("VR head!");
                 }
                 else
                 {
                     Head_VR.SetActive(false);
                     Head_PC.SetActive(true);
+                    //print("PC head!");
                 }
             }
-            VR_mode = input.VR_mode;
+            //print("VRMode " + VR_mode + " IsOwner " + IsOwner);
+            //if (IsOwner)
+            //    VR_mode = xr_Dummies_Sync.VR_InUse;
+            //VR_mode = input.VR_mode;
+            //print("VRMode 2 " + VR_mode + " IsOwner " + IsOwner);
+
+        }
+
+        // PC player hands
+        if (!VR_mode)
+        {
+            //print("keyboard!");
+            Transform bod = xr_Dummies_Sync.XR_Origin;
+            //rightie.transform.position = bod.right * .4f + bod.up * -.2f + bod.forward * .5f;
+            rightie.transform.localPosition = Vector3.right * .4f + Vector3.up * -.2f + Vector3.forward * .5f;
+            //rightie.transform.rotation = bod.rotation * Quaternion.Euler(-90, 0, 0);
+            rightie.transform.localRotation = Quaternion.Euler(-90, 0, 0);
+
+            //leftie.transform.position = bod.right * -.4f + bod.up * -.2f + bod.forward * .5f;
+            leftie.transform.localPosition = Vector3.right * -.4f + Vector3.up * -.2f + Vector3.forward * .5f;
+            //leftie.transform.rotation = bod.rotation * Quaternion.Euler(-90, 0, 0);
+            leftie.transform.localRotation = Quaternion.Euler(-90, 0, 0);
+
         }
 
 
@@ -303,6 +334,11 @@ public class SmashCharacter : NetBehaviour
         {
             //hand.update();
             hand.update();
+
+            if (hand.thruster > 0)
+            {
+                VR_mode = true; // hacky, TODO
+            }
         }
         
         // apply damage to enemies

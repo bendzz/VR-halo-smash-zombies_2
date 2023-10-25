@@ -43,9 +43,9 @@ public class myInputTests : NetBehaviour
     public Quaternion cameraTilt = Quaternion.identity;
 
 
-    // output
-    public bool PC_mode = true;
-    public bool VR_mode = false;
+    //// output
+    //public bool PC_mode = true;
+    //public bool VR_mode = false;
 
 
 
@@ -273,11 +273,16 @@ public class myInputTests : NetBehaviour
     // throw yourself around
     void VR_Smash()
     {
-        if (leftie.transform.position != Vector3.zero)
-        {
-            VR_mode = true;
-            PC_mode = false;
-        }
+        //if (leftie.transform.localPosition != XR_Headset.localPosition)
+        //{
+        //    VR_mode = true;
+        //    PC_mode = false;
+        //            print("Found VR! " + leftie.transform.localPosition + " " + XR_Headset.localPosition);
+        //}
+        //else
+        //{
+        //    print("found vr!");
+        //}
 
         // rotation
         if (leftie.trigger > .5f && rightie.trigger > .5f)
@@ -340,6 +345,7 @@ public class myInputTests : NetBehaviour
                 body.AddForce(push, ForceMode.Acceleration);
 
                 // update visuals
+                // TODO move to the other script to break tight-coupling
                 {
                     if (hand.s == null)
                     {
@@ -396,11 +402,12 @@ public class myInputTests : NetBehaviour
         //print("vev" + vel);
 
 
-        if (vel.magnitude > 0)
-        {
-            VR_mode = false;
-            PC_mode = true;
-        }    
+        //if (vel.magnitude > 0)
+        //{
+        //    VR_mode = false;
+        //    PC_mode = true;
+        //    print("found PC!");
+        //}    
 
         vel = Quaternion.Euler(0,body.rotation.eulerAngles.y, 0) * vel;
         body.AddForce(vel, ForceMode.Acceleration);
