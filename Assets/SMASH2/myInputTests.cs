@@ -7,6 +7,7 @@ using Unity.XR.CoreUtils;
 using UnityEngine;
 using UnityEngine.XR;
 using static myInputTests;
+using static SmashCharacter;
 
 //public class myInputTests : MonoBehaviour
 //public class myInputTests : NetworkBehaviour
@@ -143,7 +144,8 @@ public class myInputTests : NetBehaviour
         if (IsOwner)
         {
             //VR_JoystickRunning();
-            PC_mouseRunning();
+            //PC_mouseRunning();
+            Smash_PC_mouseRunning();
             VR_Smash();
         }
 
@@ -242,7 +244,7 @@ public class myInputTests : NetBehaviour
 
         // game specific stuff; WIP
 
-        public Vector3 grabPoint = Vector3.zero;   // grab n throw yourself
+        public Vector3 lastGrabPoint = Vector3.zero;   // grab n throw yourself
         //public Vector3 velocity = Vector3.zero;
         public Vector3 initialBodyVelocity = Vector3.zero;   // body speed when you grabbed the air // unused atm, was gonna let you redirect velocity. TODO
 
@@ -307,41 +309,41 @@ public class myInputTests : NetBehaviour
 
 
         // movement
-        // both hands? (combining the hands minimizes the drift when you try and rotate)
+        // both hands
         Vector3 combinedDelta = Vector3.zero;
-        if (leftie.trigger > .5f && rightie.trigger > .5f && (leftie.grabPoint != Vector3.zero && rightie.grabPoint != Vector3.zero))
+        if (leftie.trigger > .5f && rightie.trigger > .5f && (leftie.lastGrabPoint != Vector3.zero && rightie.lastGrabPoint != Vector3.zero))
         {
-            combinedDelta = (leftie.grabPoint - leftie.transform.localPosition) + (rightie.grabPoint - rightie.transform.localPosition);
+            combinedDelta = (leftie.lastGrabPoint - leftie.transform.localPosition) + (rightie.lastGrabPoint - rightie.transform.localPosition);
             combinedDelta /= 2;
         }
         // calc each Hand
         foreach (Hand hand in hands)
         {
-            //hand.thrusterOutput = 0;
             if (hand.trigger > .5f) 
             {
-                if (hand.grabPoint == Vector3.zero)
+                if (hand.lastGrabPoint == Vector3.zero)
                 {
-                    hand.grabPoint = hand.transform.localPosition;
+                    hand.lastGrabPoint = hand.transform.localPosition;
                     hand.initialBodyVelocity = body.velocity;
                 }
 
 
-                Vector3 delta = hand.grabPoint - hand.transform.localPosition;
+                Vector3 delta = hand.lastGrabPoint - hand.transform.localPosition;
                 if (combinedDelta != Vector3.zero)
                     delta = combinedDelta;
                 Vector3 worldDirection = hand.transform.parent.localToWorldMatrix * delta.normalized;
 
-                Vector3 deltaWorld = delta.magnitude * worldDirection * 600;    // map the local space Hand movement to world space
-                float speedDilution = Mathf.Clamp01(Vector3.Dot((deltaWorld - body.velocity * 10), deltaWorld));    // so you can only accelerate so fast in 1 direction, but can stop instantly
+                //Vector3 deltaWorld = delta.magnitude * worldDirection * 600;    // map the local space Hand movement to world space
+                Vector3 deltaWorld = (delta.magnitude * worldDirection * 15) / Time.deltaTime;    // map the local space Hand movement to world space
+                ////float speedDilution = Mathf.Clamp01(Vector3.Dot((deltaWorld - body.velocity * 10), deltaWorld));    // so you can only accelerate so fast in 1 direction, but can stop instantly
+                //float speedDilution = Mathf.Clamp01(Vector3.Dot((deltaWorld - body.velocity * 5), deltaWorld));    // so you can only accelerate so fast in 1 direction, but can stop instantly
                 
 
-                //Vector3 push = deltaWorld * speedDilution * 1;
-                Vector3 push = deltaWorld * speedDilution * 2;
+                //Vector3 inPush = deltaWorld * speedDilution * 2;
+
+                Vector3 push = getPush(deltaWorld, body.velocity, 5);
 
                 // apply results
-                //hand.thrusterOutput = push.magnitude;
-                //hand.thrusterDirection = push.normalized;
                 body.AddForce(push, ForceMode.Acceleration);
 
                 // update visuals
@@ -355,9 +357,9 @@ public class myInputTests : NetBehaviour
                             hand.s = smashCharacter.rightie;
                     }
 
-                    //sh.thruster = push.magnitude / 50;
+                    //sh.thruster = inPush.magnitude / 50;
                     hand.s.thruster = delta.magnitude * 10;
-                    //sh.thrusterDirection = -push.normalized;
+                    //sh.thrusterDirection = -inPush.normalized;
                     hand.s.thrusterDirection = -worldDirection;
 
                 }
@@ -365,11 +367,11 @@ public class myInputTests : NetBehaviour
 
                 //print("Accelerating " + force);
                 //print("speedDilution " + speedDilution);
-                //print("push " + push);
-                hand.grabPoint = hand.transform.localPosition;
+                //print("inPush " + inPush);
+                hand.lastGrabPoint = hand.transform.localPosition;
             } else
             {
-                hand.grabPoint = Vector3.zero;
+                hand.lastGrabPoint = Vector3.zero;
                 hand.initialBodyVelocity = Vector3.zero;
 
                 // visuals
@@ -379,8 +381,71 @@ public class myInputTests : NetBehaviour
                 }
             }
         }
-
     }
+
+    // TODO
+    /// <summary>
+    /// So you can only accelerate so fast in 1 direction, but can stop instantly
+    /// </summary>
+    /// <param name="inPush">The amount the hands move in a second, times like 15 </param>
+    /// <param name="bodyVelocity">rigidBody.velocity</param>
+    /// <param name="speedFalloff">Bigger values mean lower top speed. I do between 5 and 10.</param>
+    /// <returns></returns>
+    Vector3 getPush(Vector3 inPush, Vector3 bodyVelocity, float speedFalloff)
+    {
+        float speedDilution = Mathf.Clamp01(Vector3.Dot((inPush - bodyVelocity * speedFalloff), inPush));
+        Vector3 push = inPush * speedDilution;
+        return push;
+    }
+
+
+    void Smash_PC_mouseRunning()
+    {
+        extraRotation = extraRotation * Quaternion.Euler(0, Input.GetAxis("Mouse X") * turnSpeed * Time.deltaTime, 0);
+        cameraTilt = cameraTilt * Quaternion.Euler(-Input.GetAxis("Mouse Y") * turnSpeed * Time.deltaTime, 0, 0);
+
+        if (!disableMouseVertical)
+        {
+            XR_Headset.parent.localRotation = Quaternion.identity * cameraTilt;
+            Cursor.lockState = CursorLockMode.Locked;
+        }
+        else
+            Cursor.lockState = CursorLockMode.None;
+
+
+        //Vector3 vel = new Vector3(Input.GetKey(KeyCode.A) ? -1 : Input.GetKey(KeyCode.D) ? 1 : 0, 0, Input.GetKey(KeyCode.S) ? -1 : Input.GetKey(KeyCode.W) ? 1 : 0) * runAccelerate;
+        //vel = Quaternion.Euler(0, body.rotation.eulerAngles.y, 0) * vel;
+        ////print("vev" + vel);
+
+        Vector3 inPush = new Vector3(Input.GetKey(KeyCode.A) ? -1 : Input.GetKey(KeyCode.D) ? 1 : 0, 0, Input.GetKey(KeyCode.S) ? -1 : Input.GetKey(KeyCode.W) ? 1 : 0);
+        inPush += Vector3.up * (Input.GetKey(KeyCode.Space) ? 1 : 0);
+        inPush = XR_Headset.rotation * inPush;
+        inPush = inPush.normalized * runAccelerate;
+
+
+        //Vector3 push = getPush(inPush * 5f, body.velocity, 5);
+        Vector3 push = getPush(inPush * 2f, body.velocity, 3);
+
+        body.AddForce(push, ForceMode.Acceleration);
+
+
+        // smash visuals
+        {
+            foreach(SmashCharacter.Hand hand in smashCharacter.hands)
+            {
+                //hand.thruster = delta.magnitude * 10;
+                //hand.thruster = (inPush.magnitude / Time.deltaTime) * 10;
+                //hand.thruster = (inPush.magnitude * Time.deltaTime) * (10 / 15);
+                //hand.thruster = (inPush.magnitude * Time.deltaTime) * 3.3f;
+                //hand.thruster = (inPush.normalized.magnitude * Time.deltaTime) * 33f;
+                hand.thruster = (inPush.normalized.magnitude * Time.deltaTime) * 15;
+                hand.thrusterDirection = -inPush.normalized;
+            }
+
+        }
+    }
+
+
 
     void PC_mouseRunning()
     {
@@ -423,6 +488,10 @@ public class myInputTests : NetBehaviour
         vel = body.rotation * vel;
         body.AddForce(vel, ForceMode.Acceleration);
     }
+
+
+
+
 
 
     /// <summary>

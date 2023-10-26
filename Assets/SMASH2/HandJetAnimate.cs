@@ -55,12 +55,15 @@ public class HandJetAnimate : MonoBehaviour
     // update is called once per frame
     void Update()
     {
+
         // point thrust direction
         if (thrust > .001f)
         {
             //    transform.rotation = Quaternion.LookRotation(-direction, Vector3.up);
             Quaternion thrustTarget = Quaternion.LookRotation(-direction, Vector3.up);
             transform.rotation = Quaternion.Slerp(transform.rotation, thrustTarget, Mathf.Clamp01(thrust));
+            //print("thrust : " + thrust + "thrustTarget " + thrustTarget);
+
         }
 
 

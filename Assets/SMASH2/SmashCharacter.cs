@@ -493,6 +493,7 @@ public class SmashCharacter : NetBehaviour
 
                 Quaternion rotation = Quaternion.LookRotation(thrusterDirection, Vector3.up);
                 handJetFlames.transform.rotation = rotation;
+                //print("rotation " + rotation + " thruster " + thruster);
             }
             else
                 handJetFlames.Stop();
