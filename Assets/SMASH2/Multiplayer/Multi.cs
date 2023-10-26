@@ -209,6 +209,8 @@ public class Multi : NetworkBehaviour
 
         syncedPrefabs = new Dictionary<int, GameObject>();
 
+        SyncedProperty.SyncedProperties = new Dictionary<int, SyncedProperty>();    // static; needs to be manually reset if domain refreshing is off
+
         //prefabIds_GOs = PrefabDictionaryBuild.createDictionary_S_to_GO();
         //prefabIds_Strings = PrefabDictionaryBuild.createDictionary_GO_to_S();
 

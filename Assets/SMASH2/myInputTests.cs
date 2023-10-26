@@ -433,11 +433,6 @@ public class myInputTests : NetBehaviour
         {
             foreach(SmashCharacter.Hand hand in smashCharacter.hands)
             {
-                //hand.thruster = delta.magnitude * 10;
-                //hand.thruster = (inPush.magnitude / Time.deltaTime) * 10;
-                //hand.thruster = (inPush.magnitude * Time.deltaTime) * (10 / 15);
-                //hand.thruster = (inPush.magnitude * Time.deltaTime) * 3.3f;
-                //hand.thruster = (inPush.normalized.magnitude * Time.deltaTime) * 33f;
                 hand.thruster = (inPush.normalized.magnitude * Time.deltaTime) * 15;
                 hand.thrusterDirection = -inPush.normalized;
             }

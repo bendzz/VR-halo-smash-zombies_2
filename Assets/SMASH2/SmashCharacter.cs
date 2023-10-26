@@ -43,7 +43,7 @@ public class SmashCharacter : NetBehaviour
     // model assets
     public GameObject Head_VR;
     public GameObject Head_PC;
-    public GameObject Sword;
+    public SwordAnimate Sword;
 
     public float damage = 0;    // smash bros damage, amplifies knockback
     float oldDamage = 0;
@@ -73,47 +73,7 @@ public class SmashCharacter : NetBehaviour
     public bool VR_mode = false;
 
 
-    // Start is called before the first frame update
-    void Start()
-    //public override void OnNetworkSpawn()
-    {
-        //if (!characters.Contains(this))
-        //    characters.Add(this);
 
-
-        //// sync to input script (if it exists)
-        //if (input != null)
-        //{
-        //    print("init " + this.name + " input " + input.name);
-        //    print(input.leftie);
-        //    leftie.transform = input.leftie.transform;
-        //    rightie.transform = input.rightie.transform;
-        //    head = input.XR_Headset;
-        //}
-        //else
-        //{
-        //    // AI controlled then
-        //    leftie.transform = rightie.transform = head = transform;
-        //    limp = true;    // for debugging
-        //}
-
-        //hands = new List<Hand>();
-        //hands.Add(leftie);
-        //hands.Add(rightie);
-
-        //foreach (Hand hand in hands)
-        //{
-        //    //Hand.handJetFlames = Instantiate(handJetsParticlesPrefab, Hand.rectTransform).GetComponent<ParticleSystem>();
-        //    hand.setHandjet(handJetsParticlesPrefab.transform);
-        //    if (handJetPrefab != null)
-        //        hand.handJet = Instantiate(handJetPrefab, hand.transform);
-        //}
-
-
-        //// player info Card
-        //infoCard = new InfoCard(transform);
-        //infoCard.setDefaultFont();
-    }
 
     Multi.Entity entity;
 
@@ -206,53 +166,25 @@ public class SmashCharacter : NetBehaviour
 
 
         body.isKinematic = false;   // why the hell is this suddenly getting set to true upon spawn? Bloody weird
+
+        Sword.body.isKinematic = true;
     }
 
 
 
-    //// test
-    //[ServerRpc]
-    //public void syncParam_ServerRpc(float time, ServerRpcParams pars = default)
-    //{
-    //    var clientId = pars.Receive.SenderClientId;
-    //    if (NetworkManager.ConnectedClients.ContainsKey(clientId))
-    //    {
-    //        var client = NetworkManager.ConnectedClients[clientId];
-    //        // Do things for the client (our local copy) that sent the RPC
-    //        // client.PlayerObject.GetComponent<SmashCharacter>().syncParam_ServerRpc(time);
-    //    }
-    //    print(clientId + " pinged the server with " + time);
-
-    //    syncParam_ClientRpc(time, clientId);  // send to all clients
-    //}
-
-    //[ClientRpc]
-    //public void syncParam_ClientRpc(float time, ulong originalSender, ClientRpcParams pars = default)
-    //{
-    //    var thisClientId = NetworkManager.Singleton.LocalClientId;
-    //    print("Server pinged client " + thisClientId + " (originally from client "+ originalSender + ") with " + time);
-    //}
-
+    private void Update()
+    {
+    }
 
 
     bool alertedSmashMulti = false;
+
+    bool oldLeftClick = false;
 
     // update is called once per frame
     //void update()
     private void FixedUpdate()
     {
-        //if (IsOwner)
-        //    syncParam_ServerRpc(Time.time);   // send to server
-
-        //if (!alertedSmashMulti)
-        //{
-        //    // Need to do these damn checks cause Players spawn several frames before the other scripts
-        //    if (SmashMulti.instance != null)
-        //    {
-        //        SmashMulti.characterSpawned(this);
-        //        alertedSmashMulti = true;
-        //    }
-        //}
 
         transform.parent.name = "Player:" + playerName;
 
@@ -290,18 +222,13 @@ public class SmashCharacter : NetBehaviour
         // PC player hands
         if (!VR_mode)
         {
-            //print("keyboard!");
+            //print("keyboard mode!");
             Transform bod = xr_Dummies_Sync.XR_Origin;
-            //rightie.transform.position = bod.right * .4f + bod.up * -.2f + bod.forward * .5f;
             rightie.transform.localPosition = Vector3.right * .4f + Vector3.up * -.2f + Vector3.forward * .5f;
-            //rightie.transform.rotation = bod.rotation * Quaternion.Euler(-90, 0, 0);
             rightie.transform.localRotation = Quaternion.Euler(-90, 0, 0);
 
-            //leftie.transform.position = bod.right * -.4f + bod.up * -.2f + bod.forward * .5f;
             leftie.transform.localPosition = Vector3.right * -.4f + Vector3.up * -.2f + Vector3.forward * .5f;
-            //leftie.transform.rotation = bod.rotation * Quaternion.Euler(-90, 0, 0);
             leftie.transform.localRotation = Quaternion.Euler(-90, 0, 0);
-
         }
 
 
@@ -341,7 +268,9 @@ public class SmashCharacter : NetBehaviour
             }
         }
         
-        // apply damage to enemies
+        // Do damage
+
+        // apply thruster damage to enemies
         foreach(SmashCharacter enemy in characters)
         {
             if (enemy == this)
@@ -389,17 +318,45 @@ public class SmashCharacter : NetBehaviour
             }
         }
 
-        //// get and print the playerName from networking
-        //if (NetworkManager.Singleton != null)
-        //{
-        //    if (NetworkManager.Singleton.ConnectedClients.TryGetValue(OwnerClientId, out var networkedClient))
-        //    {
-        //        //playerName = networkedClient.Player.DisplayName;
-        //        playerName = networkedClient.PlayerObject.name;
-        //        print("playerName: " + playerName);
-        //    }
-        //}
-        //print("playerControllerId " + LobbyPlayerJoined);
+
+
+
+
+
+
+        //Sword throw
+        if (Input.GetMouseButton(0) && !oldLeftClick)
+        {
+            if (IsOwner)
+            {
+                //print("Sword throw!");
+                GameObject thrownSword = Instantiate(Sword.gameObject, Sword.transform.position, Sword.transform.rotation);
+                //Sword.gameObject.SetActive(false);
+                Sword.respawn();
+
+                thrownSword.transform.parent = null;
+                SwordAnimate ts = thrownSword.GetComponent<SwordAnimate>();
+                ts.body.isKinematic = false;
+                ts.body.collisionDetectionMode = CollisionDetectionMode.ContinuousDynamic;
+                ts.body.velocity = body.velocity;
+                thrownSword.layer = LayerMask.NameToLayer("Default");
+                ts.body.AddForce(head.forward * 50, ForceMode.VelocityChange);
+
+                // spin the sword
+                //ts.body.angularVelocity = new Vector3(0, 0, -5);
+                Vector3 localAngularVelocity = Vector3.zero;
+                localAngularVelocity.z = -200f / ts.body.inertiaTensor.z;    // will get screwed up if the inertia tensor gets rotated
+                ts.body.angularVelocity = ts.body.transform.TransformDirection(localAngularVelocity);
+
+                ts.lifeTimer = 2;
+                ts.dying = true;
+            }
+                //Sword.GetComponent<SwordAnimate>().throwSword();
+        }
+
+
+
+
 
 
         infoCard.setTextValues(playerName, damage);
@@ -407,6 +364,7 @@ public class SmashCharacter : NetBehaviour
             infoCard.faceCamera(Camera.main);
 
         oldDamage = damage;
+        oldLeftClick = Input.GetMouseButton(0);
     }
 
 

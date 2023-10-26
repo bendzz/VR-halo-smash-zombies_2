@@ -32,8 +32,6 @@ public class PrefabStrings : MonoBehaviour
         if (Instance != null && Instance != this)
         {
             Debug.LogError("Another instance of PrefabStrings already exists!");
-            Destroy(this);
-            return;
         }
         Instance = this;
         //UpdateInternalDict();
@@ -53,7 +51,7 @@ public class PrefabStrings : MonoBehaviour
         }
     }
 
-    [ContextMenu("Update Dictionary")]
+    [ContextMenu("Update Dictionary")] 
     void UpdateInternalDict()
     {
 #if UNITY_EDITOR
@@ -94,6 +92,8 @@ public class PrefabStrings : MonoBehaviour
     public static Dictionary<string, GameObject> CreateDictionary_S_to_GO()
     {
         Dictionary<string, GameObject> dict = new Dictionary<string, GameObject>();
+        print("instance " + Instance);
+        print ("instance.keys " + Instance.keys);
         for (int i = 0; i < Instance.keys.Count; i++)
         {
             dict[Instance.keys[i]] = Instance.values[i];
