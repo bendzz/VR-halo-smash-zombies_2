@@ -168,6 +168,7 @@ public class SmashCharacter : NetBehaviour
         body.isKinematic = false;   // why the hell is this suddenly getting set to true upon spawn? Bloody weird
 
         Sword.body.isKinematic = true;
+        Sword.held = true;
     }
 
 
@@ -308,7 +309,7 @@ public class SmashCharacter : NetBehaviour
                         //enemy.damage += damageInstant;  // why does this not throw an error??
 
                         if (IsOwner)
-                            enemy.applyDamageHit(damageInstant, hand.transform.position);
+                            enemy.applyDamageFromLocation(damageInstant, hand.transform.position);
                         //enemy.applyDamageSynced.callMethod(new object[] { damageInstant, hand.transform.position });    // calls it on our copy of the enemy, which syncs it across the network
 
 
@@ -336,22 +337,25 @@ public class SmashCharacter : NetBehaviour
 
                 thrownSword.transform.parent = null;
                 SwordAnimate ts = thrownSword.GetComponent<SwordAnimate>();
+
                 ts.body.isKinematic = false;
                 ts.body.collisionDetectionMode = CollisionDetectionMode.ContinuousDynamic;
                 ts.body.velocity = body.velocity;
                 thrownSword.layer = LayerMask.NameToLayer("Default");
                 ts.body.AddForce(head.forward * 50, ForceMode.VelocityChange);
 
-                // spin the sword
-                //ts.body.angularVelocity = new Vector3(0, 0, -5);
-                Vector3 localAngularVelocity = Vector3.zero;
-                localAngularVelocity.z = -200f / ts.body.inertiaTensor.z;    // will get screwed up if the inertia tensor gets rotated
-                ts.body.angularVelocity = ts.body.transform.TransformDirection(localAngularVelocity);
+                //// spin the sword
+                //Vector3 localAngularVelocity = Vector3.zero;
+                //localAngularVelocity.z = -200f / ts.body.inertiaTensor.z;    // will get screwed up if the inertia tensor gets rotated
+                //ts.body.angularVelocity = ts.body.transform.TransformDirection(localAngularVelocity);
 
-                ts.lifeTimer = 2;
+                //ts.lifeTimer = 2;
+                ts.lifeTimer = 5;
                 ts.dying = true;
+                ts.held = false;
+
             }
-                //Sword.GetComponent<SwordAnimate>().throwSword();
+            //Sword.GetComponent<SwordAnimate>().throwSword();
         }
 
 
@@ -372,23 +376,21 @@ public class SmashCharacter : NetBehaviour
     /// apply damage with character throwback. (TODO, pausing upon punch)
     /// </summary>
     /// <param name="Damage"></param>
-    public void applyDamageHit(float Damage, Vector3 source)
+    public void applyDamageFromLocation(float Damage, Vector3 source)
     {
         //print("Damage applied: " + Damage + " from distance " + (transform.position - source).ToString());
-        //Vector3 throwback = (transform.position - source).normalized * (damage + (10 * Mathf.Clamp01(damage - 2))) * .05f;
-        Vector3 throwback = (transform.position - source).normalized * damage * .02f * Damage;
 
+        applyDamageFromDirection(Damage, (transform.position - source).normalized);
+    }
+    public void applyDamageFromDirection(float Damage, Vector3 direction)
+    {
+        //Vector3 throwback = (transform.position - source).normalized * damage * .02f * Damage;
+        Vector3 throwback = direction.normalized * damage * .02f * Damage;
 
-        //applyDamage
         if (Damage > .1f)
         {
-            //if (IsOwner)
-                applyDamageSynced.callMethod(new object[] { Damage, throwback });
+            applyDamageSynced.callMethod(new object[] { Damage, throwback });
         }
-
-
-        //body.AddForce(throwback, ForceMode.Impulse);
-        //damage += Damage;
     }
     /// <summary>
     /// This function exists on dummy copies of players on the local client. The client calls it for damage, 
@@ -396,7 +398,7 @@ public class SmashCharacter : NetBehaviour
     /// </summary>
     public void applyDamage(float Damage, Vector3 throwBack)
     {
-        print("Damage applied: " + Damage + " from distance " + (throwBack).ToString());
+        print("Damage applied: " + Damage + " with throwback " + (throwBack).ToString());
         
 
         damage += Damage;
