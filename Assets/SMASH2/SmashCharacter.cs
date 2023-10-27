@@ -1,14 +1,17 @@
-using System.Collections;
+//using System.Collections;
 using System.Collections.Generic;
+using System.Runtime.InteropServices;
+//using System.Drawing;
 //using System.Drawing;
 using TMPro;
-using Unity.Collections;
-using Unity.Netcode;
-using Unity.Services.Authentication;
-using Unity.Services.Lobbies;
-using Unity.Services.Lobbies.Models;
 using Unity.VisualScripting;
-using Unity.XR.CoreUtils;
+//using Unity.Collections;
+//using Unity.Netcode;
+//using Unity.Services.Authentication;
+//using Unity.Services.Lobbies;
+//using Unity.Services.Lobbies.Models;
+//using Unity.VisualScripting;
+//using Unity.XR.CoreUtils;
 using UnityEngine;
 
 
@@ -56,6 +59,12 @@ public class SmashCharacter : NetBehaviour
     public Hand rightie = new Hand();
     Transform head;
 
+    // temp
+    //[SerializeField] Vector3 swordStart;
+    //[SerializeField] Vector3 swordEnd;
+    Vector3 swordStart = new Vector3(0,0,-120);
+    Vector3 swordEnd = new Vector3(0, -30, -297);
+    //Vector3 swordEnd = new Vector3(0, 0, -297);
 
     public List<Hand> hands;
     float stunTimer = 0; // how many seconds left in the stun
@@ -65,6 +74,10 @@ public class SmashCharacter : NetBehaviour
     /// </summary>
     public static List<SmashCharacter> characters = new List<SmashCharacter>();
 
+    public Color playerColor;
+
+    public List<Color> playerColors;
+    public static Dictionary<Color, SmashCharacter> inUsePlayerColors;
 
     InfoCard infoCard;
 
@@ -72,7 +85,8 @@ public class SmashCharacter : NetBehaviour
     public Multi.SyncedProperty applyDamageSynced;  
     public bool VR_mode = false;
 
-
+    //MeshRenderer meshRenderer;
+    Material glowMaterial;
 
 
     Multi.Entity entity;
@@ -138,6 +152,7 @@ public class SmashCharacter : NetBehaviour
 
         //entity.setCurrents(Head_VR.gameObject, Head_VR.gameObject, Head_VR.gameObject.active);
         entity.addSyncedProperty(VR_mode);
+        entity.addSyncedProperty(playerColor);
 
 
         //object[] parameters = { 42.2f, Vector3.zero };
@@ -169,8 +184,77 @@ public class SmashCharacter : NetBehaviour
 
         Sword.body.isKinematic = true;
         Sword.held = true;
+        Sword.holder = this;    // redundant?
+
+        // set glow
+        playerColor = getFreshColor();
+        inUsePlayerColors.Add(playerColor, this);
+
+        MeshRenderer meshRenderer = Head_PC.GetComponent<MeshRenderer>();
+        glowMaterial = GetMaterialInstanceByName(meshRenderer, "glow");
+        //print("glowMaterial " + glowMaterial.name);
+        meshRenderer = Head_VR.GetComponent<MeshRenderer>();
+        glowMaterial = GetMaterialInstanceByName(meshRenderer, "headsetGlow", glowMaterial);
+        //print("glowMaterial " + glowMaterial.name);
     }
 
+    Color getFreshColor()
+    {
+        if (inUsePlayerColors == null)
+            inUsePlayerColors = new Dictionary<Color, SmashCharacter>();
+
+        List<Color> unusedColors = new List<Color>();
+
+        foreach(Color color in playerColors)
+        {
+            if (!inUsePlayerColors.ContainsKey(color))
+                unusedColors.Add(color);
+        }
+
+        if (unusedColors.Count == 0)
+            unusedColors = playerColors;
+
+        Color newColor = unusedColors[Random.Range(0, unusedColors.Count-1)];
+
+        return newColor;
+    }
+    /// <summary>
+    /// Finds the material, creates an instance of it, assigns it to the MeshRenderer, returns the instance.
+    /// (Optionally, replaces the material with replaceWithMaterial)
+    /// </summary>
+    //private static Material GetMaterialInstanceByName(MeshRenderer renderer, string materialName, Material replaceWithMaterial = null)
+    //{
+    //    //foreach (Material mat in renderer.materials)
+    //    for (int m = 0; m < renderer.materials.Length; m++)
+    //    {
+    //        Material mat = renderer.materials[m];
+    //        if (mat.name.StartsWith(materialName)) // Using StartsWith because Unity appends " (Instance)" to material names when calling .materials
+    //        {
+    //            if (replaceWithMaterial == null)
+    //                replaceWithMaterial = new Material(mat);
+
+    //                renderer.materials[m] = replaceWithMaterial; // Assign the instance back to the MeshRenderer
+    //            return replaceWithMaterial;
+    //        }
+    //    }
+    //    return null; // Return null if the material wasn't found
+    //}
+    private static Material GetMaterialInstanceByName(MeshRenderer renderer, string materialName, Material replaceWithMaterial = null)
+    {
+        Material[] materials = renderer.materials;
+        for (int m = 0; m < materials.Length; m++)
+        {
+            if (materials[m].name.StartsWith(materialName)) // Using StartsWith because Unity appends " (Instance)" to material names when calling .materials
+            {
+                if (replaceWithMaterial == null)
+                    replaceWithMaterial = new Material(materials[m]);
+
+                materials[m] = replaceWithMaterial; // Modify the array
+            }
+        }
+        renderer.materials = materials; // Reassign the modified array back to the renderer
+        return replaceWithMaterial;
+    }
 
 
     private void Update()
@@ -181,11 +265,15 @@ public class SmashCharacter : NetBehaviour
     bool alertedSmashMulti = false;
 
     bool oldLeftClick = false;
+    bool oldRightClick = false;
 
     // update is called once per frame
     //void update()
     private void FixedUpdate()
     {
+
+        glowMaterial.SetColor("_Color", playerColor);
+        glowMaterial.SetColor("_EmissionColor", playerColor);
 
         transform.parent.name = "Player:" + playerName;
 
@@ -322,11 +410,8 @@ public class SmashCharacter : NetBehaviour
 
 
 
-
-
-
         //Sword throw
-        if (Input.GetMouseButton(0) && !oldLeftClick)
+        if (Input.GetMouseButton(1) && !oldRightClick)
         {
             if (IsOwner)
             {
@@ -359,6 +444,38 @@ public class SmashCharacter : NetBehaviour
         }
 
 
+        // sword slash
+        if (Input.GetMouseButton(0) && !oldLeftClick)
+        {
+            if (IsOwner)
+            {
+                print("Sword slash!");
+
+                if (swordSwingTimer == 0) { 
+                    swordSwingTimer += Time.fixedDeltaTime;
+                }
+
+            }
+        }
+        if (swordSwingTimer > 0)
+        {
+            SwordAnimate sw = Sword.GetComponent<SwordAnimate>();
+
+            //Sword.transform.localRotation = Quaternion.Slerp(Quaternion.Euler(0,0,-70), Quaternion.Euler(0, 0, 90), swordSwingTimer / swordSwingTime);
+            //Sword.transform.localRotation = Quaternion.Slerp(Quaternion.Euler(swordStart), Quaternion.Euler(swordEnd), swordSwingTimer / swordSwingTime);
+            
+            // todo redo the start and finish points to swing where ur looking
+            Sword.transform.localRotation = Quaternion.SlerpUnclamped(Quaternion.Euler(swordStart), Quaternion.Euler(swordEnd), (swordSwingTimer / (swordSwingTime * .6f)) - .5f);
+            //Sword.transform.rotation = head.rotation * Quaternion.SlerpUnclamped(Quaternion.Euler(swordStart), Quaternion.Euler(swordEnd), (swordSwingTimer / (swordSwingTime * .6f)) - .5f);
+            //Sword.transform.rotation = head.transform.TransformDirection(Quaternion.SlerpUnclamped(Quaternion.Euler(swordStart), Quaternion.Euler(swordEnd), (swordSwingTimer / (swordSwingTime * .6f)) - .5f));
+
+            swordSwingTimer += Time.fixedDeltaTime;
+            if (swordSwingTimer > swordSwingTime)
+            {
+                swordSwingTimer = 0;
+                Sword.transform.localRotation = sw.localRotation_Original;
+            }
+        }
 
 
 
@@ -369,8 +486,11 @@ public class SmashCharacter : NetBehaviour
 
         oldDamage = damage;
         oldLeftClick = Input.GetMouseButton(0);
+        oldRightClick = Input.GetMouseButton(1);
     }
 
+    float swordSwingTime = .2f;
+    float swordSwingTimer = 0;
 
     /// <summary>
     /// apply damage with character throwback. (TODO, pausing upon punch)
@@ -521,6 +641,7 @@ public class InfoCard   // separate all this into a class for mess
 
 
         //info.text = "<align=\"center\">" + PlayerName + "<br> <size=200%><color=#" + color.ToHexString() + ">" + Damage.ToString("F2") + "</color>%";
+        //info.text = "<align=\"center\">" + PlayerName + "<br> <size=200%><color=#" + color.ToHexString() + ">" + Damage.ToString("F0") + "</color>%";
         info.text = "<align=\"center\">" + PlayerName + "<br> <size=200%><color=#" + color.ToHexString() + ">" + Damage.ToString("F0") + "</color>%";
 
         //if (input == null)  // only for other characters; TODO, a better way to do this (keep the info card from freaking out)

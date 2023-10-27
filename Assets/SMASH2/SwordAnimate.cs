@@ -1,10 +1,14 @@
 using System.Collections;
 using System.Collections.Generic;
+using Unity.Mathematics;
 using UnityEngine;
 
 public class SwordAnimate : MonoBehaviour
 {
+
+    public SmashCharacter holder;
     public GameObject sword;
+    public GameObject swordTipPoint;
     public Rigidbody body;
     Collider colliderPhysical;
     Collider collderTrigger;
@@ -16,22 +20,76 @@ public class SwordAnimate : MonoBehaviour
     public bool energized = false;
 
     public Vector3 scale_Original;
-    //public Vector3 position_Original;
+    public Vector3 localPosition_Original;
+    public Quaternion localRotation_Original;
     public float scale = 1;
 
     // I-frames
     public SmashCharacter dontHitTwice = null;
     public float dontHitTwiceTimer = 0;
 
+    public List<Color> colorList;
+
+
+
+
+
+
+    /// <summary>
+    /// For estimating swing speed
+    /// </summary>
+    ScrollList<Vector3> swordTipPositions;
+    ScrollList<Vector3> swordTipLocalPositions;
+
+    MeshRenderer renderer;
+    Material swordGlowMaterial;
+
+
     // Start is called before the first frame update
     void Start()
     {
         scale_Original = sword.transform.localScale;
+        localPosition_Original = sword.transform.localPosition;
+        localRotation_Original = sword.transform.localRotation;
 
         gameObject.layer = 2;    //testing
 
         SetColliders();
+
+        swordTipPositions = new ScrollList<Vector3>(4);
+        swordTipLocalPositions = new ScrollList<Vector3>(4);
+
+
+        renderer = GetComponent<MeshRenderer>();
+        swordGlowMaterial = GetMaterialInstanceByName(renderer, "swordGlow");
+
+
+        //swordGlowMaterial.SetColor("_Color", Color.red);
+        //swordGlowMaterial.SetColor("_EmissionColor", Color.red);
+
+        // To ensure that emission is effective, you might also want to enable emission globally
+        DynamicGI.SetEmissive(renderer, swordGlowMaterial.GetColor("_EmissionColor"));
     }
+
+
+    /// <summary>
+    /// Finds the material, creates an instance of it, assigns it to the MeshRenderer, returns the instance
+    /// </summary>
+    private static Material GetMaterialInstanceByName(MeshRenderer renderer, string materialName)
+    {
+        foreach (Material mat in renderer.materials)
+        {
+            if (mat.name.StartsWith(materialName)) // Using StartsWith because Unity appends " (Instance)" to material names when calling .materials
+            {
+                Material newMatInstance = new Material(mat);
+                renderer.material = newMatInstance; // Assign the instance back to the MeshRenderer
+                return newMatInstance;
+            }
+        }
+
+        return null; // Return null if the material wasn't found
+    }
+
 
     // Update is called once per frame
     void Update()
@@ -58,9 +116,9 @@ public class SwordAnimate : MonoBehaviour
             gameObject.transform.localScale = scale_Original * scale;
         }
 
-        if (held)
-            colliderPhysical.enabled = false;
-        else
+        //if (held)
+        //    colliderPhysical.enabled = false;
+        //else
             colliderPhysical.enabled = true;
 
         // spin the sword!
@@ -89,37 +147,40 @@ public class SwordAnimate : MonoBehaviour
         }
     }
 
+    private void FixedUpdate()
+    {
+        swordTipPositions.append(swordTipPoint.transform.position);
+        swordTipLocalPositions.append(swordTipPoint.transform.position - holder.transform.position);    // won't account for spins, but ig that's good
+
+        swordGlowMaterial.SetColor("_Color", holder.playerColor);
+        swordGlowMaterial.SetColor("_EmissionColor", holder.playerColor);
+
+        //colorList
+        //if (colorList.Count == 0)
+        //    return;
+        //swordGlowMaterial.SetColor("_Color", colorList[colorList.Count-1]);
+        //swordGlowMaterial.SetColor("_EmissionColor", colorList[colorList.Count - 1]);
+        //DynamicGI.SetEmissive(renderer, swordGlowMaterial.GetColor("_EmissionColor"));
+    }
 
 
     void OnTriggerEnter(Collider other)
     {
-        if (!held && energized)  // throw damage
+
+        IntangibleHitbox hitbox = other.gameObject.GetComponent<IntangibleHitbox>();
+        if (hitbox != null)
         {
-            //Debug.Log("Sword trigger hit! " + other.gameObject.name);
-
-            //int playerLayer = LayerMask.NameToLayer("Player");
-            //if (other.gameObject.layer == playerLayer)
-            //{
-            //    Debug.Log("Triggered by Player! Object " + other.gameObject.name);
-            //}
-
-            //SmashCharacter hitBoi = FindSmashCharacterInParents(other.gameObject);
-            //if (hitBoi != null)
-            //{
-            //    print("hitBoi " + other.gameObject);
-            //}
-
-            IntangibleHitbox hitbox = other.gameObject.GetComponent<IntangibleHitbox>();
-            if (hitbox != null)
+            //print("hitbox " + hitbox.gameObject.name);
+            if (hitbox.representsObject != null)
             {
-                //print("hitbox " + hitbox.gameObject.name);
-                if (hitbox.representsObject != null)
+                //print("hitbox.representsObject " + hitbox.representsObject.name);
+                SmashCharacter hitBoi = hitbox.representsObject.GetComponent<SmashCharacter>();
+                if (hitBoi != null && hitBoi != dontHitTwice)
                 {
-                    //print("hitbox.representsObject " + hitbox.representsObject.name);
-                    SmashCharacter hitBoi = hitbox.representsObject.GetComponent<SmashCharacter>();
-                    if (hitBoi != null && hitBoi != dontHitTwice)
+                    print("HITBOI - " + hitBoi.playerName);
+
+                    if (!held && energized) // throw damage
                     {
-                        print("HITBOI! " + hitBoi.damage);
                         hitBoi.applyDamageFromDirection(20 * scale, body.velocity);
 
                         //body.velocity = -body.velocity * .5f;
@@ -127,57 +188,77 @@ public class SwordAnimate : MonoBehaviour
 
                         dontHitTwice = hitBoi;
                         dontHitTwiceTimer = .5f;
+                    } else if (held)    // schwing
+                    {
+                        if (hitBoi == holder)
+                            return;
+
+                        Vector3 tipDelta = swordTipPositions.getOldest() - swordTipPositions.getNewest();
+                        //print("tipDelta.magnitude " + tipDelta.magnitude);
+
+                        Vector3 charDelta = (hitBoi.body.velocity - holder.body.velocity);
+                        //print ("relative velocity " + charDelta.magnitude);
+                        tipDelta -= charDelta * (Time.fixedDeltaTime * swordTipPositions.maxSize) * 2;  // lunging at them matters
+
+                        //print("tipDelta.magnitude adjusted " + tipDelta.magnitude);
+
+                        Vector3 localTipDelta = swordTipLocalPositions.getOldest() - swordTipLocalPositions.getNewest();
+                        print("localTipDelta.magnitude " + localTipDelta.magnitude);
+
+                        float swingMultiplier = Mathf.Clamp01((localTipDelta.magnitude - .2f) / 1.2f);  // only give them the hit if they swing
+                        print("swingMultiplier " + swingMultiplier);
+
+                        // tipDelta is like 1.7 on a swing and 3.4 if they rush each other
+
+                        //hitBoi.applyDamageFromLocation(2 * scale, holder.transform.position);
+                        //hitBoi.applyDamageFromLocation(15 * tipDelta.magnitude * scale, holder.transform.position);
+                        hitBoi.applyDamageFromLocation(15 * tipDelta.magnitude * swingMultiplier * scale, holder.transform.position);
+
+
+                        dontHitTwice = hitBoi;
+                        dontHitTwiceTimer = .4f;
                     }
                 }
             }
         }
+        //}
+    }
+
+    private void OnTriggerStay(Collider other)
+    {
+        // check if it's already intersecting a player, warn that swings won't work by turning red
+        IntangibleHitbox hitbox = other.gameObject.GetComponent<IntangibleHitbox>();
+        if (hitbox != null)
+        {
+            //print("hitbox " + hitbox.gameObject.name);
+            if (hitbox.representsObject != null)
+            {
+                //print("hitbox.representsObject " + hitbox.representsObject.name);
+                SmashCharacter hitBoi = hitbox.representsObject.GetComponent<SmashCharacter>();
+                if (hitBoi != null && hitBoi != dontHitTwice)
+                {
+                    if (hitBoi == holder)
+                        return;
+
+                    swordGlowMaterial.SetColor("_Color", Color.red);
+                    swordGlowMaterial.SetColor("_EmissionColor", Color.red);
+                    DynamicGI.SetEmissive(renderer, swordGlowMaterial.GetColor("_EmissionColor"));
+
+                }
+            }
+        }
+    }
+    private void OnTriggerExit(Collider other)
+    {
+        DynamicGI.SetEmissive(renderer, swordGlowMaterial.GetColor("_EmissionColor"));
+    }
+
+    void OnCollisionEnter(Collision collision)
+    {
+        //print("COLLISION! " + collision.gameObject.name);
     }
 
 
-    //public SmashCharacter FindSmashCharacterInParents(GameObject obj)
-    //{
-    //    Transform currentTransform = obj.transform;
-    //    while (currentTransform != null)
-    //    {
-    //        SmashCharacter smashCharacter = currentTransform.GetComponent<SmashCharacter>();
-    //        if (smashCharacter != null)
-    //        {
-    //            return smashCharacter;
-    //        }
-    //        currentTransform = currentTransform.parent;
-    //    }
-    //    return null;
-    //}
-
-    //private void OnTriggerEnter(Collider other)
-    //{
-    //    if (other.gameObject.layer == LayerMask.NameToLayer("Player"))
-    //    {
-    //        GameObject playerObject = other.gameObject;
-    //        // Do something with playerObject if needed
-    //        Debug.Log("Player has entered the trigger! " + playerObject.name);
-    //    } else
-    //    {
-    //        Debug.Log("Sword trigger hit! " + other.gameObject.name);
-
-    //        // wish I could do better here but unity doesn't have good isTrigger collision info
-    //        Vector3 closestPoint = other.ClosestPoint(transform.position);
-
-    //        // Calculate the direction from this object to the closest point
-    //        Vector3 rayDirection = closestPoint - transform.position;
-
-    //        print("rayDirection" + rayDirection);
-    //        RaycastHit hit;
-    //        if (Physics.Raycast(transform.position, rayDirection, out hit, rayDirection.magnitude))
-    //        {
-    //            Vector3 hitNormal = hit.normal;
-
-    //            // Reflect the velocity and damp it
-    //            body.velocity = Vector3.Reflect(body.velocity, hitNormal) * 0.5f;
-    //            print("Reflected! " + body.velocity + " " + hitNormal);
-    //        }
-    //    }
-    //}
 
 
     //LayerMask playerLayerMask;
@@ -207,5 +288,109 @@ public class SwordAnimate : MonoBehaviour
     public void respawn()
     {
         scale = 0;
+    }
+
+
+
+
+
+
+
+
+
+    // marginally more updated than the one in FeetCollider.cs
+    /// <summary>
+    /// Overwrites the oldest value when appended; used for calculating a running average.
+    /// Note: "oldest" will return blank values until the list has been filled once
+    /// </summary>
+    /// <typeparam name="T"></typeparam>
+    public class ScrollList<T>
+    {
+        public List<T> list;
+        public int maxSize = 0;
+        /// <summary>
+        /// the list index of the "newest" value in the runningAverage
+        /// </summary>
+        public int newest = 0;
+        /// <summary>
+        /// the list index of the value that'll be overwritten soonest
+        /// </summary>
+        public int oldest = 0;
+
+        public ScrollList()
+        { list = new List<T>(); }
+
+        public ScrollList(int MaxSize)
+        {
+            maxSize = MaxSize;
+            list = new List<T>(new T[MaxSize]);
+        }
+
+
+
+
+        /// <summary>
+        /// populates the list with your given value; use at the start
+        /// </summary>
+        /// <param name="MaxSize"></param>
+        /// <param name="defaultValue"></param>
+        public void sizeAndFillEmptyList(int MaxSize, T defaultValue)
+        {
+            list = new List<T>(new T[MaxSize]);
+
+            for (int i = 0; i < MaxSize; i++)
+            {
+                list[i] = defaultValue;
+            }
+            maxSize = MaxSize;
+        }
+
+        /// <summary>
+        /// Lets you change the newest item in the runningAverage but doesn't shift the others down
+        /// </summary>
+        public void overwriteNewest(T value)
+        {
+            list[newest] = value;
+        }
+
+        /// <summary>
+        /// adds a new value to the runningAverage, returns the oldest value and overwrites it
+        /// </summary>
+        /// <param name="value"></param>
+        public T append(T value)
+        {
+            T deletedValue = list[oldest];
+            list[oldest] = value;
+
+            newest = oldest;
+            oldest++;
+
+            if (oldest >= maxSize)
+                oldest = 0;
+
+            return deletedValue;
+        }
+
+        /// <summary>
+        /// Doesn't change the list; just returns the oldest value
+        /// </summary>
+        /// <returns></returns>
+        public T getOldest()
+        {
+            return list[oldest];
+        }
+
+        public T getNewest()
+        {
+            return list[newest];
+        }
+
+        public void debugPrintList()
+        {
+            for (int i = 0; i < maxSize; i++)
+            {
+                print(list[i]);
+            }
+        }
     }
 }

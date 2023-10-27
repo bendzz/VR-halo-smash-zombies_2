@@ -1371,6 +1371,7 @@ public class Multi : NetworkBehaviour
             if (type == typeof(Transform)) return 6;
             if (type == typeof(Entity)) return 7;
             if (type == typeof(bool)) return 8;
+            if (type == typeof(Color)) return 9;
             // ... Add other types as needed
 
             throw new ArgumentException("Unsupported type: " + type);
@@ -1391,6 +1392,7 @@ public class Multi : NetworkBehaviour
                 case 6: return typeof(Transform);
                 case 7: return typeof(Entity);
                 case 8: return typeof(bool);
+                case 9: return typeof(Color);
                 // ... Add other types as needed
 
                 default: throw new ArgumentException("Unsupported code: " + code);
@@ -1615,9 +1617,16 @@ public class Multi : NetworkBehaviour
                     if (serializer.IsWriter)
                         boolData = (bool)_data;
                     serializer.SerializeValue(ref boolData);
-                    _data = boolData;    // if receiving data, update the local copy
+                    _data = boolData;    
                     break;
 
+                case int when _dataType == TypeToInt.Int(typeof(Color)):
+                    Color colorData = Color.red;
+                    if (serializer.IsWriter)
+                        colorData = (Color)_data;
+                    serializer.SerializeValue(ref colorData);
+                    _data = colorData;   
+                    break;
 
 
                 // ... add other types similarly

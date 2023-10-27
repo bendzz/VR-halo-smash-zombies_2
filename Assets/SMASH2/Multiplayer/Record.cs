@@ -1057,6 +1057,8 @@ public class Record : MonoBehaviour
 
         const string vector3Start = "V3:";
 
+        const string colorStart = "C:";
+
         //const string transformStart = "TF:";
 
         /// <summary>
@@ -1108,6 +1110,10 @@ public class Record : MonoBehaviour
             {
                 Vector3 vec = (Vector3)obj;
                 output += vector3Start + vec.x + separatorProperty + vec.y + separatorProperty + vec.z + separator;
+            }
+            else if (obj is Color)  // TODO UNTESTED! No receiver yet!
+            {
+                output += colorStart + ((Color)obj).r + separatorProperty + ((Color)obj).g + separatorProperty + ((Color)obj).b + separatorProperty + ((Color)obj).a + separator;
             }
             else
             {
