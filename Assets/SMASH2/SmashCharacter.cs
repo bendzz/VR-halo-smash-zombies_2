@@ -147,6 +147,8 @@ public class SmashCharacter : NetBehaviour
 
         entity.setCurrents(this, head.gameObject, IsOwner);
         entity.addSyncedProperty(head.transform);
+
+        entity.setCurrents(this, this.gameObject, IsOwner);
         entity.addSyncedProperty(playerName);
         entity.addSyncedProperty(damage);
 
@@ -218,27 +220,6 @@ public class SmashCharacter : NetBehaviour
 
         return newColor;
     }
-    /// <summary>
-    /// Finds the material, creates an instance of it, assigns it to the MeshRenderer, returns the instance.
-    /// (Optionally, replaces the material with replaceWithMaterial)
-    /// </summary>
-    //private static Material GetMaterialInstanceByName(MeshRenderer renderer, string materialName, Material replaceWithMaterial = null)
-    //{
-    //    //foreach (Material mat in renderer.materials)
-    //    for (int m = 0; m < renderer.materials.Length; m++)
-    //    {
-    //        Material mat = renderer.materials[m];
-    //        if (mat.name.StartsWith(materialName)) // Using StartsWith because Unity appends " (Instance)" to material names when calling .materials
-    //        {
-    //            if (replaceWithMaterial == null)
-    //                replaceWithMaterial = new Material(mat);
-
-    //                renderer.materials[m] = replaceWithMaterial; // Assign the instance back to the MeshRenderer
-    //            return replaceWithMaterial;
-    //        }
-    //    }
-    //    return null; // Return null if the material wasn't found
-    //}
     private static Material GetMaterialInstanceByName(MeshRenderer renderer, string materialName, Material replaceWithMaterial = null)
     {
         Material[] materials = renderer.materials;

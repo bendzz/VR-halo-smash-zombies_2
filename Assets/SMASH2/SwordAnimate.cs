@@ -2,8 +2,9 @@ using System.Collections;
 using System.Collections.Generic;
 using Unity.Mathematics;
 using UnityEngine;
+using static Multi;
 
-public class SwordAnimate : MonoBehaviour
+public class SwordAnimate : NetBehaviour
 {
 
     public SmashCharacter holder;
@@ -44,9 +45,10 @@ public class SwordAnimate : MonoBehaviour
     MeshRenderer renderer;
     Material swordGlowMaterial;
 
+    Multi.Entity entity;
 
     // Start is called before the first frame update
-    void Start()
+    public override void OnNetworkSpawn()
     {
         scale_Original = sword.transform.localScale;
         localPosition_Original = sword.transform.localPosition;
@@ -69,6 +71,20 @@ public class SwordAnimate : MonoBehaviour
 
         // To ensure that emission is effective, you might also want to enable emission globally
         DynamicGI.SetEmissive(renderer, swordGlowMaterial.GetColor("_EmissionColor"));
+
+
+
+        entity = new Multi.Entity();
+        entity.addToLocalEntities();
+
+        entity.setCurrents(this, this.gameObject, IsOwner);
+        entity.addSyncedProperty(transform);
+        entity.addSyncedProperty(scale);
+
+        entity.setCurrents(body, gameObject, IsOwner);  // rigidbody
+        entity.addSyncedProperty(body.isKinematic);     // otherwise it throws a bunch of "nooo you can't set velocity on kinematics!" errors
+        entity.addSyncedProperty(body.velocity);
+        entity.addSyncedProperty(body.angularVelocity);
     }
 
 

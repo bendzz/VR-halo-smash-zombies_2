@@ -300,6 +300,8 @@ public class Multi : NetworkBehaviour
 
         // give entities temp local-client codes, before the server gives them real ones
         List<Multi.Entity> prefabEntities = getAllEntitysInPrefab(c);
+        if (instance.debug)
+            print("netSpawnPrefab_ToServer: prefabEntities.Count " + prefabEntities.Count);
         foreach (var entity in prefabEntities)
         {
             //entity.syncedPrefabId = (int)(UnityEngine.Random.value * int.MinValue);
@@ -308,6 +310,11 @@ public class Multi : NetworkBehaviour
             entity.ownerClientID = ownerClientID;
             entity.localPrefabId = getLocalPrefabID();
             //instance.localPrefabs.Add(entity.localPrefabId, prefab);
+
+            if (instance.debug)
+            {
+                print("entity property count " + entity.properties.Count + " local entity ID " + entity.local_entityID);
+            }
         }
 
         instance.localPrefabs.Add(prefabEntities[0].localPrefabId, c);
@@ -361,7 +368,7 @@ public class Multi : NetworkBehaviour
         List<Multi.Entity> prefabEntities = (List<Multi.Entity>)data.GetData();
 
         if (debug)
-            print("Server: " + clientId + " pinged the server with " + prefabEntities.Count + " entities for syncing.");
+            print("Server: Client " + clientId + " pinged the server with " + prefabEntities.Count + " entities for syncing.");
 
 
         int uniquePrefabID = getSyncedPrefabID();
@@ -389,7 +396,7 @@ public class Multi : NetworkBehaviour
             {
                 entity.PropertyIDs.Add(SyncedProperty.getUniqueIdentifier());   // (The whole point of all this entity bullshit tbh)
                 if (debug)
-                    print(p + " " + entity.PropertyIDs[p]);
+                    print(p + " property: " + entity.PropertyIDs[p]);
             }
             // assign entity back to list?
         }
@@ -519,6 +526,8 @@ public class Multi : NetworkBehaviour
 
                 if (localEnt.properties.Count != serverEnt.PropertyIDs.Count)
                     Debug.LogError("Different property counts for entity (unknown)! localEnt.propertiesCount" + localEnt.properties.Count + " serverEnt.PropertyIDs.Count " + serverEnt.PropertyIDs.Count);
+                if (debug)
+                    print("entity " + localEnt.local_entityID + " has " + localEnt.properties.Count + ", server ID " + localEnt.serverEntityId + " in prefab " + localEnt.syncedPrefabId);
 
                 for (int i = 0; i < serverEnt.propertiesCount; i++)
                 {
@@ -577,7 +586,7 @@ public class Multi : NetworkBehaviour
         List<NetBehaviour> foundNetworkBehaviours = new List<NetBehaviour>(allNetworkBehaviours);
 
         if (instance.debug)
-            Debug.Log($"Found {foundNetworkBehaviours.Count} scripts inheriting from NetworkBehaviour in the prefab.");
+            Debug.Log($"Found {foundNetworkBehaviours.Count} scripts inheriting from NetBehaviour in the prefab.");
         return foundNetworkBehaviours;
     }
 
@@ -1510,23 +1519,35 @@ public class Multi : NetworkBehaviour
                 Type itemType = TypeToInt.Type(_dataType);
 
                 // Cast the _data to an IList for easier manipulation
-                IList dataList = (IList)_data;
+                IList dataList = (IList)_data; 
+
+                if (instance.debug)
+                    print("Serializing list with " + listCount + " IsWriter " + serializer.IsWriter);
 
                 for (int i = 0; i < listCount; i++)
                 {
 
                     // Serialize each item in the list
-                    object item;
-                    if (serializer.IsWriter)
-                        //item = dataList[i];
-                        item = serializeVariable(dataList[i], _dataType, serializer);
-                    else
-                        item = Activator.CreateInstance(itemType);
+                    //object item;
+                    //if (serializer.IsWriter)
+                    //    item = serializeVariable(dataList[i], _dataType, serializer);
+                    //else
+                    //    item = Activator.CreateInstance(itemType);
 
+                    object item = Activator.CreateInstance(itemType);
+                    if (serializer.IsWriter)
+                        item = dataList[i];
 
                     //serializer.SerializeValue(ref item, itemType);
                     //serializer.SerializeValue(ref item);
                     item = serializeVariable(item, _dataType, serializer);
+
+                    if (instance.debug)
+                    {
+                        print("item of type " + TypeToInt.Type(_dataType));
+                        if (_dataType == 7)
+                            print("is entity; local_entityID " + ((Entity)item).local_entityID);
+                    }
 
                     if (serializer.IsReader)
                         dataList.Add(item);
