@@ -1059,6 +1059,8 @@ public class Record : MonoBehaviour
 
         const string colorStart = "C:";
 
+        const string ulongStart = "UL:";
+
         //const string transformStart = "TF:";
 
         /// <summary>
@@ -1114,6 +1116,10 @@ public class Record : MonoBehaviour
             else if (obj is Color)  // TODO UNTESTED! No receiver yet!
             {
                 output += colorStart + ((Color)obj).r + separatorProperty + ((Color)obj).g + separatorProperty + ((Color)obj).b + separatorProperty + ((Color)obj).a + separator;
+            }
+            else if (obj is ulong)  // TODO UNTESTED! No receiver yet!
+            {
+                output += ulongStart + (ulong)obj + separator;
             }
             else
             {

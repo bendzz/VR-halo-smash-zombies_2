@@ -4,6 +4,7 @@ using System.Runtime.InteropServices;
 //using System.Drawing;
 //using System.Drawing;
 using TMPro;
+using Unity.Netcode;
 using Unity.VisualScripting;
 //using Unity.Collections;
 //using Unity.Netcode;
@@ -47,6 +48,7 @@ public class SmashCharacter : NetBehaviour
     public GameObject Head_VR;
     public GameObject Head_PC;
     public SwordAnimate Sword;
+    public GameObject SwordPrefab;
 
     public float damage = 0;    // smash bros damage, amplifies knockback
     float oldDamage = 0;
@@ -70,11 +72,15 @@ public class SmashCharacter : NetBehaviour
     float stunTimer = 0; // how many seconds left in the stun
 
     /// <summary>
-    /// All characters in the scene
+    /// All characters in the scene, keyed with their OwnerClientId
     /// </summary>
-    public static List<SmashCharacter> characters = new List<SmashCharacter>();
+    //public static List<SmashCharacter> characters = new List<SmashCharacter>();
+    public static Dictionary<ulong, SmashCharacter> characters = new Dictionary<ulong, SmashCharacter>();   // TODO make this a Multi.getEntityByClientId() function
 
     public Color playerColor;
+    //[Tooltip("Set by gameObject.GetComponent<NetworkObject>().OwnerClientId")]
+    [Tooltip("Set by NetworkManager.Singleton.LocalClientId on the IsOwner side. Takes a few moments to sync over the network to other clones")]
+    public ulong OwnerClientId = ulong.MaxValue;     // TODO make this a Multi.getEntityByClientId() function
 
     public List<Color> playerColors;
     public static Dictionary<Color, SmashCharacter> inUsePlayerColors;
@@ -83,6 +89,7 @@ public class SmashCharacter : NetBehaviour
 
     // multiplayer use
     public Multi.SyncedProperty applyDamageSynced;  
+    public Multi.SyncedProperty registerPlayer_Synced;  
     public bool VR_mode = false;
 
     //MeshRenderer meshRenderer;
@@ -90,12 +97,20 @@ public class SmashCharacter : NetBehaviour
 
 
     Multi.Entity entity;
+    /// <summary>
+    /// For passing body references around over the network (to the sword etc)
+    /// </summary>
+    Multi.SyncedProperty bodyProp;
+
+
+
 
     public override void OnNetworkSpawn()   // TODO haven't changed anything for networking yet...
     {
-        if (!characters.Contains(this))
-            characters.Add(this);
-
+        //OwnerClientId = networkedGameObject.GetComponent<NetworkObject>().OwnerClientId;
+        if (IsOwner)
+        //OwnerClientId = gameObject.GetComponent<NetworkObject>().OwnerClientId;
+            OwnerClientId = NetworkManager.Singleton.LocalClientId;
 
         // sync to input script (if it exists)
         if (input != null)
@@ -142,6 +157,7 @@ public class SmashCharacter : NetBehaviour
 
 
         // set up SyncedProperties for all variables and synced function calls, in a fixed order
+        //entity = new Multi.Entity(this);
         entity = new Multi.Entity();
         entity.addToLocalEntities();
 
@@ -151,6 +167,7 @@ public class SmashCharacter : NetBehaviour
         entity.setCurrents(this, this.gameObject, IsOwner);
         entity.addSyncedProperty(playerName);
         entity.addSyncedProperty(damage);
+        entity.addSyncedProperty(OwnerClientId);
 
         //entity.setCurrents(Head_VR.gameObject, Head_VR.gameObject, Head_VR.gameObject.active);
         entity.addSyncedProperty(VR_mode);
@@ -163,8 +180,10 @@ public class SmashCharacter : NetBehaviour
         //applyDamage(float Damage, Vector3 throwBack)
         applyDamageSynced = entity.addSyncedMethodCall("applyDamage", new object[] {42.2f, Vector3.zero});
 
+        registerPlayer_Synced = entity.addSyncedMethodCall("registerPlayer", new object[] { OwnerClientId });
+
         entity.setCurrents(body, gameObject, IsOwner);  // rigidbody
-        entity.addSyncedProperty(body.velocity);
+        bodyProp = entity.addSyncedProperty(body.velocity);
         entity.addSyncedProperty(body.angularVelocity);
         entity.addSyncedProperty(body.useGravity);
         entity.addSyncedProperty(transform);
@@ -180,13 +199,26 @@ public class SmashCharacter : NetBehaviour
             entity.addSyncedProperty(hand.transform);
         }
 
+        //if (!characters.Contains(this))
+        //    characters.Add(this);
+        //print("NetworkManager.Singleton.OwnerClientId " + NetworkManager.Singleton.OwnerClientId);
+        //OwnerClientId = NetworkManager.Singleton.OwnerClientId;
+        //if (!characters.ContainsKey(OwnerClientId))
+        //    characters.Add(OwnerClientId, this);
+
+        //if (IsOwner)
+        //    registerPlayer_Synced.callMethod(new object[] { NetworkManager.Singleton.OwnerClientId });  // not working, too early, no syncedproperty IDs yet
+
+
 
 
         body.isKinematic = false;   // why the hell is this suddenly getting set to true upon spawn? Bloody weird
 
         Sword.body.isKinematic = true;
         Sword.held = true;
-        Sword.holder = this;    // redundant?
+        //Sword.holder = this;    // redundant?
+        //Sword.holder_SyncedProperty = bodyProp;    // redundant?
+        Sword.holder_ClientId = OwnerClientId;
 
         // set glow
         playerColor = getFreshColor();
@@ -198,6 +230,15 @@ public class SmashCharacter : NetBehaviour
         meshRenderer = Head_VR.GetComponent<MeshRenderer>();
         glowMaterial = GetMaterialInstanceByName(meshRenderer, "headsetGlow", glowMaterial);
         //print("glowMaterial " + glowMaterial.name);
+    }
+    /// <summary>
+    /// Because 'NetworkManager.Singleton.OwnerClientId' returns 0 if not owner ig, so it has to be network propagated out
+    /// </summary>
+    /// <param name="LocalClientId"></param>
+    public void registerPlayer(ulong LocalClientId)
+    {
+        print("Registered smashPlayer with LocalClientId " + LocalClientId);
+        characters.Add(LocalClientId, this);
     }
 
     Color getFreshColor()
@@ -240,6 +281,12 @@ public class SmashCharacter : NetBehaviour
 
     private void Update()
     {
+        if (OwnerClientId != ulong.MaxValue) {
+            if (!characters.ContainsKey(OwnerClientId)) // todo a bool check to save the dict check
+            {
+                    registerPlayer(OwnerClientId);  // only register once the OwnerClientId has been synced over the network (it's 0 on !IsOwners by default)
+            }
+        }
     }
 
 
@@ -341,7 +388,8 @@ public class SmashCharacter : NetBehaviour
         // Do damage
 
         // apply thruster damage to enemies
-        foreach(SmashCharacter enemy in characters)
+        //foreach(SmashCharacter enemy in characters)
+        foreach(SmashCharacter enemy in characters.Values)
         {
             if (enemy == this)
                 continue;
@@ -397,7 +445,13 @@ public class SmashCharacter : NetBehaviour
             if (IsOwner)
             {
                 //print("Sword throw!");
-                GameObject thrownSword = Instantiate(Sword.gameObject, Sword.transform.position, Sword.transform.rotation);
+                //GameObject thrownSword = Instantiate(Sword.gameObject, Sword.transform.position, Sword.transform.rotation);
+                
+                //GameObject thrownSword = Multi.netSpawnPrefab_ToServer(Sword.gameObject, true, NetworkManager.Singleton.OwnerClientId);
+                GameObject thrownSword = Multi.netSpawnPrefab_ToServer(SwordPrefab, true, NetworkManager.Singleton.LocalClientId);
+                thrownSword.transform.position = Sword.transform.position;
+                thrownSword.transform.rotation = Sword.transform.rotation;
+
                 //Sword.gameObject.SetActive(false);
                 Sword.respawn();
 
@@ -409,6 +463,9 @@ public class SmashCharacter : NetBehaviour
                 ts.body.velocity = body.velocity;
                 thrownSword.layer = LayerMask.NameToLayer("Default");
                 ts.body.AddForce(head.forward * 50, ForceMode.VelocityChange);
+                //ts.holder = this;   // not reaaally relevant but meh, easier
+                //ts.holder_SyncedProperty = bodyProp;   // not reaaally relevant but meh, easier
+                ts.holder_ClientId = OwnerClientId;   // not reaaally relevant but meh, easier
 
                 //// spin the sword
                 //Vector3 localAngularVelocity = Vector3.zero;

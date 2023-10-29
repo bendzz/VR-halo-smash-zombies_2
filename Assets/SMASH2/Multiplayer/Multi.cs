@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Reflection;
 using Unity.Netcode;
 using Unity.VisualScripting.FullSerializer;
+using UnityEditor.UIElements;
 //using UnityEditor.UIElements;
 //using UnityEditor.PackageManager;
 using UnityEngine;
@@ -98,7 +99,9 @@ public class Multi : NetworkBehaviour
                     print("Sending prefab " + prefabInstance.Value.name + ", ID " + prefabInstance.Key);
                 //if (prefabInstance.Value.GetComponentInChildren<SmashCharacter>())
                 //    print("is smashCharacter for " + prefabInstance.Value.GetComponentInChildren<SmashCharacter>().playerName); // debug
-                sendExistingPrefab(clientId, prefabInstance.Value, prefabInstance.Key);
+                
+                if (prefabInstance.Value != null)
+                    sendExistingPrefab(clientId, prefabInstance.Value, prefabInstance.Key);
                 // TODO sync up properties to initial values (they might not be updating every frame)
             }
 
@@ -184,7 +187,7 @@ public class Multi : NetworkBehaviour
 
 
         //netSpawnPrefab_ClientRpc(data, clientId);  // send to all clients
-        //instance.netSpawnPrefab_ClientRpc(prefabString, NetworkManager.Singleton.LocalClientId, data);  // send to all clients
+        //instance.netSpawnPrefab_ClientRpc(prefabString, NetworkManager.Singleton.OwnerClientId, data);  // send to all clients
         instance.netSpawnPrefab_ClientRpc(prefabString, NetworkManager.Singleton.LocalClientId, data, clientRpcParams); // send to specific client
     }
 
@@ -254,6 +257,7 @@ public class Multi : NetworkBehaviour
                 if (prop.IsOwner)
                     prop.sync();
             }
+            SyncedProperty.deleteDeadProperties();
         }
     }
 
@@ -633,6 +637,7 @@ public class Multi : NetworkBehaviour
 
 
 
+
     /// <summary>
     /// All synced/recorded variables and functions for a particular script (as SyncedProperties), and any components/transforms it's tightly coupled to.
     /// Meant to keep scripts separate and modular, easy to drop into future projects.
@@ -645,7 +650,7 @@ public class Multi : NetworkBehaviour
         // prefab IDs
 
         /// <summary>
-        /// The NetworkManager.Singleton.LocalClientId that owns this one (a number between 0 and (number of players in lobby)). Usually 0 for host
+        /// The NetworkManager.Singleton.OwnerClientId that owns this one (a number between 0 and (number of players in lobby)). Usually 0 for host
         /// </summary>
         public ulong ownerClientID;
 
@@ -736,19 +741,28 @@ public class Multi : NetworkBehaviour
         /// </summary>
         public bool serverSendToClients = false;
 
+        ///// <summary>
+        ///// For destroying the entity when the script is destroyed
+        ///// </summary>
+        //public NetBehaviour parentScript;
+
 
         /// <summary>
-        /// see class summary
+        /// see class summary.
+        /// (When _parentScript onDestroy() is called, this entity will be destroyed too)
         /// </summary>
         /// <param name="script_Or_AnimatedObject"></param>
+        //public Entity(NetBehaviour _parentScript)
         public Entity()
         {
             properties = new List<SyncedProperty>();
             local_entityID = getUniqueLocalIdentifier();
+            //parentScript = _parentScript;
         }
 
         /// <summary>
-        /// Register on the local list so when the server sends back an entity copy with global property IDs, we can actually link it to the original
+        /// Register on the local list so when the server sends back an entity copy with global property IDs, we can actually link it to the original.
+        /// (idk why this isn't done automatically every time tbh)
         /// </summary>
         public void addToLocalEntities()
         {
@@ -796,18 +810,37 @@ public class Multi : NetworkBehaviour
             // todo
         }
 
+        //public void Update()
+        //{
+        //    if (parentScript == null)
+        //    {
+        //        Debug.Log("Entity parentScript is null! Destroying entity");
+        //        for (int i = 0; i < properties.Count; i++)
+        //        {
+        //            //Destroy(properties[i]);
+        //            SyncedProperty.SyncedProperties.Remove(properties[i].identifier);
+        //        }
+        //        //Destroy(this);
+        //        serverEntities.Remove(serverEntityId);
+        //    }
+        //}
+
         /// <summary>
         /// Add all the properties your script wants to sync to this entity; script variables/methods, attached gameobject transforms and components, etc.
         /// The order of this list will be used to sync properties across all networked instances of this entity.
         /// Uses current_ etc etc values; MAKE SURE THEY'RE CORRECT!
         /// </summary>
         /// <param name="propertyOrField"></param>
-        public void addSyncedProperty(object propertyOrField)
+        public SyncedProperty addSyncedProperty(object propertyOrField)
         {
             print(propertyOrField.ToString());
-            properties.Add(new SyncedProperty(SyncedProperty.invalidIdentifier, current_AnimatedComponent,
-                propertyOrField, current_gameObject, Multi.instance.clip, current_IsOwner));
+            SyncedProperty prop = new SyncedProperty(SyncedProperty.invalidIdentifier, current_AnimatedComponent,
+                propertyOrField, current_gameObject, Multi.instance.clip, current_IsOwner);
+            properties.Add(prop);
+            //properties.Add(new SyncedProperty(SyncedProperty.invalidIdentifier, current_AnimatedComponent,
+            //    propertyOrField, current_gameObject, Multi.instance.clip, current_IsOwner));
             // TODO some sort of check to see if the current component/GO values match up? Or just use those derived values entirely?
+            return prop;
         }
 
         /// <summary>
@@ -1022,15 +1055,22 @@ public class Multi : NetworkBehaviour
         /// A code unique to this property, the same across all its instances on all clients, for network syncing
         /// </summary>
         public int identifier;
+        /// <summary>
+        /// Can't delete in a foreach loop, have to go over them after
+        /// </summary>
+        public static List<int> SyncedPropertiesToDelete;
 
         /// <summary>
         /// Will avoid adding SyncedProperties with this ID to the dictionary (like if it's waiting on an ID from the server). Make sure to add it later
         /// </summary>
         public const int invalidIdentifier = int.MinValue;
 
-        //NetworkVariable<T> netVar;
+        ///// <summary>
+        ///// A client side list of all syncedProperties by their synced-variable/function etc (ie propertyOrField) reference, for easy access
+        ///// </summary>
+        //public static Dictionary<object, SyncedProperty> getLocalSyncedProperty;
 
-        //RPC // todo
+
 
         public bool IsOwner;
         /// <summary>
@@ -1038,6 +1078,10 @@ public class Multi : NetworkBehaviour
         /// </summary>
         private int _dataType = 0;
 
+        /// <summary>
+        /// Disable to stop syncing, for now
+        /// </summary>
+        public bool syncingEnabled = true;
 
 
 
@@ -1064,7 +1108,7 @@ public class Multi : NetworkBehaviour
         public SyncedProperty(int _identifier, object _animatedObject, object propertyOrField, GameObject _gameObject, Record.Clip _clip, bool isOwner) : base(_animatedObject, propertyOrField, _gameObject, _clip)
         {
             //constructor(_identifier, _animatedObject, propertyOrField, _gameObject, _clip, isOwner);
-            constructor(_identifier, isOwner);
+            constructor(_identifier, isOwner, obj);
         }
 
         /// <summary>
@@ -1072,7 +1116,7 @@ public class Multi : NetworkBehaviour
         /// </summary>
         public SyncedProperty(int _identifier, Component script, string methodName, object[] parameters, Record.Clip _clip, bool isOwner) : base(script, methodName, parameters, _clip)
         {
-            constructor(_identifier, isOwner);
+            constructor(_identifier, isOwner, obj);
         }
 
         /// <summary>
@@ -1131,11 +1175,11 @@ public class Multi : NetworkBehaviour
         public SyncedProperty(object _animatedObject, object propertyOrField, GameObject _gameObject, Record.Clip _clip, bool isOwner) : base(_animatedObject, propertyOrField, _gameObject, _clip)
         {
             //constructor(getUniqueIdentifier(), _animatedObject, propertyOrField, _gameObject, _clip, isOwner);
-            constructor(getUniqueIdentifier(), isOwner);
+            constructor(getUniqueIdentifier(), isOwner, obj);
         }
 
         //void constructor(int _identifier, object _animatedObject, object propertyOrField, GameObject _gameObject, Record.Clip _clip, bool isOwner)
-        void constructor(int _identifier, bool isOwner)
+        void constructor(int _identifier, bool isOwner, object propertyOrField)
         {
             identifier = _identifier;
             //print("syncedProperty: " + propertyOrField + " identifier: " + identifier);
@@ -1147,6 +1191,18 @@ public class Multi : NetworkBehaviour
             if (SyncedProperties == null)
                 SyncedProperties = new Dictionary<int, SyncedProperty>();
             //identifier = getUniqueIdentifier();
+
+            //if (getLocalSyncedProperty == null)
+            //    getLocalSyncedProperty = new Dictionary<object, SyncedProperty>();
+            //print("propertyOrField " + propertyOrField + " " + propertyOrField.GetType());
+            //if (getLocalSyncedProperty.ContainsKey(propertyOrField))
+            //    Debug.LogError("getLocalSyncedProperty already contains this propertyOrField! " + propertyOrField.ToString() + " " + propertyOrField.GetType());
+            //else
+            //{
+            //    print("getLocalSyncedProperty doesn't contain this propertyOrField! " + propertyOrField.ToString() + " " + propertyOrField.GetType());
+            //    getLocalSyncedProperty.Add(propertyOrField, this);
+            //}
+
 
             // TODO
             // RPC sync
@@ -1184,22 +1240,61 @@ public class Multi : NetworkBehaviour
 
         public void sync()
         {
-            // TODO check for dirtiness before syncing
+            if (syncingEnabled)
+            {
+                // TODO check for dirtiness before syncing
 
-            //if (IsOwner)
+                //if (IsOwner)
 
-            if (obj is MethodInfo)
-                return;     // don't try and sync these every frame. Just wait for them to be called and replicate them then
+                if (obj is MethodInfo)
+                    return;     // don't try and sync these every frame. Just wait for them to be called and replicate them then
 
-            if (netData == null)
-                netData = new NetData(getCurrentValue());
-            else
-                netData.setData(getCurrentValue());
+                //object data = getCurrentValue();
+                //if (data == null)
+                //    return;
 
-            //SmashMulti.syncSyncedProperty(netData);
-            Multi.syncSyncedProperty(identifier, netData);
+                if (gameObject == null) // only possible way to guess if the syncedProperty has been deleted? I've tried half a dozen other ways, false positives abound
+                    return;
 
+                if (netData == null)
+                    netData = new NetData(getCurrentValue());
+                else
+                    netData.setData(getCurrentValue());
+
+                
+                // breaks half the properties!
+                //if (netData.GetData() as UnityEngine.Object == null)    // weird null check, for deleted variables
+                //{
+                //    // Not sure of property is deleted or just hasn't been set yet! Just ignore it for now.
+                //    // TODO maybe delete them based on their gameobjects being deleted..? Idk
+
+                //    //Debug.Log("data is null! Deleting SyncedProperty");
+                //    ////SyncedProperties.Remove(identifier);
+                //    //if (SyncedPropertiesToDelete == null)
+                //    //    SyncedPropertiesToDelete = new List<int>();
+                //    //SyncedPropertiesToDelete.Add(identifier);
+                //    return;
+                //}
+
+
+                //SmashMulti.syncSyncedProperty(netData);
+                Multi.syncSyncedProperty(identifier, netData);
+            }
         }
+        /// <summary>
+        /// Call this every frame after the sync() function, to delete any properties that were deleted this frame
+        /// </summary>
+        public static void deleteDeadProperties()
+        {
+            if (SyncedPropertiesToDelete == null)
+                SyncedPropertiesToDelete = new List<int>();
+            foreach (int id in SyncedPropertiesToDelete)
+            {
+                SyncedProperties.Remove(id);
+            }
+            SyncedPropertiesToDelete.Clear();
+        }
+
 
         /// <summary>
         /// Get the id from the script variable reference in the scene
@@ -1209,32 +1304,55 @@ public class Multi : NetworkBehaviour
         {
             // from Record.cs's "GenericFrame"
             object data = null;
+            // none of these checks can tell if it's deleted or just hasn't been set yet
+            //if (obj == null)
+            //    print("destroyed1");
+            //if ((obj as UnityEngine.Object) == null)
+            //    print("Destroyed2");
+            //if (ReferenceEquals(obj, null))
+            //    print("Destroyed3");
+            //if (!(obj is UnityEngine.Object))
+            //    print("destroyed4");
 
+
+            //if ((obj as UnityEngine.Object) == null)        // variable is either deleted or set to null, can't tell which
+            //    return null;
+
+
+            //try
+            //{
             //if (property.obj is FieldInfo)
             if (obj is FieldInfo)
-            {
-                //data = ((FieldInfo)property.obj).GetValue(property.animatedComponent);
-                data = ((FieldInfo)obj).GetValue(animatedComponent);
-            }
-            else if (obj is PropertyInfo)
-            {
-                data = ((PropertyInfo)obj).GetValue(animatedComponent);
-            }
-            else if (obj is Transform)
-            {
-                //print("transform");
-                data = obj;
-            }
-            else if (obj is MethodInfo)
-            {
-                // do nothing
-            }
-            else
-            {
-                Debug.LogError("unknown type");
-            }
-            // TODO transforms?
-
+                {
+                    //data = ((FieldInfo)property.obj).GetValue(property.animatedComponent);
+                    data = ((FieldInfo)obj).GetValue(animatedComponent);
+                }
+                else if (obj is PropertyInfo)
+                {
+                    data = ((PropertyInfo)obj).GetValue(animatedComponent);
+                }
+                else if (obj is Transform)
+                {
+                    //print("transform");
+                    data = obj;
+                }
+                else if (obj is MethodInfo)
+                {
+                    // do nothing; methods get synced upon being called
+                }
+                else
+                {
+                    Debug.LogError("unknown type");
+                }
+            //
+            //catch (MissingReferenceException)     // unreliable; never catches the exception
+            //{
+            //    //Debug.LogError("getCurrentValue error: " + e.ToString());
+            //    print("SyncedProperty has been deleted!");
+            //    if (SyncedPropertiesToDelete == null)
+            //        SyncedPropertiesToDelete = new List<int>();       // TODO, figure out how to delete dead properties later, free up their IDs
+            //    SyncedPropertiesToDelete.Add(identifier);
+            //}
             return data;
         }
 
@@ -1381,6 +1499,7 @@ public class Multi : NetworkBehaviour
             if (type == typeof(Entity)) return 7;
             if (type == typeof(bool)) return 8;
             if (type == typeof(Color)) return 9;
+            if (type == typeof(ulong)) return 10;
             // ... Add other types as needed
 
             throw new ArgumentException("Unsupported type: " + type);
@@ -1402,6 +1521,7 @@ public class Multi : NetworkBehaviour
                 case 7: return typeof(Entity);
                 case 8: return typeof(bool);
                 case 9: return typeof(Color);
+                case 10: return typeof(ulong);
                 // ... Add other types as needed
 
                 default: throw new ArgumentException("Unsupported code: " + code);
@@ -1649,6 +1769,13 @@ public class Multi : NetworkBehaviour
                     _data = colorData;   
                     break;
 
+                case int when _dataType == TypeToInt.Int(typeof(ulong)):
+                    ulong ulongData = 0;
+                    if (serializer.IsWriter)
+                        ulongData = (ulong)_data;
+                    serializer.SerializeValue(ref ulongData);
+                    _data = ulongData;
+                    break;
 
                 // ... add other types similarly
 
@@ -1688,6 +1815,11 @@ public abstract class NetBehaviour : MonoBehaviour
     public bool IsOwner;
     public bool IsServer;
 
+    //public ulong OwnerClientId;   // TODO this is normally aa feature of 'gameObject.GetComponent<NetworkObject>().OwnerClientId'.
+    //Set it myself. Is the 'NetworkManager.Singleton.LocalClientId' on the IsOwner side
+
+
     public abstract void OnNetworkSpawn();
+
 
 }

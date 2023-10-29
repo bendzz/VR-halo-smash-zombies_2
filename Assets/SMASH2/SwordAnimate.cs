@@ -6,13 +6,15 @@ using static Multi;
 
 public class SwordAnimate : NetBehaviour
 {
-
+    //public SyncedProperty holder_SyncedProperty;    // used to get the player that held/threw the sword, over the network
+    public ulong holder_ClientId;    // used to get the player that held/threw the sword, over the network
     public SmashCharacter holder;
     public GameObject sword;
     public GameObject swordTipPoint;
     public Rigidbody body;
-    Collider colliderPhysical;
-    Collider collderTrigger;
+
+    public Collider colliderPhysical;
+    public Collider collderTrigger;
 
     public bool held = false;
 
@@ -47,9 +49,13 @@ public class SwordAnimate : NetBehaviour
 
     Multi.Entity entity;
 
+    SyncedProperty body_velocity;
+    SyncedProperty body_angularVelocity;
+
     // Start is called before the first frame update
     public override void OnNetworkSpawn()
     {
+        print("OnNetworkSpawn Sword: " + gameObject.name);
         scale_Original = sword.transform.localScale;
         localPosition_Original = sword.transform.localPosition;
         localRotation_Original = sword.transform.localRotation;
@@ -74,17 +80,21 @@ public class SwordAnimate : NetBehaviour
 
 
 
+        //entity = new Multi.Entity(this);
         entity = new Multi.Entity();
         entity.addToLocalEntities();
 
         entity.setCurrents(this, this.gameObject, IsOwner);
         entity.addSyncedProperty(transform);
         entity.addSyncedProperty(scale);
+        entity.addSyncedProperty(lifeTimer);
+        //entity.addSyncedProperty(holder_SyncedProperty);
+        entity.addSyncedProperty(holder_ClientId);
 
         entity.setCurrents(body, gameObject, IsOwner);  // rigidbody
         entity.addSyncedProperty(body.isKinematic);     // otherwise it throws a bunch of "nooo you can't set velocity on kinematics!" errors
-        entity.addSyncedProperty(body.velocity);
-        entity.addSyncedProperty(body.angularVelocity);
+        body_velocity = entity.addSyncedProperty(body.velocity);
+        body_angularVelocity = entity.addSyncedProperty(body.angularVelocity);
     }
 
 
@@ -110,6 +120,8 @@ public class SwordAnimate : NetBehaviour
     // Update is called once per frame
     void Update()
     {
+
+
         if (dying)
         {
             lifeTimer -= Time.deltaTime;
@@ -161,11 +173,39 @@ public class SwordAnimate : NetBehaviour
             else
                 dontHitTwiceTimer -= Time.deltaTime;
         }
+
+        if (held) {
+            body_velocity.syncingEnabled = false;
+            body_angularVelocity.syncingEnabled = false;
+        } else
+        {
+            //print("enabling sword sync for " + gameObject.name);
+            //print(body_velocity);
+            //print(body_angularVelocity);
+            body_velocity.syncingEnabled = true;
+            body_angularVelocity.syncingEnabled = true;
+        }
+
     }
 
     private void FixedUpdate()
     {
-        swordTipPositions.append(swordTipPoint.transform.position);
+        //print("swordTipPositions");
+        //print(swordTipPositions);
+        //swordTipPositions.append(swordTipPoint.transform.position);
+        //print("swordTipLocalPositions");
+        //print(swordTipLocalPositions);
+
+        //if (holder == null)
+        //{
+            //print(holder_SyncedProperty);
+            //print(holder_SyncedProperty.gameObject.name);
+            //print(holder_SyncedProperty.gameObject.GetComponent<SmashCharacter>());
+            //holder = holder_SyncedProperty.gameObject.GetComponent<SmashCharacter>();
+
+            holder = SmashCharacter.characters[holder_ClientId];
+        //}
+
         swordTipLocalPositions.append(swordTipPoint.transform.position - holder.transform.position);    // won't account for spins, but ig that's good
 
         swordGlowMaterial.SetColor("_Color", holder.playerColor);

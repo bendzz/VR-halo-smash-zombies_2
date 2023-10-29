@@ -1,0 +1,229 @@
+GAMEPLAY IDEAS
+-sprinting through the air full of random objects flying around in a tornado; running across them and jumping etc, like that truck running game
+-when you run into a wall, if you fling your hands down at the right moment it'll let you run up the wall
+
+SMASH
+-smash movement:
+	-to move forward, 1 hand goes backward and the other forward like a punch. Their separation is your acceleration
+	-use that to encourage sprinting forward and punching
+	
+	-you can climb anything like in pop one. It resets your air-throws. Throwing yourself off is more powerful than air throwing
+
+	-some way to do instant stops or direction changes
+		-timing it right when hitting a wall? a midair move?
+		
+	-A pause upon a big smash
+	
+	-limit jet fuel when in the air, until you touch ground
+	
+
+	
+-smash visuals
+	-very distinct cartoony characters, like overwatch or bomberman etc
+	-jets and chainsaws on your hands, for air and wall movement and attacks
+	-a stunned pose where your arm tools explode outward and go slack for a moment
+
+VISION
+-super juicy movement FX; heat waves, jets and thrust vectoring from the dozen little jets and 1 turbine blade spinning on your hand, pulsing with your movements. (This is how we grab them for the first 10 seconds). Maybe holding the throw for a second makes it stronger.
+-a big distortion effect as you pull on space itself, with a quick flashes of lighting to to nearby surfaces like DBZ, with a loud crack
+-when you punch someone your 12 hand jets spin away from your hand and flare massively as you hold the punch, blinding crackles of energy, before it releases sending them flying
+-your arms transform like Genos in OPM when you do intense stuff, shaking as they max out and hold it
+-lean super hard on the over the top DBZ/anime/smash FX and gratuities
+-quick tutorial spoken commands that only appear the moment ur having trouble, like to hold the fling or hold the punch, or controls you haven't used yet at the start, etc. Like a trainer calling out help to refine your form
+-side zombies and enemies around that damage you if you don't notice them, but you can boost off them for a strong push, as well as killing them and getting a perk like lowered damage etc 
+-a build up then explosion when you push off of objects/walls/floors, like you're exploding off them
+-whuh- BAM whuh- BAM etc, and freeze moments in anime where a face breaks under a punch before they fly
+-Coming to a stop/reversing direction while moving quickly releases a huge jet flame that can damage opponents
+
+-While stunned: the characters bones and parts break from the impact, and their height goes to 1/3rd as they ragdoll. Then toward the end of the a wave of light goes out from their core knitting bones and reforming their pose, with the ends of the half broken limbs flopping around. But it leaves glowing cracks in their flesh, holes to the bone with light polys/godrays coming from the edges, that get worse as damage goes up
+
+
+
+
+TODO LATER:
+-Could I tilt the groundslope according to player velocity so you don't always fling up walls, instead run along them sometimes? How about in the direction you're facing?
+
+-Good multiplayer with server side syncing (Can I make it generic/reusable between projects?)
+	-Recording the multiplayer data for theatre mode playback/debugging/promo videos (with our excited discord voices)
+
+
+
+
+TODO
+-adjust player height according to headset/IRL player height
+
+-move your hands while gripping thrusters to rotate
+
+
+movement:
+-a bunch of pulls to accelerate you
+-once moving fast:
+	-A strong double pull will completely reverse your velocity
+	-strong sideways pulls will redirect you sideways
+	-So it's more about building speed and then instantly redirecting that existing speed?
+
+
+
+-TODO: A new VR movement function that uses joystick for steering and encourages 1 hand forward and 1 back to move
+
+
+
+TODO oct 12
+				-damage numbers fly out when u hit
+				-infoCard class
+
+
+tomorrow I'll work on yet more spice. 
+				-This time making the hit character fly back and stun lock, 
+-add punch attack
+	(will need an option to increase throwback relative to damage, in applyDamage?)
+	-add time slowdown then ramp-up for the 2 characters during the punch
+		-HitSlowdown: it slows time to 1/30th at the start for both characters, then slowly ramps up speed, playing back the recorded VR movements of the puncher, until it ramps to 10x speed for the followthrough, sending the opponent soaring. The ramped speed continues until it reaches back to normal time for the puncher, then ramp down to normal speed
+
+-make flames do more damage if you're moving quickly in the direction you shoot them
+
+
+NETWORKING
+https://m.youtube.com/watch?v=-lGsuCEWkM0&pp=ygUcVW5pdHkgbXVsdGlwbGF5ZXIgcHJlZGljdGlvbg%3D%3D
+-keep it all in 1 class; other scripts register their transforms and variables to be kept in sync in client and server buffers
+	-can I only send the data that's changed, each tick?
+
+-todo label the player gameobjects and % cards with their network names
+
+-todo the unity transform syncing is slow af; if it can't be sped up, use that $15 store asset or write my own transform syncing
+
+
+NETWORKING TEST
+					-Once in a while I can join ur PC games from the Quest, but when I do either I just see the lobby scene, or it flickers between the lobby and game scene every other frame and is awful. (But u can see me appear, in a default static pose) (They couldn't join my Quest games the ~2 times we tried)
+						-read the docs?
+-I should add an asymmetric PC/mouse player character so u pancake folk can join us for fun =3
+	-simpler attacks, but weaker attacks
+-There's no flame animation replicated across the network yet, but you CAN see me and my hands moving
+-I need a debug console that works in VR
+	-a floating text window for console output and later for user and game messages
+
+-assign each player a random color-name and color code the servers and names with that
+
+-tilt the player sign IF(!owner) too
+
+
+
+Multiplayer/recording system
+-get headset stuff synced up
+
+Todo:
+-rpc calls for syncing. (Start with syncing them all in lateUpdate)
+	-then add method calls for "check all properties on this gameobject/script for dirtiness, and sync them" (will need a dict of lists of props for each GO)
+					-and finally, my own networkVariables so scripts can call variable.sync after it's been changed
+
+-ACTUALLY, make it a generic static syncThisProperty(property) call scripts can use. (A dictionary of IsOwned properties for each sim. (Yes the server would have all of them)
+
+
+Todo later:
+-minute time smoothing and 1-2 frames of prediction for properties, to handle packet jitter
+
+
+
+TODO Oct 18:
+-impliment GPT 4's CustomDataWrapper : INetworkSerializable
+	-Store the Type so reflection only occurs once
+	-have it write it out fully
+-pass that type into the RPC calls
+
+-Need to maintain an INT dictionary of all my syncedParameters, so I can use Ints over the network calls to identify them
+						-Use RPC calls to add new syncedParameters to the dict on each client? (Will need a lot of strings and reflection)
+						-When a new client joins, the server sends them a Big ass RPC with all syncedParameters?
+							-Unless I can keep this deterministic within SmashMulti. Just a simple Count check throwing errors should be enough of an alert for now
+						-Or whenever a new syncedParameter is added, it sends out a call to make sure its copy on other clients is the same index?
+	-When new syncedProperties are spawned, they send out a call to everyone to check if it's spawned, and if it's not, spawn by calling (int) function and assign (int) syncProperties
+
+-Whenever a new client joins, the host sends a big list of spawned objects and associated syncedProperties and indices to bring them up to the current state
+	-will need to keep a full list of the game state and all spawned enemies/objects inside smashMulti for late joiners
+
+
+-How to handle method calls?
+	-fixed RPCs only? Recorded into my Recording system as methods?
+
+
+-use huge random numbers for the property IDs upon object spawns
+--check for local index collision before publishing. if a client reports an index collision, it sends out an RPC to everyone to change it
+
+-will need to recreate all the spawn object calls when a player joins, somehow
+--add an attack that spawns a sword and throws it, for netcode testing
+
+
+
+TODO
+identifier:
+	-make sure it's unique on all clients
+	-make sure that syncedProperty script reference is unique on all clients. Don't need repeated syncs
+
+
+
+
+TODO later: Spawn a big rectangle as a thrown sword when a button is pressed, to test object throwing replication
+
+
+
+
+
+I'm using ((FieldInfo)obj).SetValue(animatedComponent, data); to set the values of random variables in random scripts. I think in this line, animatedComponent is the script the variable belongs to. Can you confirm that then write a script to get a reference to the 
+
+
+CODING TODO:
+-next up, global prefab codes. See comments on netSpawnPrefab
+
+-finish sending lists of entities across the network
+	-verify
+-use to send property IDs back to original spawner client, and other clients
+	-assign those IDs back to their syncedProperties in each Entity, (by their entity IDs) (ACTUALLY by their entity order in prefabEntities list)
+
+
+
+SYNC
+-PC sword throw attack
+	-and thrusters when moving
+-DAMAGE! And attack throwback!
+-Damage numbers!
+
+-players leaving (desplay player model)
+-and attacks and 
+-thruster flame particles busted
+
+
+TODO an onscreen card showing damage for every player name, along the bottom rim of the VR screen
+	-with a "You" marker
+
+Networking TODO:
+-check if values changed before syncing
+-networked method calls (RPCs but through my system for Recording)
+
+
+
+TODO
+-up the max speed for thruster thrusts
+-'you got damaged' networked method call
+	-how to alert system that you're invoking X method call syncedParameter for syncing? It can't see method calls itself
+-You know i should rework my IsOwner code to be more accurate... make sure only one machine registers as IsOwner... that could be part of it...
+
+
+-Think I'll set the mouse/keyboard player using the thrusters too... and remake their heads as a computer monitor and a VR headset guy... and get that sword throwing mechanic in...
+
+
+-if you fall off the map you respawn with 0 damage
+
+
+-make RPC calls unreliable
+
+
+
+Sword litter:
+-Ask GPT 4: When a sword comes to a rest for a few seconds, delete its script/collider/rigidbody and parent the model to the object it's resting on
+-How to make the models GPU instanced?
+	-Their materials need to be too, for different colors
+
+
+TODO oct 29
+-set OwnerClientId in netBehaviour (for player spawned objects anyway)
+	-use that for registering players
+-make the VR player able to throw swords 

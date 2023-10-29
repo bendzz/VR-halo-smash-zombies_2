@@ -265,9 +265,12 @@ MonoBehaviour:
   Head_VR: {fileID: 904805545301583209}
   Head_PC: {fileID: 3608055489406428785}
   Sword: {fileID: 2486252139543152327}
+  SwordPrefab: {fileID: 210457118349521409, guid: 700a0873705ecd747819d5bb57279fdd,
+    type: 3}
   damage: 0
   stunLocked: 0
   limp: 0
+  playerColor: {r: 0, g: 0, b: 0, a: 0}
   playerColors:
   - {r: 0, g: 1, b: 0.22388077, a: 0}
   - {r: 0, g: 1, b: 0.87547374, a: 0}
