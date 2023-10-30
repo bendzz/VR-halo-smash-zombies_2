@@ -400,8 +400,14 @@ public class SmashCharacter : NetBehaviour
 
             if (hand.thruster > 0)
             {
-                VR_mode = true; // hacky, TODO
+                if (IsOwner)
+                    VR_mode = true; // hacky
             }
+        }
+        if (Input.GetMouseButton(0) || Input.GetMouseButton(1))
+        {
+            if (IsOwner)
+                VR_mode = false; // hacky
         }
         
         // Do damage
