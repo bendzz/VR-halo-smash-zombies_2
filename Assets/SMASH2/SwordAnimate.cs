@@ -82,7 +82,7 @@ public class SwordAnimate : NetBehaviour
 
         //entity = new Multi.Entity(this);
         entity = new Multi.Entity();
-        entity.addToLocalEntities();
+        //entity.addToLocalEntities();
 
         entity.setCurrents(this, this.gameObject, IsOwner);
         entity.addSyncedProperty(transform);
@@ -95,6 +95,8 @@ public class SwordAnimate : NetBehaviour
         entity.addSyncedProperty(body.isKinematic);     // otherwise it throws a bunch of "nooo you can't set velocity on kinematics!" errors
         body_velocity = entity.addSyncedProperty(body.velocity);
         body_angularVelocity = entity.addSyncedProperty(body.angularVelocity);
+
+        tryToSetColors();
     }
 
 
@@ -188,6 +190,27 @@ public class SwordAnimate : NetBehaviour
 
     }
 
+    /// <summary>
+    /// Only works if holder != null
+    /// </summary>
+    void tryToSetColors()
+    {
+        if (holder == null)
+        {
+            if (SmashCharacter.characters.ContainsKey(holder_ClientId))
+                holder = SmashCharacter.characters[holder_ClientId];
+            else
+                Debug.Log("holder_ClientId " + holder_ClientId + " not found in SmashCharacter.characters");
+        }
+        else
+        {
+            swordTipLocalPositions.append(swordTipPoint.transform.position - holder.transform.position);    // won't account for spins, but ig that's good
+
+            swordGlowMaterial.SetColor("_Color", holder.playerColor);
+            swordGlowMaterial.SetColor("_EmissionColor", holder.playerColor);
+        }
+    }
+
     private void FixedUpdate()
     {
         //print("swordTipPositions");
@@ -198,18 +221,12 @@ public class SwordAnimate : NetBehaviour
 
         //if (holder == null)
         //{
-            //print(holder_SyncedProperty);
-            //print(holder_SyncedProperty.gameObject.name);
-            //print(holder_SyncedProperty.gameObject.GetComponent<SmashCharacter>());
-            //holder = holder_SyncedProperty.gameObject.GetComponent<SmashCharacter>();
+        //print(holder_SyncedProperty);
+        //print(holder_SyncedProperty.gameObject.name);
+        //print(holder_SyncedProperty.gameObject.GetComponent<SmashCharacter>());
+        //holder = holder_SyncedProperty.gameObject.GetComponent<SmashCharacter>();
 
-            holder = SmashCharacter.characters[holder_ClientId];
-        //}
-
-        swordTipLocalPositions.append(swordTipPoint.transform.position - holder.transform.position);    // won't account for spins, but ig that's good
-
-        swordGlowMaterial.SetColor("_Color", holder.playerColor);
-        swordGlowMaterial.SetColor("_EmissionColor", holder.playerColor);
+        tryToSetColors();
 
         //colorList
         //if (colorList.Count == 0)

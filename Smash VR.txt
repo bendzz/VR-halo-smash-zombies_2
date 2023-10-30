@@ -224,6 +224,8 @@ Sword litter:
 
 
 TODO oct 29
--set OwnerClientId in netBehaviour (for player spawned objects anyway)
-	-use that for registering players
 -make the VR player able to throw swords 
+
+
+entity.addToLocalEntities(); todo use playerID
+	-can I make this generic?

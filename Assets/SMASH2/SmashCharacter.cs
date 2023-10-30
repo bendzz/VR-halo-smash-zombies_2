@@ -35,6 +35,9 @@ public class SmashCharacter : NetBehaviour
 
     // game settings
     public string playerName = "default player";
+    /// <summary>
+    /// A long random ID string grabbed from the unity Lobby service. Much more unique than OwnerClientId
+    /// </summary>
     public string PlayerId;
 
 
@@ -76,11 +79,13 @@ public class SmashCharacter : NetBehaviour
     /// </summary>
     //public static List<SmashCharacter> characters = new List<SmashCharacter>();
     public static Dictionary<ulong, SmashCharacter> characters = new Dictionary<ulong, SmashCharacter>();   // TODO make this a Multi.getEntityByClientId() function
+    
+    public static Dictionary<string, SmashCharacter> characters_byPlayerId = new Dictionary<string, SmashCharacter>();   // TODO make this a Multi.getEntityByClientId() function
 
     public Color playerColor;
     //[Tooltip("Set by gameObject.GetComponent<NetworkObject>().OwnerClientId")]
-    [Tooltip("Set by NetworkManager.Singleton.LocalClientId on the IsOwner side. Takes a few moments to sync over the network to other clones")]
-    public ulong OwnerClientId = ulong.MaxValue;     // TODO make this a Multi.getEntityByClientId() function
+    //[Tooltip("Set by NetworkManager.Singleton.LocalClientId on the IsOwner side. Takes a few moments to sync over the network to other clones")]
+    //public ulong OwnerClientId = ulong.MaxValue;     // TODO make this a Multi.getEntityByClientId() function
 
     public List<Color> playerColors;
     public static Dictionary<Color, SmashCharacter> inUsePlayerColors;
@@ -108,9 +113,8 @@ public class SmashCharacter : NetBehaviour
     public override void OnNetworkSpawn()   // TODO haven't changed anything for networking yet...
     {
         //OwnerClientId = networkedGameObject.GetComponent<NetworkObject>().OwnerClientId;
-        if (IsOwner)
-        //OwnerClientId = gameObject.GetComponent<NetworkObject>().OwnerClientId;
-            OwnerClientId = NetworkManager.Singleton.LocalClientId;
+        //if (IsOwner)
+        //    OwnerClientId = NetworkManager.Singleton.LocalClientId;
 
         // sync to input script (if it exists)
         if (input != null)
@@ -159,15 +163,16 @@ public class SmashCharacter : NetBehaviour
         // set up SyncedProperties for all variables and synced function calls, in a fixed order
         //entity = new Multi.Entity(this);
         entity = new Multi.Entity();
-        entity.addToLocalEntities();
+        //entity.addToLocalEntities();
 
         entity.setCurrents(this, head.gameObject, IsOwner);
         entity.addSyncedProperty(head.transform);
 
         entity.setCurrents(this, this.gameObject, IsOwner);
         entity.addSyncedProperty(playerName);
+        entity.addSyncedProperty(PlayerId);
         entity.addSyncedProperty(damage);
-        entity.addSyncedProperty(OwnerClientId);
+        //entity.addSyncedProperty(OwnerClientId);
 
         //entity.setCurrents(Head_VR.gameObject, Head_VR.gameObject, Head_VR.gameObject.active);
         entity.addSyncedProperty(VR_mode);
@@ -180,7 +185,7 @@ public class SmashCharacter : NetBehaviour
         //applyDamage(float Damage, Vector3 throwBack)
         applyDamageSynced = entity.addSyncedMethodCall("applyDamage", new object[] {42.2f, Vector3.zero});
 
-        registerPlayer_Synced = entity.addSyncedMethodCall("registerPlayer", new object[] { OwnerClientId });
+        //registerPlayer_Synced = entity.addSyncedMethodCall("registerPlayer", new object[] { OwnerClientId });
 
         entity.setCurrents(body, gameObject, IsOwner);  // rigidbody
         bodyProp = entity.addSyncedProperty(body.velocity);
@@ -230,16 +235,23 @@ public class SmashCharacter : NetBehaviour
         meshRenderer = Head_VR.GetComponent<MeshRenderer>();
         glowMaterial = GetMaterialInstanceByName(meshRenderer, "headsetGlow", glowMaterial);
         //print("glowMaterial " + glowMaterial.name);
+
+
+        // register player to dicts
+        if (!characters.ContainsKey(OwnerClientId))
+            characters.Add(OwnerClientId, this);
+        else 
+            print("duplicate key! " + OwnerClientId);
     }
-    /// <summary>
-    /// Because 'NetworkManager.Singleton.OwnerClientId' returns 0 if not owner ig, so it has to be network propagated out
-    /// </summary>
-    /// <param name="LocalClientId"></param>
-    public void registerPlayer(ulong LocalClientId)
-    {
-        print("Registered smashPlayer with LocalClientId " + LocalClientId);
-        characters.Add(LocalClientId, this);
-    }
+    ///// <summary>
+    ///// Because 'NetworkManager.Singleton.OwnerClientId' returns 0 if not owner ig, so it has to be network propagated out
+    ///// </summary>
+    ///// <param name="LocalClientId"></param>
+    //public void registerPlayer(ulong LocalClientId)
+    //{
+    //    print("Registered smashPlayer with LocalClientId " + LocalClientId);
+    //    characters.Add(LocalClientId, this);
+    //}
 
     Color getFreshColor()
     {
@@ -281,12 +293,21 @@ public class SmashCharacter : NetBehaviour
 
     private void Update()
     {
-        if (OwnerClientId != ulong.MaxValue) {
-            if (!characters.ContainsKey(OwnerClientId)) // todo a bool check to save the dict check
+        //if (OwnerClientId != ulong.MaxValue) {
+        //    if (!characters.ContainsKey(OwnerClientId)) // todo a bool check to save the dict check
+        //    {
+        //            registerPlayer(OwnerClientId);  // only register once the OwnerClientId has been synced over the network (it's 0 on !IsOwners by default)
+        //    }
+        //}
+        if (PlayerId != "")
+        {
+            if (!characters_byPlayerId.ContainsKey(PlayerId))
             {
-                    registerPlayer(OwnerClientId);  // only register once the OwnerClientId has been synced over the network (it's 0 on !IsOwners by default)
+                characters_byPlayerId.Add(PlayerId, this);
+                print("Registered player by PlayerId: " + PlayerId);
             }
         }
+
     }
 
 

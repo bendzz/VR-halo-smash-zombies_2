@@ -300,7 +300,7 @@ public class Multi : NetworkBehaviour
         //    netBehaviour.IsOwner = IsOwner;
         //    netBehaviour.IsServer = instance.IsServer;
         //}
-        setupNetBehaviours(c, IsOwner);
+        setupNetBehaviours(c, IsOwner, ownerClientID);
 
         // give entities temp local-client codes, before the server gives them real ones
         List<Multi.Entity> prefabEntities = getAllEntitysInPrefab(c);
@@ -330,7 +330,9 @@ public class Multi : NetworkBehaviour
             print("Spawning Client (ID: " + clientId + "): netSpawnPrefab_ToServer complete for: " + prefab.name + 
             ", sent " + prefabEntities.Count + " entity to the server for global IDs");
 
+
         //instance.netSpawnPrefab_ServerRpc(serverPrefabEntities);
+        // send to server
         NetData data = new NetData(prefabEntities);
         instance.netSpawnPrefab_ServerRpc(prefabString, data);    // one call per prefab, not per entity
 
@@ -338,18 +340,22 @@ public class Multi : NetworkBehaviour
     }
 
     /// <summary>
-    /// run on just-spawned prefab instances, to trigger stuff like OnNetworkSpawn()
+    /// run on just-spawned prefab instances, to trigger stuff like OnNetworkSpawn().
+    /// (Host is assumed to own gameobjects by default, unless IsOwner is true and LocalClientId is not 0)
     /// </summary>
     /// <param name="c"></param>
     /// <param name="IsOwner"></param>
-    static void setupNetBehaviours(GameObject c, bool IsOwner)
+    static void setupNetBehaviours(GameObject c, bool IsOwner, ulong LocalClientId)
     {
+        if (IsOwner && LocalClientId == 0 && !instance.IsServer)
+            Debug.LogError("IsOwner is true but LocalClientId is 0! If a gameobject is owned by a client (like say a player model), you have to say which client!");
         List<NetBehaviour> netBehaviours = GetAllNetBehavioursInPrefab(c);
         foreach (var netBehaviour in netBehaviours)
         {
             netBehaviour.IsOwner = IsOwner;
             //print("netBehaviour.IsOwner " + netBehaviour.IsOwner);
             netBehaviour.IsServer = instance.IsServer;
+            netBehaviour.OwnerClientId = LocalClientId;
             netBehaviour.OnNetworkSpawn();
         }
     }
@@ -472,7 +478,7 @@ public class Multi : NetworkBehaviour
             IsOwner = false;
             GameObject prefab = prefabIds_GOs[prefabString];
             c = Instantiate(prefab, Vector3.zero, Quaternion.identity);
-            setupNetBehaviours(c, IsOwner);
+            setupNetBehaviours(c, IsOwner, serverPrefabEntities[0].ownerClientID);
             print("prefab " + c.name + " SPAWNED on this client, SyncedPrefabID " + serverPrefabEntities[0].syncedPrefabId);
 
             // give entities their global IDs
@@ -758,6 +764,8 @@ public class Multi : NetworkBehaviour
             properties = new List<SyncedProperty>();
             local_entityID = getUniqueLocalIdentifier();
             //parentScript = _parentScript;
+
+            addToLocalEntities();   // idk why I had this separated before. Just do it automatically for now
         }
 
         /// <summary>
@@ -1071,7 +1079,9 @@ public class Multi : NetworkBehaviour
         //public static Dictionary<object, SyncedProperty> getLocalSyncedProperty;
 
 
-
+        /// <summary>
+        /// True if, on this client machine, this machine 'owns' it (like it's a player model or something)
+        /// </summary>
         public bool IsOwner;
         /// <summary>
         /// Datatype used in networking. See TypeToInt class for types
@@ -1815,7 +1825,11 @@ public abstract class NetBehaviour : MonoBehaviour
     public bool IsOwner;
     public bool IsServer;
 
-    //public ulong OwnerClientId;   // TODO this is normally aa feature of 'gameObject.GetComponent<NetworkObject>().OwnerClientId'.
+    /// <summary>
+    /// Equivalent to 'gameObject.GetComponent<NetworkObject>().OwnerClientId' in unity; if a client owns these objects, like say a player model,
+    /// then this is the client's ID (equivalent to NetworkManager.Singleton.LocalClientId on the IsOwner side) 
+    /// </summary>
+    public ulong OwnerClientId;   // TODO this is normally aa feature of ''.
     //Set it myself. Is the 'NetworkManager.Singleton.LocalClientId' on the IsOwner side
 
 
