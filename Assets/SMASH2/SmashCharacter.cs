@@ -5,6 +5,7 @@ using System.Runtime.InteropServices;
 //using System.Drawing;
 using TMPro;
 using Unity.Netcode;
+using Unity.Services.Lobbies.Models;
 using Unity.VisualScripting;
 //using Unity.Collections;
 //using Unity.Netcode;
@@ -27,6 +28,7 @@ public class SmashCharacter : NetBehaviour
     public Rigidbody body;
     public FeetCollider feetCollider;
 
+    public SmashGame smashGame;
 
     // other scripts
     // To get the hands and head positions; going to try and keep the enemy decoupled from this tho, for later AI and networking etc
@@ -240,6 +242,8 @@ public class SmashCharacter : NetBehaviour
             characters.Add(OwnerClientId, this);
         else 
             print("duplicate key! " + OwnerClientId);
+
+        smashGame = SmashGame.instance;
     }
     ///// <summary>
     ///// Because 'NetworkManager.Singleton.OwnerClientId' returns 0 if not owner ig, so it has to be network propagated out
@@ -563,6 +567,14 @@ public class SmashCharacter : NetBehaviour
 
 
 
+        // blown off the map?
+        positionWallWarnings();
+
+
+
+
+
+
         infoCard.setTextValues(playerName, damage);
         if (input == null)
             infoCard.faceCamera(Camera.main);
@@ -572,8 +584,82 @@ public class SmashCharacter : NetBehaviour
         oldRightClick = Input.GetMouseButton(1);
     }
 
+    /// <summary>
+    /// List of 6 gameobjects to position around the player, warning them of the walls
+    /// </summary>
+    List<GameObject> wallWarnings;
+    void positionWallWarnings()
+    {
+        if (wallWarnings == null)
+        {
+            smashGame = SmashGame.instance;
+            print(smashGame);
+            print(smashGame.wallWarning_prefab);
+            wallWarnings = new List<GameObject>();
+            for (int i = 0; i < 6; i++)
+            {
+                GameObject wallWarning = Instantiate(smashGame.wallWarning_prefab);
+                wallWarning.SetActive(true);    // why is it false by default
+                wallWarnings.Add(wallWarning);
+            }
+        }
+
+        Collider collider = SmashGame.instance.safeZone;
+
+        if (collider is BoxCollider) // only supports 1 box collider atm
+        {
+            BoxCollider bCollider = (BoxCollider)collider;
+            //Vector3 localPlayerPos = bCollider.transform.InverseTransformPoint(collider.transform.position); // Player's position in the collider's local space
+            Vector3 localPlayerPos = bCollider.transform.InverseTransformPoint(transform.position); // Player's position in the collider's local space
+            Vector3 halfExtents = bCollider.size * 0.5f;
+
+            // Project player's position to each face
+            Vector3[] projections = new Vector3[6];
+            projections[0] = new Vector3(localPlayerPos.x, localPlayerPos.y, -halfExtents.z); // Front face
+            projections[1] = new Vector3(localPlayerPos.x, localPlayerPos.y, halfExtents.z);  // Back face
+            projections[2] = new Vector3(-halfExtents.x, localPlayerPos.y, localPlayerPos.z); // Left face
+            projections[3] = new Vector3(halfExtents.x, localPlayerPos.y, localPlayerPos.z);  // Right face
+            projections[4] = new Vector3(localPlayerPos.x, -halfExtents.y, localPlayerPos.z); // Bottom face
+            projections[5] = new Vector3(localPlayerPos.x, halfExtents.y, localPlayerPos.z);  // Top face
+
+            for (int i = 0; i < 6; i++)
+            {
+                Vector3 worldProjection = bCollider.transform.TransformPoint(projections[i]);
+                wallWarnings[i].transform.position = worldProjection;
+                //print("wallWarning " + i + " pos " + wallWarnings[i].transform.position);
+
+                // Set their 'up' direction facing into the box collider.
+                // The direction will be opposite to the projection direction from the box's center.
+                Vector3 directionIntoBox = (projections[i] - localPlayerPos).normalized;
+                wallWarnings[i].transform.up = collider.transform.TransformDirection(-directionIntoBox);
+
+                // is u dead?
+                if (Vector3.Dot(collider.transform.position - wallWarnings[i].transform.position, wallWarnings[i].transform.up) < 0)
+                {
+                    print("DEAD");
+                    Debug.Log($"Player is out of bounds on the {i}-th wall.");
+                }
+
+                //Vector3 toPlayer = transform.position - wallWarnings[i].transform.position;
+                //print("toPlayer " + toPlayer);
+                //print("wallWarnings[i].transform.up " + wallWarnings[i].transform.up);
+                //float dotProduct = Vector3.Dot(wallWarnings[i].transform.up, toPlayer.normalized);
+
+                //print("i " + i + " dotProduct " + dotProduct);
+                //if (dotProduct < 0)
+                //{
+                //    print("DEAD");
+                //    Debug.Log($"Player is out of bounds on the {i}-th wall.");
+                //}
+            }
+        }
+    }
+
+
     float swordSwingTime = .2f;
     float swordSwingTimer = 0;
+
+
 
     /// <summary>
     /// apply damage with character throwback. (TODO, pausing upon punch)
