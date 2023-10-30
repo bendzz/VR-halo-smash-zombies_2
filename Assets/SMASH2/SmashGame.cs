@@ -8,7 +8,7 @@ public class SmashGame : NetBehaviour
     public Collider safeZone;   // todo make this multiple zones combined, later..?
     [Tooltip("Objects to follow you along the walls warning you of their positions")]
     public GameObject wallWarning_prefab;
-
+    public Transform respawnPoint;
 
     public static SmashGame instance;
 

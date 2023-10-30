@@ -252,8 +252,10 @@ MonoBehaviour:
   IsSimulating: 0
   IsOwner: 1
   IsServer: 1
+  OwnerClientId: 0
   body: {fileID: 2143016132424502222}
   feetCollider: {fileID: 8269268441555100728}
+  smashGame: {fileID: 0}
   input: {fileID: 7165952322142439820}
   xr_Dummies_Sync: {fileID: 2330029187877692654}
   playerName: Defaul_Player
@@ -1407,6 +1409,7 @@ MonoBehaviour:
   IsSimulating: 0
   IsOwner: 0
   IsServer: 0
+  OwnerClientId: 0
   XR_Origin: {fileID: 980269250734180010}
   XR_Headset: {fileID: 956450887652756732}
   leftHandObject: {fileID: 6338138840823170338}
@@ -1554,6 +1557,7 @@ MonoBehaviour:
   IsSimulating: 0
   IsOwner: 0
   IsServer: 0
+  OwnerClientId: 0
   XR_Origin: {fileID: 980269250734180010}
   XR_Headset: {fileID: 956450887652756732}
   leftHandObject: {fileID: 6338138840823170338}
