@@ -223,9 +223,6 @@ Sword litter:
 	-Their materials need to be too, for different colors
 
 
-TODO oct 29
--make the VR player able to throw swords 
-
-
-entity.addToLocalEntities(); todo use playerID
-	-can I make this generic?
+TODO oct 30
+-your own damage display
+-text rims

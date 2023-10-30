@@ -235,7 +235,7 @@ public class SwordAnimate : NetBehaviour
                 SmashCharacter hitBoi = hitbox.representsObject.GetComponent<SmashCharacter>();
                 if (hitBoi != null && hitBoi != dontHitTwice)
                 {
-                    print("HITBOI - " + hitBoi.playerName);
+                    //print("HITBOI - " + hitBoi.playerName);
 
                     if (!held && energized) // throw damage
                     {

@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using TMPro;
 using Unity.VisualScripting;
 using UnityEngine;
+using static DamageNumbers;
 
 public class DamageNumbers : MonoBehaviour
 {
@@ -74,10 +75,7 @@ public class DamageNumbers : MonoBehaviour
             card.drag = 4f;
             card.gravity = Physics.gravity / 10;
 
-            //card.rectTransform.LookAt(camInstance.transform);
-            if (Camera.main != null)
-                card.rectTransform.LookAt(Camera.main.transform);
-            card.rectTransform.Rotate(0, 180, 0);
+
 
             return card;
         }
@@ -139,7 +137,9 @@ public class DamageNumbers : MonoBehaviour
                 //info.fontMaterial.SetColor("_FaceColor", new Color(1, .1f, .3f, 1));
                 //info.fontMaterial.SetColor("_FaceColor", new Color(1, 1, 0, 1));
 
-                info.fontMaterial.SetFloat("_Underlay", 1);
+                //info.fontMaterial.SetFloat("_Underlay", 1);   // old way
+                info.fontMaterial.EnableKeyword("UNDERLAY_ON");
+
                 //info.fontSharedMaterial.SetColor("_UnderlayColor", new Color(.5f, 0, 0, 1));
                 info.fontMaterial.SetColor("_UnderlayColor", new Color(0, 0, 0, 1));
                 info.fontMaterial.SetFloat("_UnderlayDilate", 0.755f);
@@ -184,6 +184,12 @@ public class DamageNumbers : MonoBehaviour
             }
             else
             {
+                //card.rectTransform.LookAt(camInstance.transform);
+                //if (Camera.main != null)
+                //    card.rectTransform.LookAt(Camera.main.transform);
+                rectTransform.LookAt(Camera.allCameras[0].transform);
+                rectTransform.Rotate(0, 180, 0);
+
                 //rectTransform.position += Vector3.up * Time.deltaTime * 1;
                 rectTransform.position += velocity * Time.deltaTime;
                 velocity += gravity * Time.deltaTime;

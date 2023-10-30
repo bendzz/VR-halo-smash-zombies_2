@@ -429,6 +429,9 @@ public class SmashCharacter : NetBehaviour
                 }
             }
 
+
+
+
             // Do damage
 
             // apply thruster damage to enemies
@@ -584,8 +587,9 @@ public class SmashCharacter : NetBehaviour
 
 
             infoCard.setTextValues(playerName, damage);
-            if (input == null)
-                infoCard.faceCamera(Camera.main);
+            if (!IsOwner)
+                infoCard.faceCamera();
+                //infoCard.faceCamera(Camera.main);
 
             oldDamage = damage;
             oldLeftClick = Input.GetMouseButton(0);
@@ -888,9 +892,10 @@ public class InfoCard   // separate all this into a class for mess
     /// Only call this for infocards that aren't the player, or it'll freak out. (use inputScript == null to check)
     /// </summary>
     /// <param name="cam"></param>
-    public void faceCamera(Camera cam)
+    public void faceCamera()
     {
-        info.rectTransform.LookAt(Camera.main.transform);
+        //info.rectTransform.LookAt(Camera.main.transform);     // Camera.main is null
+        info.rectTransform.LookAt(Camera.allCameras[0].transform);
         info.rectTransform.Rotate(0, 180, 0);
     }
 
@@ -910,7 +915,9 @@ public class InfoCard   // separate all this into a class for mess
         info.faceColor = new Color(1, 1, 1, 1); // makes a new material instance so these settings don't hit all instances..? Not sure... http://digitalnativestudios.com/textmeshpro/docs/ScriptReference/TextMeshPro-fontMaterial.html
         info.fontMaterial.SetColor("_FaceColor", new Color(1, 1, 1, 1));
 
-        info.fontMaterial.SetFloat("_Underlay", 1);
+        //info.fontMaterial.SetFloat("_Underlay", 1);
+        info.fontMaterial.EnableKeyword("UNDERLAY_ON");
+
         //info.fontSharedMaterial.SetColor("_UnderlayColor", new Color(.5f, 0, 0, 1));
         info.fontMaterial.SetColor("_UnderlayColor", new Color(0, 0, 0, 1));
         info.fontMaterial.SetFloat("_UnderlayDilate", 0.755f);
