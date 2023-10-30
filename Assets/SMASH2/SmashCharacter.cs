@@ -96,7 +96,14 @@ public class SmashCharacter : NetBehaviour
     public List<Color> playerColors;
     public static Dictionary<Color, SmashCharacter> inUsePlayerColors;
 
+    /// <summary>
+    /// Above head infoCard
+    /// </summary>
     InfoCard infoCard;
+    /// <summary>
+    /// Show your own damage to yourself
+    /// </summary>
+    InfoCard infoCardHUD;
 
     // multiplayer use
     public Multi.SyncedProperty applyDamageSynced;  
@@ -152,6 +159,11 @@ public class SmashCharacter : NetBehaviour
         infoCard = new InfoCard(transform);
         infoCard.setDefaultFont();
 
+        infoCardHUD = new InfoCard(transform);
+        infoCardHUD.setDefaultFont();
+        infoCardHUD.infoCard.transform.localScale = Vector3.one * .3f;
+        infoCardHUD.infoCard.transform.localPosition = new Vector3(0, -.726f, 1.576f);
+        //infoCard.GetComponent<RectTransform>().sizeDelta = new Vector2(1, 1);
 
         if (IsOwner)
         {
@@ -585,11 +597,21 @@ public class SmashCharacter : NetBehaviour
 
 
 
-
-            infoCard.setTextValues(playerName, damage);
             if (!IsOwner)
+            {
+                infoCard.setTextValues(playerName, damage);
                 infoCard.faceCamera();
                 //infoCard.faceCamera(Camera.main);
+
+                infoCardHUD.infoCard.SetActive(false);
+            }
+            else
+            {
+                infoCardHUD.setTextValues(playerName, damage);
+                //infoCardHUD.faceCamera(Camera.main);
+
+                infoCard.infoCard.SetActive(false);
+            }
 
             oldDamage = damage;
             oldLeftClick = Input.GetMouseButton(0);
@@ -845,8 +867,8 @@ public class SmashCharacter : NetBehaviour
 /// </summary>
 public class InfoCard   // separate all this into a class for mess
 {
-    GameObject infoCard;
-    TextMeshPro info;
+    public GameObject infoCard;
+    public TextMeshPro info;
 
     public InfoCard(Transform transform)
     {
