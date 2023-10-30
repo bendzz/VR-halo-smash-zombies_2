@@ -124,7 +124,6 @@ public class SwordAnimate : NetBehaviour
     void Update()
     {
 
-
         if (dying)
         {
             lifeTimer -= Time.deltaTime;
@@ -139,18 +138,18 @@ public class SwordAnimate : NetBehaviour
         }
 
         // grow respawned sword
-        if (scale < 1 && !dying)
+        if (scale < 1 && held)
         {
             scale += Time.deltaTime * (1f/3f);
             //print("scaling " + scale);
-
-            gameObject.transform.localScale = scale_Original * scale;
         }
+        gameObject.transform.localScale = scale_Original * scale;
+
 
         //if (held)
         //    colliderPhysical.enabled = false;
         //else
-            colliderPhysical.enabled = true;
+        colliderPhysical.enabled = true;
 
         // spin the sword!
         if (!held)

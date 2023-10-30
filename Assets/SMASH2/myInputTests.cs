@@ -172,13 +172,18 @@ public class myInputTests : NetBehaviour
         public bool isLeft = false;
 
 
-        //public Vector3 pos = Vector3.zero;
+        // buttons
         public Vector2 joystick = new Vector2();
         public bool joystickClick = false;
         public float grip = 0;
         public float trigger = 0;
         public bool A = false;  // todo touches
         public bool B = false;
+
+        // olds
+        public bool oldB = false;   // TODO, the rest
+        public bool oldA = false;
+
 
         public bool isActive = false;   // TODO
 
@@ -224,6 +229,9 @@ public class myInputTests : NetBehaviour
                 //Debug.LogWarning("device " + device + " name " + this + " is null or invalid"); return;
                 return;
 
+            oldB = B;
+            oldA = A;
+
             // buttons
             if (device.TryGetFeatureValue(CommonUsages.primary2DAxis, out joystick)) { }
             if (device.TryGetFeatureValue(CommonUsages.grip, out grip)) { }
@@ -232,6 +240,7 @@ public class myInputTests : NetBehaviour
             if (device.TryGetFeatureValue(CommonUsages.secondaryButton, out B)) { }
             if (device.TryGetFeatureValue(CommonUsages.primary2DAxisClick, out joystickClick)) { }
             //print($"leftGrip: {leftGrip}");
+
         }
 
         public class InputBuffer<T>

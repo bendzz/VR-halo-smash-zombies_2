@@ -398,16 +398,24 @@ public class SmashCharacter : NetBehaviour
             //hand.update();
             hand.update();
 
-            if (hand.thruster > 0)
+            //if (hand.thruster > 0)
+        }
+
+        if (input.rightie.trigger > 0 || input.leftie.trigger > 0)
+        {
+            if (IsOwner)
             {
-                if (IsOwner)
-                    VR_mode = true; // hacky
+                VR_mode = true; // hacky
+                //print("Switched to VR mode");
             }
         }
         if (Input.GetMouseButton(0) || Input.GetMouseButton(1))
         {
             if (IsOwner)
+            {
                 VR_mode = false; // hacky
+                //print("Switched FROM VR mode");
+            }
         }
         
         // Do damage
@@ -465,7 +473,12 @@ public class SmashCharacter : NetBehaviour
 
 
         //Sword throw
+        bool swordThrow = false;
         if (Input.GetMouseButton(1) && !oldRightClick)
+            swordThrow = true;
+        if (input.rightie.B && !input.rightie.oldB)
+            swordThrow = true;
+        if (swordThrow)
         {
             if (IsOwner)
             {
@@ -478,7 +491,6 @@ public class SmashCharacter : NetBehaviour
                 thrownSword.transform.rotation = Sword.transform.rotation;
 
                 //Sword.gameObject.SetActive(false);
-                Sword.respawn();
 
                 thrownSword.transform.parent = null;
                 SwordAnimate ts = thrownSword.GetComponent<SwordAnimate>();
@@ -487,19 +499,29 @@ public class SmashCharacter : NetBehaviour
                 ts.body.collisionDetectionMode = CollisionDetectionMode.ContinuousDynamic;
                 ts.body.velocity = body.velocity;
                 thrownSword.layer = LayerMask.NameToLayer("Default");
-                ts.body.AddForce(head.forward * 50, ForceMode.VelocityChange);
-                ts.holder_PlayerId = PlayerId; 
+
+
+                Vector3 throwDir = head.forward;
+                if (VR_mode)
+                    throwDir = -rightie.transform.up;
+                ts.body.AddForce(throwDir.normalized * 50, ForceMode.VelocityChange);
+
+                print("Threw sword, VR_mode " + VR_mode + " direction " + throwDir);
+
+                //ts.lifeTimer = 2;
+                ts.lifeTimer = 5;
+                ts.dying = true;
+                ts.held = false;
+                ts.holder_PlayerId = PlayerId;
+                ts.scale = Sword.scale;
 
                 //// spin the sword
                 //Vector3 localAngularVelocity = Vector3.zero;
                 //localAngularVelocity.z = -200f / ts.body.inertiaTensor.z;    // will get screwed up if the inertia tensor gets rotated
                 //ts.body.angularVelocity = ts.body.transform.TransformDirection(localAngularVelocity);
 
-                //ts.lifeTimer = 2;
-                ts.lifeTimer = 5;
-                ts.dying = true;
-                ts.held = false;
 
+                Sword.respawn();
             }
             //Sword.GetComponent<SwordAnimate>().throwSword();
         }

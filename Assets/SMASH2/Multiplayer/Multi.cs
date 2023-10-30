@@ -841,7 +841,8 @@ public class Multi : NetworkBehaviour
         /// <param name="propertyOrField"></param>
         public SyncedProperty addSyncedProperty(object propertyOrField)
         {
-            print(propertyOrField.ToString());
+            if (instance.debug)
+                print(propertyOrField.ToString());
             SyncedProperty prop = new SyncedProperty(SyncedProperty.invalidIdentifier, current_AnimatedComponent,
                 propertyOrField, current_gameObject, Multi.instance.clip, current_IsOwner);
             properties.Add(prop);
