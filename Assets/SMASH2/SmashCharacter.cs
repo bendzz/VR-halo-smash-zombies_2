@@ -221,9 +221,7 @@ public class SmashCharacter : NetBehaviour
 
         Sword.body.isKinematic = true;
         Sword.held = true;
-        //Sword.holder = this;    // redundant?
-        //Sword.holder_SyncedProperty = bodyProp;    // redundant?
-        Sword.holder_ClientId = OwnerClientId;
+        Sword.holder_PlayerId = PlayerId;
 
         // set glow
         playerColor = getFreshColor();
@@ -484,9 +482,7 @@ public class SmashCharacter : NetBehaviour
                 ts.body.velocity = body.velocity;
                 thrownSword.layer = LayerMask.NameToLayer("Default");
                 ts.body.AddForce(head.forward * 50, ForceMode.VelocityChange);
-                //ts.holder = this;   // not reaaally relevant but meh, easier
-                //ts.holder_SyncedProperty = bodyProp;   // not reaaally relevant but meh, easier
-                ts.holder_ClientId = OwnerClientId;   // not reaaally relevant but meh, easier
+                ts.holder_PlayerId = PlayerId; 
 
                 //// spin the sword
                 //Vector3 localAngularVelocity = Vector3.zero;

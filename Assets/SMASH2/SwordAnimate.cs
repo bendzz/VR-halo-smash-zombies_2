@@ -7,7 +7,8 @@ using static Multi;
 public class SwordAnimate : NetBehaviour
 {
     //public SyncedProperty holder_SyncedProperty;    // used to get the player that held/threw the sword, over the network
-    public ulong holder_ClientId;    // used to get the player that held/threw the sword, over the network
+    //public ulong holder_PlayerId;    // used to get the player that held/threw the sword, over the network
+    public string holder_PlayerId;    // used to get the player that held/threw the sword, over the network
     public SmashCharacter holder;
     public GameObject sword;
     public GameObject swordTipPoint;
@@ -89,7 +90,7 @@ public class SwordAnimate : NetBehaviour
         entity.addSyncedProperty(scale);
         entity.addSyncedProperty(lifeTimer);
         //entity.addSyncedProperty(holder_SyncedProperty);
-        entity.addSyncedProperty(holder_ClientId);
+        entity.addSyncedProperty(holder_PlayerId);
 
         entity.setCurrents(body, gameObject, IsOwner);  // rigidbody
         entity.addSyncedProperty(body.isKinematic);     // otherwise it throws a bunch of "nooo you can't set velocity on kinematics!" errors
@@ -197,10 +198,13 @@ public class SwordAnimate : NetBehaviour
     {
         if (holder == null)
         {
-            if (SmashCharacter.characters.ContainsKey(holder_ClientId))
-                holder = SmashCharacter.characters[holder_ClientId];
-            else
-                Debug.Log("holder_ClientId " + holder_ClientId + " not found in SmashCharacter.characters");
+            if (holder_PlayerId == "")
+                return;
+            if (SmashCharacter.characters_byPlayerId.ContainsKey(holder_PlayerId))
+                holder = SmashCharacter.characters_byPlayerId[holder_PlayerId];
+            else 
+                Debug.Log("holder_PlayerId " + holder_PlayerId + " not found in SmashCharacter.characters_byPlayerId");
+            print("holder_PlayerId " + holder_PlayerId);
         }
         else
         {
@@ -213,27 +217,9 @@ public class SwordAnimate : NetBehaviour
 
     private void FixedUpdate()
     {
-        //print("swordTipPositions");
-        //print(swordTipPositions);
-        //swordTipPositions.append(swordTipPoint.transform.position);
-        //print("swordTipLocalPositions");
-        //print(swordTipLocalPositions);
-
-        //if (holder == null)
-        //{
-        //print(holder_SyncedProperty);
-        //print(holder_SyncedProperty.gameObject.name);
-        //print(holder_SyncedProperty.gameObject.GetComponent<SmashCharacter>());
-        //holder = holder_SyncedProperty.gameObject.GetComponent<SmashCharacter>();
 
         tryToSetColors();
 
-        //colorList
-        //if (colorList.Count == 0)
-        //    return;
-        //swordGlowMaterial.SetColor("_Color", colorList[colorList.Count-1]);
-        //swordGlowMaterial.SetColor("_EmissionColor", colorList[colorList.Count - 1]);
-        //DynamicGI.SetEmissive(renderer, swordGlowMaterial.GetColor("_EmissionColor"));
     }
 
 
@@ -265,6 +251,12 @@ public class SwordAnimate : NetBehaviour
                     {
                         if (hitBoi == holder)
                             return;
+
+                        if (hitBoi.body == null)    // why is this happening?
+                        {
+                            Debug.LogError(hitBoi.playerName + " has no body");
+                            return;
+                        }
 
                         Vector3 tipDelta = swordTipPositions.getOldest() - swordTipPositions.getNewest();
                         //print("tipDelta.magnitude " + tipDelta.magnitude);
