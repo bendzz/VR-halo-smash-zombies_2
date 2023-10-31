@@ -228,6 +228,8 @@ public class SwordAnimate : NetBehaviour
 
     void OnTriggerEnter(Collider other)
     {
+        if (!IsOwner)
+            return;
 
         IntangibleHitbox hitbox = other.gameObject.GetComponent<IntangibleHitbox>();
         if (hitbox != null)
@@ -241,6 +243,10 @@ public class SwordAnimate : NetBehaviour
                 {
                     //print("HITBOI - " + hitBoi.playerName);
 
+                    if (hitBoi == holder)
+                        return;
+
+
                     if (!held && energized) // throw damage
                     {
                         hitBoi.applyDamageFromDirection(20 * scale, body.velocity);
@@ -252,8 +258,7 @@ public class SwordAnimate : NetBehaviour
                         dontHitTwiceTimer = .5f;
                     } else if (held)    // schwing
                     {
-                        if (hitBoi == holder)
-                            return;
+
 
                         if (hitBoi.body == null)    // why is this happening?
                         {

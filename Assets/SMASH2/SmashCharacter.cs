@@ -385,7 +385,8 @@ public class SmashCharacter : NetBehaviour
 
             if (damage != oldDamage)
             {
-                DamageNumbers.Card.newCardFormatted(transform, damage - oldDamage);
+                if (damage > oldDamage)     // networking issues sometimes cause the damage to go up down up. This fixes the down at least
+                    DamageNumbers.Card.newCardFormatted(transform, damage - oldDamage);
             }
 
             if (limp)
@@ -540,7 +541,7 @@ public class SmashCharacter : NetBehaviour
 
                         //GameObject thrownSword = Multi.netSpawnPrefab_ToServer(Sword.gameObject, true, NetworkManager.Singleton.OwnerClientId);
                         GameObject thrownSword = Multi.netSpawnPrefab_ToServer(SwordPrefab, true, NetworkManager.Singleton.LocalClientId);
-                        thrownSword.transform.position = Sword.transform.position;
+                        thrownSword.transform.position = Sword.transform.position + throwDir * 1.5f;
                         thrownSword.transform.rotation = Sword.transform.rotation;
 
                         //Sword.gameObject.SetActive(false);
