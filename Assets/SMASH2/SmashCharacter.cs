@@ -5,16 +5,7 @@ using System.Runtime.InteropServices;
 //using System.Drawing;
 using TMPro;
 using Unity.Netcode;
-using Unity.Services.Lobbies.Models;
 using Unity.VisualScripting;
-using Unity.XR.CoreUtils;
-//using Unity.Collections;
-//using Unity.Netcode;
-//using Unity.Services.Authentication;
-//using Unity.Services.Lobbies;
-//using Unity.Services.Lobbies.Models;
-//using Unity.VisualScripting;
-//using Unity.XR.CoreUtils;
 using UnityEngine;
 
 
@@ -116,7 +107,7 @@ public class SmashCharacter : NetBehaviour
 
     Multi.Entity entity;
 
-
+    LineRenderer laserLine;
 
 
     public override void OnNetworkSpawn()   // TODO haven't changed anything for networking yet...
@@ -424,7 +415,7 @@ public class SmashCharacter : NetBehaviour
             }
 
 
-            // Set VR_Mode
+            // Set VR_Mode (kinda unreliable atm for some reason)
             if (input.rightie.trigger > 0 || input.leftie.trigger > 0)
             {
                 if (IsOwner)
@@ -500,57 +491,91 @@ public class SmashCharacter : NetBehaviour
 
 
             //Sword throw
-            bool swordThrow = false;
-            if (Input.GetMouseButton(1) && !oldRightClick)
-                swordThrow = true;
-            if (input.rightie.B && !input.rightie.oldB)
-                swordThrow = true;
-            if (swordThrow)
             {
-                if (IsOwner)
+                Vector3 throwDir = head.forward;
+                if (VR_mode)
+                    throwDir = -rightie.transform.up;
+
+                // laser
+                if (laserLine == null)
                 {
-                    //print("Sword throw!");
-                    //GameObject thrownSword = Instantiate(Sword.gameObject, Sword.transform.position, Sword.transform.rotation);
+                    laserLine = gameObject.AddComponent<LineRenderer>();
+                    laserLine.widthCurve = AnimationCurve.Linear(0, .05f, 1, .05f);
 
-                    //GameObject thrownSword = Multi.netSpawnPrefab_ToServer(Sword.gameObject, true, NetworkManager.Singleton.OwnerClientId);
-                    GameObject thrownSword = Multi.netSpawnPrefab_ToServer(SwordPrefab, true, NetworkManager.Singleton.LocalClientId);
-                    thrownSword.transform.position = Sword.transform.position;
-                    thrownSword.transform.rotation = Sword.transform.rotation;
+                    // mat
+                    Material translucentMaterial = new Material(Shader.Find("Standard"));
+                    translucentMaterial.SetInt("_SrcBlend", (int)UnityEngine.Rendering.BlendMode.One);
+                    translucentMaterial.SetInt("_DstBlend", (int)UnityEngine.Rendering.BlendMode.OneMinusSrcAlpha);
+                    translucentMaterial.SetInt("_ZWrite", 0);
+                    translucentMaterial.DisableKeyword("_ALPHATEST_ON");
+                    translucentMaterial.DisableKeyword("_ALPHABLEND_ON");
+                    translucentMaterial.EnableKeyword("_ALPHAPREMULTIPLY_ON");
+                    translucentMaterial.renderQueue = (int)UnityEngine.Rendering.RenderQueue.Transparent;
 
-                    //Sword.gameObject.SetActive(false);
+                    // Set the color with 50% opacity
+                    translucentMaterial.color = new Color(1, 0, 0, 0.5f);
 
-                    thrownSword.transform.parent = null;
-                    SwordAnimate ts = thrownSword.GetComponent<SwordAnimate>();
+                    // Make it glow red
+                    translucentMaterial.EnableKeyword("_EMISSION");
+                    translucentMaterial.SetColor("_EmissionColor", Color.red);
 
-                    ts.body.isKinematic = false;
-                    ts.body.collisionDetectionMode = CollisionDetectionMode.ContinuousDynamic;
-                    ts.body.velocity = body.velocity;
-                    thrownSword.layer = LayerMask.NameToLayer("Default");
-
-
-                    Vector3 throwDir = head.forward;
-                    if (VR_mode)
-                        throwDir = -rightie.transform.up;
-                    ts.body.AddForce(throwDir.normalized * 50, ForceMode.VelocityChange);
-
-                    print("Threw sword, VR_mode " + VR_mode + " direction " + throwDir);
-
-                    //ts.lifeTimer = 2;
-                    ts.lifeTimer = 5;
-                    ts.dying = true;
-                    ts.held = false;
-                    ts.holder_PlayerId = PlayerId;
-                    ts.scale = Sword.scale;
-
-                    //// spin the sword
-                    //Vector3 localAngularVelocity = Vector3.zero;
-                    //localAngularVelocity.z = -200f / ts.body.inertiaTensor.z;    // will get screwed up if the inertia tensor gets rotated
-                    //ts.body.angularVelocity = ts.body.transform.TransformDirection(localAngularVelocity);
-
-
-                    Sword.respawn();
+                    laserLine.material = translucentMaterial;
                 }
-                //Sword.GetComponent<SwordAnimate>().throwSword();
+                laserLine.SetPosition(0, Sword.transform.position);
+                laserLine.SetPosition(1, Sword.transform.position + throwDir * 20);
+
+
+                // throw
+                bool swordThrow = false;
+                if (Input.GetMouseButton(1) && !oldRightClick)
+                    swordThrow = true;
+                if (input.rightie.B && !input.rightie.oldB)
+                    swordThrow = true;
+                if (swordThrow)
+                {
+                    if (IsOwner)
+                    {
+                        //print("Sword throw!");
+                        //GameObject thrownSword = Instantiate(Sword.gameObject, Sword.transform.position, Sword.transform.rotation);
+
+                        //GameObject thrownSword = Multi.netSpawnPrefab_ToServer(Sword.gameObject, true, NetworkManager.Singleton.OwnerClientId);
+                        GameObject thrownSword = Multi.netSpawnPrefab_ToServer(SwordPrefab, true, NetworkManager.Singleton.LocalClientId);
+                        thrownSword.transform.position = Sword.transform.position;
+                        thrownSword.transform.rotation = Sword.transform.rotation;
+
+                        //Sword.gameObject.SetActive(false);
+
+                        thrownSword.transform.parent = null;
+                        SwordAnimate ts = thrownSword.GetComponent<SwordAnimate>();
+
+                        ts.body.isKinematic = false;
+                        ts.body.collisionDetectionMode = CollisionDetectionMode.ContinuousDynamic;
+                        ts.body.velocity = body.velocity;
+                        thrownSword.layer = LayerMask.NameToLayer("Default");
+
+
+
+                        ts.body.AddForce(throwDir.normalized * 50, ForceMode.VelocityChange);
+
+                        print("Threw sword, VR_mode " + VR_mode + " direction " + throwDir);
+
+                        //ts.lifeTimer = 2;
+                        ts.lifeTimer = 5;
+                        ts.dying = true;
+                        ts.held = false;
+                        ts.holder_PlayerId = PlayerId;
+                        ts.scale = Sword.scale;
+
+                        //// spin the sword
+                        //Vector3 localAngularVelocity = Vector3.zero;
+                        //localAngularVelocity.z = -200f / ts.body.inertiaTensor.z;    // will get screwed up if the inertia tensor gets rotated
+                        //ts.body.angularVelocity = ts.body.transform.TransformDirection(localAngularVelocity);
+
+
+                        Sword.respawn();
+                    }
+                    //Sword.GetComponent<SwordAnimate>().throwSword();
+                }
             }
 
 
