@@ -79,7 +79,8 @@ public class FeetCollider : MonoBehaviour
     [Tooltip("If true, the player will slide up vertical walls. If false, they can only run up slopes")]
     public bool runUpWalls = true;
     // todo add a proper crouch/limp setting
-
+    [Tooltip("Amount of player speed that will remain after 1 second of touching the ground")]
+    public float drag = .5f;
 
 
 
@@ -462,6 +463,17 @@ public class FeetCollider : MonoBehaviour
         //print(groundHeight);
         if (debug)
             Debug.DrawLine(transform.position, transform.position + surfaceNormal, new Color(0, 1, 0));
+
+
+
+
+        // drag
+        if (isGrounded)
+        {
+            float factor = Mathf.Pow(0.5f, Time.deltaTime);
+            body.velocity = body.velocity * factor;
+        }
+
 
 
         //Physics.SphereCastNonAlloc(rectTransform.position, 0.1f, Vector3.down, hits, rayLength, 1, QueryTriggerInteraction.Ignore);
