@@ -42,11 +42,31 @@ public class SmashCharacter : NetBehaviour
     [Tooltip("jet prefab with script")]
     public GameObject handJetPrefab;
 
-    // model assets
+
+    [Header("model assets")]
     public GameObject Head_VR;
     public GameObject Head_PC;
     public SwordAnimate Sword;
     public GameObject SwordPrefab;
+
+    [Header("Sounds")]
+    //AudioSource audioSource;
+    public AudioClip death1;
+    public AudioClip death2;
+    public AudioClip death3;
+
+    public AudioClip swordHit1;
+    public AudioClip swordHit2;
+
+    public AudioClip swordSwing;
+    public AudioClip swordThrow;
+    public AudioClip jet1;
+
+    public AudioClip fireHit;
+
+    public AudioClip killedSomeoneYay;
+
+
 
     public float damage = 0;    // smash bros damage, amplifies knockback
     float oldDamage = 0;
@@ -251,6 +271,8 @@ public class SmashCharacter : NetBehaviour
             print("duplicate key! " + OwnerClientId);
 
         smashGame = SmashGame.instance;
+
+        //audioSource = GetComponent<AudioSource>();
     }
     ///// <summary>
     ///// Because 'NetworkManager.Singleton.OwnerClientId' returns 0 if not owner ig, so it has to be network propagated out
@@ -621,6 +643,10 @@ public class SmashCharacter : NetBehaviour
             positionWallWarnings();
 
 
+            if (Input.GetMouseButton(0) && !oldLeftClick)
+                PlayClip(death1, 0, 2);
+
+
 
 
 
@@ -665,6 +691,52 @@ public class SmashCharacter : NetBehaviour
         }
     }
 
+
+
+    // audio
+    // NOTE! Audio in my unity editor is broken! Can't see if this works >_>
+    int maxAudioSources = 8; // probably big enough idk
+    private List<AudioSource> audioSources;
+    void initializeAudioSources()
+    {
+        audioSources = new List<AudioSource>();
+        for (int i = 0; i < maxAudioSources; i++)
+        {
+            AudioSource newAudioSource = gameObject.AddComponent<AudioSource>();
+            newAudioSource.playOnAwake = false;
+            newAudioSource.spatialBlend = 1;
+            newAudioSource.spatialize = true;
+            audioSources.Add(newAudioSource);
+        }
+    }
+    /// <summary>
+    /// plays the clip on a free audiosource on the player
+    /// </summary>
+    public void PlayClip(AudioClip clip, float startTime, float endTime)
+    {
+        if (audioSources == null)
+            initializeAudioSources();
+        bool foundFreeSource = false;
+        foreach (var source in audioSources)
+        {
+            if (!source.isPlaying)
+            {
+                print("playing " + clip.name + " on " + source.name);
+                foundFreeSource = true;
+                source.clip = clip;
+                source.time = startTime;
+                source.Play();
+                Invoke("StopPlaying", clip.length - (startTime + endTime)); // might not be working
+                break; // Exit the loop once a free AudioSource is found and the clip is played
+            }
+        }
+        if (!foundFreeSource)
+            Debug.LogWarning("Couldn't find a free audio source to play the clip " + clip.name + "! " + maxAudioSources + " per player isn't enough ig.");
+    }
+
+
+
+
     public void respawn()
     {
         Sword.gameObject.SetActive(true);
@@ -682,7 +754,7 @@ public class SmashCharacter : NetBehaviour
     }
 
     /// <summary>
-    /// List of 6 gameobjects to position around the player, warning them of the walls
+    /// List of 6 gameobjects to position around the player, warning them of the kill-walls
     /// </summary>
     List<GameObject> wallWarnings;
     List<GameObject> wallWarningsHorizontal;    // beams
