@@ -153,67 +153,14 @@ TODO Oct 18:
 
 
 
-TODO
-identifier:
-	-make sure it's unique on all clients
-	-make sure that syncedProperty script reference is unique on all clients. Don't need repeated syncs
 
 
-
-
-TODO later: Spawn a big rectangle as a thrown sword when a button is pressed, to test object throwing replication
-
-
-
-
-
-I'm using ((FieldInfo)obj).SetValue(animatedComponent, data); to set the values of random variables in random scripts. I think in this line, animatedComponent is the script the variable belongs to. Can you confirm that then write a script to get a reference to the 
-
-
-CODING TODO:
--next up, global prefab codes. See comments on netSpawnPrefab
-
--finish sending lists of entities across the network
-	-verify
--use to send property IDs back to original spawner client, and other clients
-	-assign those IDs back to their syncedProperties in each Entity, (by their entity IDs) (ACTUALLY by their entity order in prefabEntities list)
-
-
-
-SYNC
--PC sword throw attack
-	-and thrusters when moving
--DAMAGE! And attack throwback!
--Damage numbers!
-
--players leaving (desplay player model)
--and attacks and 
--thruster flame particles busted
-
-
-TODO an onscreen card showing damage for every player name, along the bottom rim of the VR screen
-	-with a "You" marker
 
 Networking TODO:
--check if values changed before syncing
--networked method calls (RPCs but through my system for Recording)
+-make alternative reliable RPC calls
+	-use them when a variable has stopped updating to set the final value
+-players leaving (desplay player model)
 
-
-
-TODO
--up the max speed for thruster thrusts
--'you got damaged' networked method call
-	-how to alert system that you're invoking X method call syncedParameter for syncing? It can't see method calls itself
--You know i should rework my IsOwner code to be more accurate... make sure only one machine registers as IsOwner... that could be part of it...
-
-
--Think I'll set the mouse/keyboard player using the thrusters too... and remake their heads as a computer monitor and a VR headset guy... and get that sword throwing mechanic in...
-
-
--if you fall off the map you respawn with 0 damage
-
-
--make RPC calls unreliable
 
 
 
@@ -223,6 +170,44 @@ Sword litter:
 	-Their materials need to be too, for different colors
 
 
-TODO oct 30
--your own damage display
--text rims
+
+
+NOTES from oct 30 playtest:
+-sword swing less nerfed (needs big player speed to work atm)
+	-can I make the sword throw easier?
+-Death explosions
+-grid texture material
+-No HUD on quest?
+-raise the ceiling
+
+-lobby selections with up down keys
+
+
+-BIGGER bounderies
+	-more clear boundaries (toasty doesn't know where the walls are)
+	
+-VR sword is fucked up and flickering on other clients
+	-connect to PC with quest, check VR hierarchy for issues
+-less ground slip, more drag
+
+-hit sounds?
+
+-nerf PC player, too zippy
+
+-when you've been hit, you spew a trail of smoke for a sec
+
+-when you do damage, pop up the amount in a list on your HUD. (The most recent hits, on a timer)
+
+-when on ground, the jump key actually makes u jump
+-lazer pointer for VR sword throws
+-one way platforms that u can jump up through
+-track player stats on the player, for now?
+-add vertical/horizontal bars to the wall blocks, like 3d printer mounts
+-make the damage numbers no decimals
+
+
+
+TODO FIRST:
+-fix the vr hand jank
+-get recording/playback working
+  -reliable rpcs for getting rid of repeated data sends

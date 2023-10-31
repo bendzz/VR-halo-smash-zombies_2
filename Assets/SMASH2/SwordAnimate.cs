@@ -207,7 +207,7 @@ public class SwordAnimate : NetBehaviour
         }
         else
         {
-            swordTipLocalPositions.append(swordTipPoint.transform.position - holder.transform.position);    // won't account for spins, but ig that's good
+            //swordTipLocalPositions.append(swordTipPoint.transform.position - holder.transform.position);    // won't account for spins, but ig that's good
 
             swordGlowMaterial.SetColor("_Color", holder.playerColor);
             swordGlowMaterial.SetColor("_EmissionColor", holder.playerColor);
@@ -218,7 +218,11 @@ public class SwordAnimate : NetBehaviour
     {
 
         tryToSetColors();
+        if (holder != null)
+        {
+            swordTipLocalPositions.append(swordTipPoint.transform.position - holder.transform.position);    // won't account for spins, but ig that's good
 
+        }
     }
 
 

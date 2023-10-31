@@ -35,6 +35,7 @@ public class SmashCharacter : NetBehaviour
     // To get the hands and head positions; going to try and keep the enemy decoupled from this tho, for later AI and networking etc
     public myInputTests input;
     public XR_Dummies_Sync xr_Dummies_Sync;
+    public bool VR_mode;
 
     // game settings
     public string playerName = "default player";
@@ -108,7 +109,6 @@ public class SmashCharacter : NetBehaviour
     // multiplayer use
     public Multi.SyncedProperty applyDamageSynced;  
     public Multi.SyncedProperty registerPlayer_Synced;  
-    public bool VR_mode = false;
 
     //MeshRenderer meshRenderer;
     Material glowMaterial;
@@ -214,6 +214,7 @@ public class SmashCharacter : NetBehaviour
         {
             entity.setCurrents(hand, gameObject, IsOwner);
             entity.addSyncedProperty(hand.transform);
+            //print("hand.transform " + hand.transform.name);
             entity.addSyncedProperty(hand.thruster);
             //entity.addSyncedProperty(hand.handJet.transform);
             entity.addSyncedProperty(hand.thrusterDirection);
@@ -378,7 +379,7 @@ public class SmashCharacter : NetBehaviour
             }
 
             // PC player hands
-            if (!VR_mode)
+            if (!VR_mode && IsOwner)
             {
                 //print("keyboard mode!");
                 Transform bod = xr_Dummies_Sync.XR_Origin;
@@ -420,16 +421,16 @@ public class SmashCharacter : NetBehaviour
             {
                 //hand.update();
                 hand.update();
-
-                //if (hand.thruster > 0)
             }
 
+
+            // Set VR_Mode
             if (input.rightie.trigger > 0 || input.leftie.trigger > 0)
             {
                 if (IsOwner)
                 {
                     VR_mode = true; // hacky
-                                    //print("Switched to VR mode");
+                    //print("Switched to VR mode");
                 }
             }
             if (Input.GetMouseButton(0) || Input.GetMouseButton(1))
@@ -437,7 +438,7 @@ public class SmashCharacter : NetBehaviour
                 if (IsOwner)
                 {
                     VR_mode = false; // hacky
-                                     //print("Switched FROM VR mode");
+                    //print("Switched FROM VR mode");
                 }
             }
 
