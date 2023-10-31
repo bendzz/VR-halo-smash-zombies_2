@@ -137,10 +137,17 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 524f7aff2bd7aea4d8a831b4b14b7186, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  IsSimulating: 0
+  IsOwner: 0
+  IsServer: 0
+  OwnerClientId: 0
+  holder_PlayerId: 
   holder: {fileID: 0}
   sword: {fileID: 210457118349521409}
   swordTipPoint: {fileID: 5058357276281006455}
   body: {fileID: 9090141719457374106}
+  colliderPhysical: {fileID: 0}
+  collderTrigger: {fileID: 0}
   held: 1
   lifeTimer: 0
   dying: 0
@@ -210,7 +217,7 @@ MeshCollider:
   m_Enabled: 1
   serializedVersion: 5
   m_Convex: 1
-  m_CookingOptions: 30
+  m_CookingOptions: 0
   m_Mesh: {fileID: -462981019419857548, guid: d280090946804034cb7afeab729b3633, type: 3}
 --- !u!64 &3394176860299529335
 MeshCollider:
@@ -232,7 +239,7 @@ MeshCollider:
   m_Enabled: 1
   serializedVersion: 5
   m_Convex: 1
-  m_CookingOptions: 30
+  m_CookingOptions: 0
   m_Mesh: {fileID: -462981019419857548, guid: d280090946804034cb7afeab729b3633, type: 3}
 --- !u!4 &693661058746591419 stripped
 Transform:

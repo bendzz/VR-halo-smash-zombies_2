@@ -129,18 +129,23 @@ public class SwordAnimate : NetBehaviour
             lifeTimer -= Time.deltaTime;
             if (lifeTimer < 0)
             {
-                gameObject.transform.localScale /= (1 - lifeTimer * 1);
+                //gameObject.transform.localScale /= (1 - lifeTimer * 1);
 
-                if (gameObject.transform.localScale.x < .01f)
+                //if (gameObject.transform.localScale.x < .01f)
+                //    Destroy(gameObject);
+
+                scale /= (1 - lifeTimer * 1);
+
+                if (scale < .01f)
                     Destroy(gameObject);
-                //Destroy(gameObject);
             }
         }
 
         // grow respawned sword
         if (scale < 1 && held)
         {
-            scale += Time.deltaTime * (1f/3f);
+            //scale += Time.deltaTime * (1f/3f);
+            scale += Time.deltaTime * (1f/2f);
             //print("scaling " + scale);
         }
         gameObject.transform.localScale = scale_Original * scale;
