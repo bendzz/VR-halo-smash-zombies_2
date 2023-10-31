@@ -181,11 +181,6 @@ TODOs from oct 30 playtest:
 -lobby selections with up down keys
 
 
-	-more clear boundaries (toasty doesn't know where the walls are)
-
-
--hit sounds?
-
 -nerf PC player, too zippy
 
 -when you've been hit, you spew a trail of smoke for a sec
@@ -216,24 +211,19 @@ death splosion
 11 Cartoon,Squeeze Big Accordion Squeeze
 96 Cartoon,Yell Painful Yell
 
-
 sword hit
 21 Cartoon,Hit Big Drum Sock
 24 Cartoon,Hit Metallic Smack
 25 Cartoon,Hit Big Metallic Head Hit
 26 Cartoon,Hit Big Metallic Hit,Rattle
 
-
-
 sword throw
 71 Cartoon,Pop Big Cork Pop
 52 Cartoon,Whistle Zing,Zip
 
-
 fire hit
 82 Cartoon,Psst Short Psst
 86 Cartoon,Sniff Single Sniff
-
 
 killed someone
 94 Cartoon,Yell 'yippee',Cowboy

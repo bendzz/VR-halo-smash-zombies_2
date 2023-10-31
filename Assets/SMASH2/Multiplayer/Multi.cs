@@ -3,6 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Reflection;
 using Unity.Netcode;
+using Unity.Netcode.Transports.UTP;
 using Unity.VisualScripting.FullSerializer;
 //using UnityEditor.UIElements;
 //using UnityEditor.UIElements;
@@ -232,7 +233,12 @@ public class Multi : NetworkBehaviour
     // Update is called once per frame
     void Update()
     {
-        
+        //NetworkManager manager = NetworkManager.Singleton;
+        //manager.
+
+        //UnityTransport unityTransport = NetworkManager.Singleton.NetworkConfig.NetworkTransport as UnityTransport;
+        ////unityTransport.OnTransportEvent += OnTransportEvent;
+        //unityTransport.
     }
 
     float countdown = 0;
@@ -1702,106 +1708,144 @@ public class Multi : NetworkBehaviour
         /// </summary>
         object serializeVariable<T>(object _data, int _dataType, BufferSerializer<T> serializer) where T : IReaderWriter
         {
-            switch (_dataType)
+            unsafe
             {
-                case int when _dataType == TypeToInt.Int(typeof(int)):
-                    int intData = 0;
-                    if (serializer.IsWriter)
-                        intData = (int)_data;
-                    serializer.SerializeValue(ref intData);
-                    _data = intData;    // if receiving data, update the local copy
-                    break;
+                byte* ptrStart = null;
+                FastBufferReader reader;
+                if (serializer.IsReader)
+                {
+                    reader = serializer.GetFastBufferReader();
+                    //print("reader " + reader.GetUnsafePtrAtCurrentPosition())
+                    //unsafe
+                    //{
+                    ptrStart = reader.GetUnsafePtrAtCurrentPosition();
+                    // Your code using the pointer
+                    //}
+                }
 
-                case int when _dataType == TypeToInt.Int(typeof(float)):
-                    float floatData = 0;
-                    if (serializer.IsWriter)
-                        floatData = (float)_data;
-                    serializer.SerializeValue(ref floatData);
-                    _data = floatData;
-                    break;
+                switch (_dataType)
+                {
+                    case int when _dataType == TypeToInt.Int(typeof(int)):
+                        int intData = 0;
+                        if (serializer.IsWriter)
+                            intData = (int)_data;
+                        serializer.SerializeValue(ref intData);
+                        _data = intData;    // if receiving data, update the local copy
+                        break;
 
-                case int when _dataType == TypeToInt.Int(typeof(string)):
-                    string stringData = "";
-                    if (serializer.IsWriter)
-                        stringData = (string)_data;
-                    serializer.SerializeValue(ref stringData);
-                    _data = stringData;
-                    break;
+                    case int when _dataType == TypeToInt.Int(typeof(float)):
+                        float floatData = 0;
+                        if (serializer.IsWriter)
+                            floatData = (float)_data;
+                        serializer.SerializeValue(ref floatData);
+                        _data = floatData;
+                        break;
 
-                case int when _dataType == TypeToInt.Int(typeof(Vector3)):
-                    Vector3 vector3Data = Vector3.zero;
-                    if (serializer.IsWriter)
-                        vector3Data = (Vector3)_data;
-                    serializer.SerializeValue(ref vector3Data);
-                    _data = vector3Data;
-                    break;
+                    case int when _dataType == TypeToInt.Int(typeof(string)):
+                        string stringData = "";
+                        if (serializer.IsWriter)
+                            stringData = (string)_data;
+                        serializer.SerializeValue(ref stringData);
+                        _data = stringData;
+                        break;
 
-                case int when _dataType == TypeToInt.Int(typeof(Transform)):
-                    Transform transformData = SmashMulti.instance.transform;    // just need a random non-null id
-                    if (serializer.IsWriter)
-                        transformData = (Transform)_data;
-                    Vector3 position = transformData.position;
-                    Quaternion rotation = transformData.rotation;
-                    Vector3 scale = transformData.localScale;
-                    serializer.SerializeValue(ref position);
-                    serializer.SerializeValue(ref rotation);
-                    serializer.SerializeValue(ref scale);
-                    // receiving data
-                    transformData.position = position;
-                    transformData.rotation = rotation;
-                    transformData.localScale = scale;
-                    _data = transformData;
-                    break;
+                    case int when _dataType == TypeToInt.Int(typeof(Vector3)):
+                        Vector3 vector3Data = Vector3.zero;
+                        if (serializer.IsWriter)
+                            vector3Data = (Vector3)_data;
+                        serializer.SerializeValue(ref vector3Data);
+                        _data = vector3Data;
+                        break;
 
-                case int when _dataType == TypeToInt.Int(typeof(Entity)):
-                    Entity entityData;
-                    if (serializer.IsWriter)
-                        entityData = (Entity)_data;
-                    else
-                        entityData = new Entity();
-                    serializer.SerializeValue(ref entityData);
-                    // receiving data
-                    _data = entityData;
-                    break;
+                    case int when _dataType == TypeToInt.Int(typeof(Transform)):
+                        Transform transformData = SmashMulti.instance.transform;    // just need a random non-null id
+                        if (serializer.IsWriter)
+                            transformData = (Transform)_data;
+                        Vector3 position = transformData.position;
+                        Quaternion rotation = transformData.rotation;
+                        Vector3 scale = transformData.localScale;
+                        serializer.SerializeValue(ref position);
+                        serializer.SerializeValue(ref rotation);
+                        serializer.SerializeValue(ref scale);
+                        // receiving data
+                        transformData.position = position;
+                        transformData.rotation = rotation;
+                        transformData.localScale = scale;
+                        _data = transformData;
+                        break;
 
-                case int when _dataType == TypeToInt.Int(typeof(bool)):
-                    bool boolData = false;
-                    if (serializer.IsWriter)
-                        boolData = (bool)_data;
-                    serializer.SerializeValue(ref boolData);
-                    _data = boolData;    
-                    break;
+                    case int when _dataType == TypeToInt.Int(typeof(Entity)):
+                        Entity entityData;
+                        if (serializer.IsWriter)
+                            entityData = (Entity)_data;
+                        else
+                            entityData = new Entity();
+                        serializer.SerializeValue(ref entityData);
+                        // receiving data
+                        _data = entityData;
+                        break;
 
-                case int when _dataType == TypeToInt.Int(typeof(Color)):
-                    Color colorData = Color.red;
-                    if (serializer.IsWriter)
-                        colorData = (Color)_data;
-                    serializer.SerializeValue(ref colorData);
-                    _data = colorData;   
-                    break;
+                    case int when _dataType == TypeToInt.Int(typeof(bool)):
+                        bool boolData = false;
+                        if (serializer.IsWriter)
+                            boolData = (bool)_data;
+                        serializer.SerializeValue(ref boolData);
+                        _data = boolData;
+                        break;
 
-                case int when _dataType == TypeToInt.Int(typeof(ulong)):
-                    ulong ulongData = 0;
-                    if (serializer.IsWriter)
-                        ulongData = (ulong)_data;
-                    serializer.SerializeValue(ref ulongData);
-                    _data = ulongData;
-                    break;
+                    case int when _dataType == TypeToInt.Int(typeof(Color)):
+                        Color colorData = Color.red;
+                        if (serializer.IsWriter)
+                            colorData = (Color)_data;
+                        serializer.SerializeValue(ref colorData);
+                        _data = colorData;
+                        break;
 
-                // ... add other types similarly
+                    case int when _dataType == TypeToInt.Int(typeof(ulong)):
+                        ulong ulongData = 0;
+                        if (serializer.IsWriter)
+                            ulongData = (ulong)_data;
+                        serializer.SerializeValue(ref ulongData);
+                        _data = ulongData;
+                        break;
 
-                default:
-                    // Handle the case where the type is not recognized.
-                    // This could be an error or a default serialization logic.
-                    Debug.LogError("Type not recognized: Type: " + _dataType + " data: " + _data);
-                    break;
+                    // ... add other types similarly
+
+                    default:
+                        // Handle the case where the type is not recognized.
+                        // This could be an error or a default serialization logic.
+                        Debug.LogError("Type not recognized: Type: " + _dataType + " data: " + _data);
+                        break;
+                }
+
+
+
+                if (serializer.IsReader)
+                {
+                    byte* ptrEnd = reader.GetUnsafePtrAtCurrentPosition();
+
+                    int size = (int)(ptrEnd - ptrStart);
+                    print("_dataType " + TypeToInt.Type(_dataType).ToString() + " data " + _data + " size " + size);
+
+                    byte[] byteArray = new byte[size];
+                    //System.Runtime.InteropServices.Marshal.Copy((IntPtr)ptrEnd, byteArray, 0, size);
+                    System.Runtime.InteropServices.Marshal.Copy((IntPtr)ptrStart, byteArray, 0, size);
+
+                    string hexString = BitConverter.ToString(byteArray);
+                    print(hexString);
+                }
+
+                return _data;
             }
-            return _data;
-        }
 
 
-        //public void setDataType(Type dataType)
-        //{ _dataType = dataType; }
+            //public void setDataType(Type dataType)
+            //{ _dataType = dataType; }
+
+
+
+
+        }   //  /unsafe
     }
 
 }
