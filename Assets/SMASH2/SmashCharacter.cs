@@ -685,19 +685,30 @@ public class SmashCharacter : NetBehaviour
     /// List of 6 gameobjects to position around the player, warning them of the walls
     /// </summary>
     List<GameObject> wallWarnings;
+    List<GameObject> wallWarningsHorizontal;    // beams
+    List<GameObject> wallWarningsVertical;
     void positionWallWarnings()
     {
         if (wallWarnings == null)
         {
             smashGame = SmashGame.instance;
-            print(smashGame);
-            print(smashGame.wallWarning_prefab);
             wallWarnings = new List<GameObject>();
+            wallWarningsHorizontal = new List<GameObject>();
+            wallWarningsVertical = new List<GameObject>();
             for (int i = 0; i < 6; i++)
             {
                 GameObject wallWarning = Instantiate(smashGame.wallWarning_prefab);
                 wallWarning.SetActive(true);    // why is it false by default
                 wallWarnings.Add(wallWarning);
+
+                // beams
+                wallWarning = GameObject.CreatePrimitive(PrimitiveType.Cube);
+                wallWarning.GetComponent<Collider>().enabled = false;
+                wallWarningsHorizontal.Add(wallWarning);
+
+                wallWarning = GameObject.CreatePrimitive(PrimitiveType.Cube);
+                wallWarning.GetComponent<Collider>().enabled = false;
+                wallWarningsVertical.Add(wallWarning);
             }
         }
 
@@ -730,11 +741,27 @@ public class SmashCharacter : NetBehaviour
                 Vector3 directionIntoBox = (projections[i] - localPlayerPos).normalized;
                 wallWarnings[i].transform.up = collider.transform.TransformDirection(-directionIntoBox);
 
+
+
+                // beams
+                // trying to make the beams follow the wallWarnings like they're a 3D printer print head mount frame. Too hard for now
+                Transform wwt = wallWarnings[i].transform;
+                Vector3 boxSize = bCollider.transform.TransformPoint(bCollider.size);
+                wallWarningsHorizontal[i].transform.position = worldProjection;
+                //wallWarningsHorizontal[i].transform.position = Vector3.Scale(worldProjection, wwt.forward + wwt.up) + Vector3.Scale(bCollider.transform.position, wwt.right);
+                wallWarningsHorizontal[i].transform.localScale = Vector3.Scale(boxSize, wwt.right) + Vector3.one * .3f;
+
+
+                wallWarningsVertical[i].transform.position = worldProjection;
+                //wallWarningsHorizontal[i].transform.position = Vector3.Scale(worldProjection, wwt.right + wwt.up) + Vector3.Scale(bCollider.transform.position, wwt.forward);
+                wallWarningsVertical[i].transform.localScale = Vector3.Scale(boxSize, wwt.forward) + Vector3.one * .3f;
+
+
                 // is u dead?
                 // See if the wall piece flipped away from the center
                 if (Vector3.Dot(collider.transform.position - wallWarnings[i].transform.position, wallWarnings[i].transform.up) < 0)
                 {
-                    print("DEAD");
+                    print("PlayerId " + PlayerId + " is DEAD");
                     Debug.Log($"Player is out of bounds on the {i}-th wall.");
                     respawnTimer = 2;
                     dead = true;
@@ -757,18 +784,6 @@ public class SmashCharacter : NetBehaviour
                     body.velocity = Vector3.zero;
                     break;
                 }
-
-                //Vector3 toPlayer = transform.position - wallWarnings[i].transform.position;
-                //print("toPlayer " + toPlayer);
-                //print("wallWarnings[i].transform.up " + wallWarnings[i].transform.up);
-                //float dotProduct = Vector3.Dot(wallWarnings[i].transform.up, toPlayer.normalized);
-
-                //print("i " + i + " dotProduct " + dotProduct);
-                //if (dotProduct < 0)
-                //{
-                //    print("DEAD");
-                //    Debug.Log($"Player is out of bounds on the {i}-th wall.");
-                //}
             }
         }
     }

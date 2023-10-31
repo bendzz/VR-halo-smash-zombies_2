@@ -69,7 +69,8 @@ public class DamageNumbers : MonoBehaviour
             Vector3 offset = Random.onUnitSphere / 1.5f;
             //offset = offset.normalized * .3f + offset;
 
-            Card card = newCard(hitChar.position + offset * .3f, damage.ToString("F1"), 1.5f, .3f + damage / 2f, color);
+            //Card card = newCard(hitChar.position + offset * .3f, damage.ToString("F1"), 1.5f, .3f + damage / 2f, color);
+            Card card = newCard(hitChar.position + offset * .3f, damage.ToString("F0"), 1.5f, .3f + damage / 2f, color);
 
             card.velocity = offset + Vector3.up;
             card.drag = 4f;

@@ -172,23 +172,17 @@ Sword litter:
 
 
 
-NOTES from oct 30 playtest:
--sword swing less nerfed (needs big player speed to work atm)
-	-can I make the sword throw easier?
+TODOs from oct 30 playtest:
+
 -Death explosions
 -grid texture material
 -No HUD on quest?
--raise the ceiling
 
 -lobby selections with up down keys
 
 
--BIGGER bounderies
 	-more clear boundaries (toasty doesn't know where the walls are)
-	
--VR sword is fucked up and flickering on other clients
-	-connect to PC with quest, check VR hierarchy for issues
--less ground slip, more drag
+
 
 -hit sounds?
 
@@ -199,11 +193,10 @@ NOTES from oct 30 playtest:
 -when you do damage, pop up the amount in a list on your HUD. (The most recent hits, on a timer)
 
 -when on ground, the jump key actually makes u jump
--lazer pointer for VR sword throws
+
 -one way platforms that u can jump up through
 -track player stats on the player, for now?
 -add vertical/horizontal bars to the wall blocks, like 3d printer mounts
--make the damage numbers no decimals
 
 
 
@@ -211,3 +204,40 @@ TODO FIRST:
 -fix the vr hand jank
 -get recording/playback working
   -reliable rpcs for getting rid of repeated data sends
+  
+  
+  
+  
+  
+SFX
+death splosion
+92 Cartoon,Crash Large Junk Crash
+11 Cartoon,Gong Large Gong,Single Hit,Percussion,Music
+11 Cartoon,Squeeze Big Accordion Squeeze
+96 Cartoon,Yell Painful Yell
+
+
+sword hit
+21 Cartoon,Hit Big Drum Sock
+24 Cartoon,Hit Metallic Smack
+25 Cartoon,Hit Big Metallic Head Hit
+26 Cartoon,Hit Big Metallic Hit,Rattle
+
+
+
+sword throw
+71 Cartoon,Pop Big Cork Pop
+52 Cartoon,Whistle Zing,Zip
+
+
+fire hit
+82 Cartoon,Psst Short Psst
+86 Cartoon,Sniff Single Sniff
+
+
+killed someone
+94 Cartoon,Yell 'yippee',Cowboy
+
+
+
+
