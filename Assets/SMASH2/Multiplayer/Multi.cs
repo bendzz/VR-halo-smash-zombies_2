@@ -1556,6 +1556,11 @@ public class Multi : NetworkBehaviour
         private object _data = null;
         //private Type _dataType;
 
+        /// <summary>
+        /// The most recently serialized data (sent or received), for recording gameplay
+        /// </summary>
+        byte[] byteArray;
+
         private int _dataType = 0;
         private bool isList = false;
         private bool isObjectList = false;
@@ -1592,8 +1597,25 @@ public class Multi : NetworkBehaviour
 
         public void NetworkSerialize<T>(BufferSerializer<T> serializer) where T : IReaderWriter
         {
-            // these calls handle both sending/serializing data and receiving/deserializing data
-            serializer.SerializeValue(ref isList);   
+            unsafe      // Capture all the networking data in a byte array, to be recorded to a file for playback
+            {
+                byte* ptrStart = null;
+                FastBufferReader reader;
+                if (serializer.IsReader)
+                {
+                    reader = serializer.GetFastBufferReader();
+                    //print("reader " + reader.GetUnsafePtrAtCurrentPosition())
+                    //unsafe
+                    //{
+                    ptrStart = reader.GetUnsafePtrAtCurrentPosition();
+                    // Your code using the pointer
+                    //}
+                }
+
+
+
+                // these calls handle both sending/serializing data and receiving/deserializing data
+                serializer.SerializeValue(ref isList);   
             serializer.SerializeValue(ref isObjectList); 
             serializer.SerializeValue(ref _dataType);
 
@@ -1701,123 +1723,6 @@ public class Multi : NetworkBehaviour
             {
                 _data = serializeVariable(_data, _dataType, serializer);
             }
-        }
-
-        /// <summary>
-        /// sends and receives arbitrary variables/objects (but not lists)
-        /// </summary>
-        object serializeVariable<T>(object _data, int _dataType, BufferSerializer<T> serializer) where T : IReaderWriter
-        {
-            unsafe
-            {
-                byte* ptrStart = null;
-                FastBufferReader reader;
-                if (serializer.IsReader)
-                {
-                    reader = serializer.GetFastBufferReader();
-                    //print("reader " + reader.GetUnsafePtrAtCurrentPosition())
-                    //unsafe
-                    //{
-                    ptrStart = reader.GetUnsafePtrAtCurrentPosition();
-                    // Your code using the pointer
-                    //}
-                }
-
-                switch (_dataType)
-                {
-                    case int when _dataType == TypeToInt.Int(typeof(int)):
-                        int intData = 0;
-                        if (serializer.IsWriter)
-                            intData = (int)_data;
-                        serializer.SerializeValue(ref intData);
-                        _data = intData;    // if receiving data, update the local copy
-                        break;
-
-                    case int when _dataType == TypeToInt.Int(typeof(float)):
-                        float floatData = 0;
-                        if (serializer.IsWriter)
-                            floatData = (float)_data;
-                        serializer.SerializeValue(ref floatData);
-                        _data = floatData;
-                        break;
-
-                    case int when _dataType == TypeToInt.Int(typeof(string)):
-                        string stringData = "";
-                        if (serializer.IsWriter)
-                            stringData = (string)_data;
-                        serializer.SerializeValue(ref stringData);
-                        _data = stringData;
-                        break;
-
-                    case int when _dataType == TypeToInt.Int(typeof(Vector3)):
-                        Vector3 vector3Data = Vector3.zero;
-                        if (serializer.IsWriter)
-                            vector3Data = (Vector3)_data;
-                        serializer.SerializeValue(ref vector3Data);
-                        _data = vector3Data;
-                        break;
-
-                    case int when _dataType == TypeToInt.Int(typeof(Transform)):
-                        Transform transformData = SmashMulti.instance.transform;    // just need a random non-null id
-                        if (serializer.IsWriter)
-                            transformData = (Transform)_data;
-                        Vector3 position = transformData.position;
-                        Quaternion rotation = transformData.rotation;
-                        Vector3 scale = transformData.localScale;
-                        serializer.SerializeValue(ref position);
-                        serializer.SerializeValue(ref rotation);
-                        serializer.SerializeValue(ref scale);
-                        // receiving data
-                        transformData.position = position;
-                        transformData.rotation = rotation;
-                        transformData.localScale = scale;
-                        _data = transformData;
-                        break;
-
-                    case int when _dataType == TypeToInt.Int(typeof(Entity)):
-                        Entity entityData;
-                        if (serializer.IsWriter)
-                            entityData = (Entity)_data;
-                        else
-                            entityData = new Entity();
-                        serializer.SerializeValue(ref entityData);
-                        // receiving data
-                        _data = entityData;
-                        break;
-
-                    case int when _dataType == TypeToInt.Int(typeof(bool)):
-                        bool boolData = false;
-                        if (serializer.IsWriter)
-                            boolData = (bool)_data;
-                        serializer.SerializeValue(ref boolData);
-                        _data = boolData;
-                        break;
-
-                    case int when _dataType == TypeToInt.Int(typeof(Color)):
-                        Color colorData = Color.red;
-                        if (serializer.IsWriter)
-                            colorData = (Color)_data;
-                        serializer.SerializeValue(ref colorData);
-                        _data = colorData;
-                        break;
-
-                    case int when _dataType == TypeToInt.Int(typeof(ulong)):
-                        ulong ulongData = 0;
-                        if (serializer.IsWriter)
-                            ulongData = (ulong)_data;
-                        serializer.SerializeValue(ref ulongData);
-                        _data = ulongData;
-                        break;
-
-                    // ... add other types similarly
-
-                    default:
-                        // Handle the case where the type is not recognized.
-                        // This could be an error or a default serialization logic.
-                        Debug.LogError("Type not recognized: Type: " + _dataType + " data: " + _data);
-                        break;
-                }
-
 
 
                 if (serializer.IsReader)
@@ -1827,7 +1732,7 @@ public class Multi : NetworkBehaviour
                     int size = (int)(ptrEnd - ptrStart);
                     print("_dataType " + TypeToInt.Type(_dataType).ToString() + " data " + _data + " size " + size);
 
-                    byte[] byteArray = new byte[size];
+                    byteArray = new byte[size];
                     //System.Runtime.InteropServices.Marshal.Copy((IntPtr)ptrEnd, byteArray, 0, size);
                     System.Runtime.InteropServices.Marshal.Copy((IntPtr)ptrStart, byteArray, 0, size);
 
@@ -1835,17 +1740,111 @@ public class Multi : NetworkBehaviour
                     print(hexString);
                 }
 
-                return _data;
+
+            }   //  /unsafe
+        }
+
+        /// <summary>
+        /// sends and receives arbitrary variables/objects (but not lists)
+        /// </summary>
+        object serializeVariable<T>(object _data, int _dataType, BufferSerializer<T> serializer) where T : IReaderWriter
+        {
+            switch (_dataType)
+            {
+                case int when _dataType == TypeToInt.Int(typeof(int)):
+                    int intData = 0;
+                    if (serializer.IsWriter)
+                        intData = (int)_data;
+                    serializer.SerializeValue(ref intData);
+                    _data = intData;    // if receiving data, update the local copy
+                    break;
+
+                case int when _dataType == TypeToInt.Int(typeof(float)):
+                    float floatData = 0;
+                    if (serializer.IsWriter)
+                        floatData = (float)_data;
+                    serializer.SerializeValue(ref floatData);
+                    _data = floatData;
+                    break;
+
+                case int when _dataType == TypeToInt.Int(typeof(string)):
+                    string stringData = "";
+                    if (serializer.IsWriter)
+                        stringData = (string)_data;
+                    serializer.SerializeValue(ref stringData);
+                    _data = stringData;
+                    break;
+
+                case int when _dataType == TypeToInt.Int(typeof(Vector3)):
+                    Vector3 vector3Data = Vector3.zero;
+                    if (serializer.IsWriter)
+                        vector3Data = (Vector3)_data;
+                    serializer.SerializeValue(ref vector3Data);
+                    _data = vector3Data;
+                    break;
+
+                case int when _dataType == TypeToInt.Int(typeof(Transform)):
+                    Transform transformData = SmashMulti.instance.transform;    // just need a random non-null id
+                    if (serializer.IsWriter)
+                        transformData = (Transform)_data;
+                    Vector3 position = transformData.position;
+                    Quaternion rotation = transformData.rotation;
+                    Vector3 scale = transformData.localScale;
+                    serializer.SerializeValue(ref position);
+                    serializer.SerializeValue(ref rotation);
+                    serializer.SerializeValue(ref scale);
+                    // receiving data
+                    transformData.position = position;
+                    transformData.rotation = rotation;
+                    transformData.localScale = scale;
+                    _data = transformData;
+                    break;
+
+                case int when _dataType == TypeToInt.Int(typeof(Entity)):
+                    Entity entityData;
+                    if (serializer.IsWriter)
+                        entityData = (Entity)_data;
+                    else
+                        entityData = new Entity();
+                    serializer.SerializeValue(ref entityData);
+                    // receiving data
+                    _data = entityData;
+                    break;
+
+                case int when _dataType == TypeToInt.Int(typeof(bool)):
+                    bool boolData = false;
+                    if (serializer.IsWriter)
+                        boolData = (bool)_data;
+                    serializer.SerializeValue(ref boolData);
+                    _data = boolData;
+                    break;
+
+                case int when _dataType == TypeToInt.Int(typeof(Color)):
+                    Color colorData = Color.red;
+                    if (serializer.IsWriter)
+                        colorData = (Color)_data;
+                    serializer.SerializeValue(ref colorData);
+                    _data = colorData;
+                    break;
+
+                case int when _dataType == TypeToInt.Int(typeof(ulong)):
+                    ulong ulongData = 0;
+                    if (serializer.IsWriter)
+                        ulongData = (ulong)_data;
+                    serializer.SerializeValue(ref ulongData);
+                    _data = ulongData;
+                    break;
+
+                // ... add other types similarly
+
+                default:
+                    // Handle the case where the type is not recognized.
+                    // This could be an error or a default serialization logic.
+                    Debug.LogError("Type not recognized: Type: " + _dataType + " data: " + _data);
+                    break;
             }
-
-
-            //public void setDataType(Type dataType)
-            //{ _dataType = dataType; }
-
-
-
-
-        }   //  /unsafe
+            return _data;
+        }   
     }
 
 }
@@ -1882,3 +1881,19 @@ public abstract class NetBehaviour : MonoBehaviour
 
 
 }
+
+
+
+
+
+
+/// <summary>
+/// Adds recording/playback functionality to the Multi.cs multiplayer system, reusing its serialization system.
+/// 2023 remake of Record.cs gameplay recording/playback system (from the OutdoorPacmanVR game).
+/// Inspired by unity's animation system; Clips hold AnimatedProperties hold frames, etc. Except I'm doing away with Clips for the most part, they suck.
+/// </summary>
+public class Rec
+{
+
+}
+

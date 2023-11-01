@@ -231,3 +231,17 @@ killed someone
 
 
 
+
+
+
+Recording/Playback
+	-do away with Clips (always hated that system)
+		-store frames in a list in each Animated property (many properties will have only 1 or 2 frames)
+	-give each SyncedProperty a spawn and despawn time
+
+
+TODO Oct 31:
+-tie the networking into Rec instead of Record
+-when a property gets Synced locally or receives a Sync over the net, (record which it was) and save a frame to its AnimatedProperty list
+
+
