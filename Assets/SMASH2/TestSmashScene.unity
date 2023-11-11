@@ -8237,6 +8237,7 @@ GameObject:
   - component: {fileID: 1110405580}
   - component: {fileID: 1110405583}
   - component: {fileID: 1110405584}
+  - component: {fileID: 1110405585}
   m_Layer: 0
   m_Name: GAME Singleton
   m_TagString: Untagged
@@ -8311,6 +8312,20 @@ MonoBehaviour:
   wallWarning_prefab: {fileID: 6285854628403014948, guid: d922ce4c53ddb384db89d463ae7fb9d7,
     type: 3}
   respawnPoint: {fileID: 857199317}
+--- !u!114 &1110405585
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1110405579}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 1c3aa416d7e319345b3e9f32dcb3fd70, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  smashHitPrefab: {fileID: 919132149155446097, guid: 0338b64f4e7867149914f7b687b6e50f,
+    type: 3}
 --- !u!1 &1121306864
 GameObject:
   m_ObjectHideFlags: 0

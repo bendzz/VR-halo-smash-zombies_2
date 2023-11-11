@@ -1,6 +1,7 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.IO;
 using System.Reflection;
 using Unity.Netcode;
 using Unity.Netcode.Transports.UTP;
@@ -200,7 +201,10 @@ public class Multi : NetworkBehaviour
     }
 
 
-
+    /// <summary>
+    /// Temp test
+    /// </summary>
+    Rec testRec;
 
 
     public override void OnNetworkSpawn() 
@@ -226,6 +230,9 @@ public class Multi : NetworkBehaviour
         {
             print("prefab string: " + kvp.Key + ", GameObject: " + kvp.Value);
         }
+
+
+        testRec = new Rec();
     }
 
 
@@ -1730,14 +1737,23 @@ public class Multi : NetworkBehaviour
                     byte* ptrEnd = reader.GetUnsafePtrAtCurrentPosition();
 
                     int size = (int)(ptrEnd - ptrStart);
-                    print("_dataType " + TypeToInt.Type(_dataType).ToString() + " data " + _data + " size " + size);
+                    //print("_dataType " + TypeToInt.Type(_dataType).ToString() + " data " + _data + " size " + size);
 
                     byteArray = new byte[size];
                     //System.Runtime.InteropServices.Marshal.Copy((IntPtr)ptrEnd, byteArray, 0, size);
                     System.Runtime.InteropServices.Marshal.Copy((IntPtr)ptrStart, byteArray, 0, size);
 
                     string hexString = BitConverter.ToString(byteArray);
-                    print(hexString);
+                    //print(hexString);
+
+                    if (_dataType== TypeToInt.Int(typeof(Entity)))
+                    {
+                        
+                        print("Saved data");
+                        //Multi.instance.testRec.byteList = (List<byte>)_data;
+                        Multi.instance.testRec.byteArray = byteArray;
+                        Multi.instance.testRec.SaveToFile(); 
+                    }
                 }
 
 
@@ -1894,6 +1910,44 @@ public abstract class NetBehaviour : MonoBehaviour
 /// </summary>
 public class Rec
 {
+    //public List<byte> byteList = new List<byte>();
+    public byte[] byteArray;
+    public string filePath = Path.Combine(Application.persistentDataPath, "smashRecording.dat");
+
+    // Method to save the byte list to a file
+    public void SaveToFile()
+    {
+        // Convert the list of bytes to an array for writing
+        //byte[] byteArray = byteList.ToArray();
+        //byte[] byteArray = byteList;
+
+        // Write the byte array to the file
+        File.WriteAllBytes(filePath, byteArray);
+
+        Debug.Log($"Saved recording to {filePath}");
+    }
+
+    // Method to load the bytes from a file
+    public void LoadFromFile()
+    {
+        // Check if the file exists before trying to read
+        if (File.Exists(filePath))
+        {
+            // Read the bytes from the file
+            byte[] byteArray = File.ReadAllBytes(filePath);
+
+            // Clear the current list and add the loaded bytes
+            //byteList.Clear();
+            //byteList.AddRange(byteArray);
+            //byteList = byteArray;
+
+            Debug.Log($"Loaded recording from {filePath}");
+        }
+        else
+        {
+            Debug.LogWarning($"File not found: {filePath}");
+        }
+    }
 
 }
 
