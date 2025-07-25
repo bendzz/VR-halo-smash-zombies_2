@@ -643,8 +643,8 @@ public class SmashCharacter : NetBehaviour
             positionWallWarnings();
 
 
-            if (Input.GetMouseButton(0) && !oldLeftClick)
-                PlayClip(death1, 0, 2);
+            //if (Input.GetMouseButton(0) && !oldLeftClick)
+            //    PlayClip(death1, 0, 2);
 
 
 
