@@ -1604,25 +1604,25 @@ public class Multi : NetworkBehaviour
 
         public void NetworkSerialize<T>(BufferSerializer<T> serializer) where T : IReaderWriter
         {
-            unsafe      // Capture all the networking data in a byte array, to be recorded to a file for playback
-            {
-                byte* ptrStart = null;
-                FastBufferReader reader;
-                if (serializer.IsReader)
-                {
-                    reader = serializer.GetFastBufferReader();
-                    //print("reader " + reader.GetUnsafePtrAtCurrentPosition())
-                    //unsafe
-                    //{
-                    ptrStart = reader.GetUnsafePtrAtCurrentPosition();
-                    // Your code using the pointer
-                    //}
-                }
+            // unsafe      // Capture all the networking data in a byte array, to be recorded to a file for playback
+            // {
+            //     byte* ptrStart = null;
+            //     FastBufferReader reader;
+            //     if (serializer.IsReader)
+            //     {
+            //         reader = serializer.GetFastBufferReader();
+            //         //print("reader " + reader.GetUnsafePtrAtCurrentPosition())
+            //         //unsafe
+            //         //{
+            //         ptrStart = reader.GetUnsafePtrAtCurrentPosition();
+            //         // Your code using the pointer
+            //         //}
+            //     }
 
 
 
-                // these calls handle both sending/serializing data and receiving/deserializing data
-                serializer.SerializeValue(ref isList);   
+            // these calls handle both sending/serializing data and receiving/deserializing data
+            serializer.SerializeValue(ref isList);   
             serializer.SerializeValue(ref isObjectList); 
             serializer.SerializeValue(ref _dataType);
 
@@ -1732,32 +1732,32 @@ public class Multi : NetworkBehaviour
             }
 
 
-                if (serializer.IsReader)
-                {
-                    byte* ptrEnd = reader.GetUnsafePtrAtCurrentPosition();
+                // if (serializer.IsReader)
+                // {
+                //     byte* ptrEnd = reader.GetUnsafePtrAtCurrentPosition();
 
-                    int size = (int)(ptrEnd - ptrStart);
-                    //print("_dataType " + TypeToInt.Type(_dataType).ToString() + " data " + _data + " size " + size);
+                //     int size = (int)(ptrEnd - ptrStart);
+                //     //print("_dataType " + TypeToInt.Type(_dataType).ToString() + " data " + _data + " size " + size);
 
-                    byteArray = new byte[size];
-                    //System.Runtime.InteropServices.Marshal.Copy((IntPtr)ptrEnd, byteArray, 0, size);
-                    System.Runtime.InteropServices.Marshal.Copy((IntPtr)ptrStart, byteArray, 0, size);
+                //     byteArray = new byte[size];
+                //     //System.Runtime.InteropServices.Marshal.Copy((IntPtr)ptrEnd, byteArray, 0, size);
+                //     System.Runtime.InteropServices.Marshal.Copy((IntPtr)ptrStart, byteArray, 0, size);
 
-                    string hexString = BitConverter.ToString(byteArray);
-                    //print(hexString);
+                //     string hexString = BitConverter.ToString(byteArray);
+                //     //print(hexString);
 
-                    if (_dataType== TypeToInt.Int(typeof(Entity)))
-                    {
+                //     if (_dataType== TypeToInt.Int(typeof(Entity)))
+                //     {
                         
-                        print("Saved data");
-                        //Multi.instance.testRec.byteList = (List<byte>)_data;
-                        Multi.instance.testRec.byteArray = byteArray;
-                        Multi.instance.testRec.SaveToFile(); 
-                    }
-                }
+                //         print("Saved data");
+                //         //Multi.instance.testRec.byteList = (List<byte>)_data;
+                //         Multi.instance.testRec.byteArray = byteArray;
+                //         Multi.instance.testRec.SaveToFile(); 
+                //     }
+                // }
 
 
-            }   //  /unsafe
+            //}   //  /unsafe
         }
 
         /// <summary>
