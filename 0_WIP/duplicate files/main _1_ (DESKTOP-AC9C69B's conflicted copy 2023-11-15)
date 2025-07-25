@@ -1,0 +1,56 @@
+0000000000000000000000000000000000000000 b1c17d87d8e30a1142d0d342d473f0d92183d134 bendzz <bendzz@live.co.uk> 1697436834 -0600	commit (initial): Initial commit
+b1c17d87d8e30a1142d0d342d473f0d92183d134 cb02be5a9956dc36bf7cffb429702899e50fe120 bendzz <bendzz@live.co.uk> 1697439751 -0600	commit: near parity
+cb02be5a9956dc36bf7cffb429702899e50fe120 02136aa17f5bd3a432210e958262aa6f34e45c64 bendzz <bendzz@live.co.uk> 1697443399 -0600	commit: more parity
+02136aa17f5bd3a432210e958262aa6f34e45c64 e28169f02e18d27238d265f5e435c7a73921faef bendzz <bendzz@live.co.uk> 1697444301 -0600	commit: added unity Multiplay
+e28169f02e18d27238d265f5e435c7a73921faef 8df29ae15f2f68fe1aec2512290ee3431afd03bc bendzz <bendzz@live.co.uk> 1697463625 -0600	commit: Multiplayer Relay/Lobby almost done
+8df29ae15f2f68fe1aec2512290ee3431afd03bc babd63eeee53b4c7d1816e9af860d1d995de8193 bendzz <bendzz@live.co.uk> 1697466429 -0600	commit: tweaks
+babd63eeee53b4c7d1816e9af860d1d995de8193 09f41894448f14737b3d6d480765648ce5f904e6 bendzz <bendzz@live.co.uk> 1697473970 -0600	commit: made the XR head sync
+09f41894448f14737b3d6d480765648ce5f904e6 7a48a2e28d8ad9d008445e09fca77858d3da3887 bendzz <bendzz@live.co.uk> 1697544472 -0600	commit: CROSSPLAY WITH QUEST!
+7a48a2e28d8ad9d008445e09fca77858d3da3887 49f13e8938b2798e57b5b752909eaf4e21a800b2 bendzz <bendzz@live.co.uk> 1697552444 -0600	commit: lobby displays host name now
+49f13e8938b2798e57b5b752909eaf4e21a800b2 ef1eb6fb0f0b1bdd5d53d61d3c84e13db65ccaee bendzz <bendzz@live.co.uk> 1697554182 -0600	commit: player name gotten from lobby
+ef1eb6fb0f0b1bdd5d53d61d3c84e13db65ccaee b34400e0ee0dd78d919590937bc7c20d87f68111 bendzz <bendzz@live.co.uk> 1697622817 -0600	commit: failed attempt at generic multiplayer sync
+b34400e0ee0dd78d919590937bc7c20d87f68111 7fb66ce693aa9604096e78c3d7c96b3f84de826a bendzz <bendzz@live.co.uk> 1697625320 -0600	commit: Started new generic multiplayer/recording system
+7fb66ce693aa9604096e78c3d7c96b3f84de826a 2f035a85b651eada97675c37a42dfb82a9c6900c bendzz <bendzz@live.co.uk> 1697650046 -0600	commit: Successful RPC client - server - clients test
+2f035a85b651eada97675c37a42dfb82a9c6900c c832c4be6029d624b219b81364a53a9614eaf2af bendzz <bendzz@live.co.uk> 1697659191 -0600	commit: RPC attempt 2
+c832c4be6029d624b219b81364a53a9614eaf2af 50cf7af1923abb56d1c4ea1b7ed9d2b83946933a bendzz <bendzz@live.co.uk> 1697730429 -0600	commit: GENERIC RPCS WORKING!
+50cf7af1923abb56d1c4ea1b7ed9d2b83946933a e8abd6e337846f2913c38addfc1597f2849c51a9 bendzz <bendzz@live.co.uk> 1697732376 -0600	commit: Sending SyncedProperties over RPCs directly is bad
+e8abd6e337846f2913c38addfc1597f2849c51a9 5a37110173981343794a91863b3f51d655fd0fea bendzz <bendzz@live.co.uk> 1697733093 -0600	commit: SyncedProperty sending data using NetData
+5a37110173981343794a91863b3f51d655fd0fea a243660869d2de10d209d5454372dcb1dde8968e bendzz <bendzz@live.co.uk> 1697736047 -0600	commit: moved stuff to Multi, cleanup
+a243660869d2de10d209d5454372dcb1dde8968e b295e550894f4d6b757d446e87ac2f26222af2bf bendzz <bendzz@live.co.uk> 1697809970 -0600	commit: failed attempt at spawn syncing, with strings
+b295e550894f4d6b757d446e87ac2f26222af2bf aec254b71c53311eb36bcfcd96a619f2cb48c053 bendzz <bendzz@live.co.uk> 1697829396 -0600	commit: syncing player from smashMulti - Nahhh
+aec254b71c53311eb36bcfcd96a619f2cb48c053 e365baef78d35275d1962f66edfda980a761cc3a bendzz <bendzz@live.co.uk> 1698010529 -0600	commit: client - server - client prefab spawning WIP
+e365baef78d35275d1962f66edfda980a761cc3a f6835facb96f32d033793af61c33b9d793d67aaa bendzz <bendzz@live.co.uk> 1698030836 -0600	commit: network spawning working. Syncing WIP
+f6835facb96f32d033793af61c33b9d793d67aaa bb1eb1e0844673d9d48d01de74831ad09f6d6e91 bendzz <bendzz@live.co.uk> 1698094664 -0600	commit: got prefabs syncing to newly joined clients
+bb1eb1e0844673d9d48d01de74831ad09f6d6e91 555e470ad107e3d295f2e15ec084b0d18150eb4a bendzz <bendzz@live.co.uk> 1698097708 -0600	commit: BASIC TRANSFORM SYNCING!!!
+555e470ad107e3d295f2e15ec084b0d18150eb4a 879e0889dc81e23f2f6db7a7925f489b38d6f3e3 bendzz <bendzz@live.co.uk> 1698116639 -0600	commit: Quest test! Had to replace prefabDictionary
+879e0889dc81e23f2f6db7a7925f489b38d6f3e3 4e50f5dc09a05a796d5253277a9cf5f47c34885d bendzz <bendzz@live.co.uk> 1698123958 -0600	commit: Multiplayer test!
+4e50f5dc09a05a796d5253277a9cf5f47c34885d 6b09e804b899126b1e929455e23fec738f034247 bendzz <bendzz@live.co.uk> 1698188538 -0600	commit: Added synced method calling (?)
+6b09e804b899126b1e929455e23fec738f034247 6f1dde4b00e15feb2ecf962043d346e4ba31a606 bendzz <bendzz@live.co.uk> 1698190235 -0600	commit: Fixed the bug where damage wasn't replicating
+6f1dde4b00e15feb2ecf962043d346e4ba31a606 254b1b4631395b723777aa263b8a0322efb02ce6 bendzz <bendzz@live.co.uk> 1698196920 -0600	commit: Added PC/VR character heads
+254b1b4631395b723777aa263b8a0322efb02ce6 8ad25b51fd4dd541c5a27ce8cf3ec2d4a0f58749 bendzz <bendzz@live.co.uk> 1698206966 -0600	commit: Added heads and swords
+8ad25b51fd4dd541c5a27ce8cf3ec2d4a0f58749 53d1429b75c7c8633f07e439d6fb0d849388d38c bendzz <bendzz@live.co.uk> 1698210826 -0600	commit: Fixed desync buildup
+53d1429b75c7c8633f07e439d6fb0d849388d38c 3ee622a27cf92fe33fe2f0b78e7de44d797cc945 bendzz <bendzz@live.co.uk> 1698280134 -0600	commit: PC control parity with VR users
+3ee622a27cf92fe33fe2f0b78e7de44d797cc945 0a83f763abf482997f234d12fd00ba52c0eb6d3f bendzz <bendzz@live.co.uk> 1698296440 -0600	commit: sword throwing in, kinda
+0a83f763abf482997f234d12fd00ba52c0eb6d3f ba0bc318ccc9b343becdecb510587e4244434a63 bendzz <bendzz@live.co.uk> 1698369364 -0600	commit: Sword throwing works! (For PC players)
+ba0bc318ccc9b343becdecb510587e4244434a63 1c650df0c94e0b9bce25d5b2bd4c5b607618ed8d bendzz <bendzz@live.co.uk> 1698393440 -0600	commit: Added random player colors!
+1c650df0c94e0b9bce25d5b2bd4c5b607618ed8d cf93ed96abc44fbb1dba51e9a4e6486b089d3bb7 bendzz <bendzz@live.co.uk> 1698446098 -0600	commit: Fixed list serializing in NetData
+cf93ed96abc44fbb1dba51e9a4e6486b089d3bb7 e22646ca0648e6a9b52a494e15ad0e19c9ddcf65 bendzz <bendzz@live.co.uk> 1698581530 -0600	commit: FINALLY got sword throwing network replicating!
+e22646ca0648e6a9b52a494e15ad0e19c9ddcf65 ba5e463a21d72db757981ccbf47464925b49868d bendzz <bendzz@live.co.uk> 1698643011 -0600	commit: made OwnerClientId a netBehaviour thing
+ba5e463a21d72db757981ccbf47464925b49868d 1a3fbbd2294a0f7beff1d378fe75ce432b203560 bendzz <bendzz@live.co.uk> 1698643953 -0600	commit: sword uses playerID to sync colors now
+1a3fbbd2294a0f7beff1d378fe75ce432b203560 4e79011660b54743a2620a465098a7218c591f5e bendzz <bendzz@live.co.uk> 1698644350 -0600	commit: fixed VR_Mode bool glitch
+4e79011660b54743a2620a465098a7218c591f5e ba9a19bc959b17610ebffa428d050a6f6055ff7a bendzz <bendzz@live.co.uk> 1698648765 -0600	commit: fixed sword throw scale and direction bugs
+ba9a19bc959b17610ebffa428d050a6f6055ff7a 1ca77ad9186fa2250510ff6cf04c44725c5800f4 bendzz <bendzz@live.co.uk> 1698654893 -0600	commit: New map, 'out of bounds' checks
+1ca77ad9186fa2250510ff6cf04c44725c5800f4 2595d6daf782a2160ceb97c6bb5299be210d985c bendzz <bendzz@live.co.uk> 1698668447 -0600	commit: respawning, plus most sync jitter fixed
+2595d6daf782a2160ceb97c6bb5299be210d985c 375cde42bef733e8e5107d7a2ea95fe3bdaa4123 bendzz <bendzz@live.co.uk> 1698670768 -0600	commit: black font rims are back
+375cde42bef733e8e5107d7a2ea95fe3bdaa4123 7717f00e737dc1e4c5e98bf3cfc26dda13f01385 bendzz <bendzz@live.co.uk> 1698671729 -0600	commit: damage HUD
+7717f00e737dc1e4c5e98bf3cfc26dda13f01385 b14166ff20e27be480ca7b5c3b2ed07a60105bb3 bendzz <bendzz@live.co.uk> 1698734239 -0600	commit: fixed VR hand jank bug
+b14166ff20e27be480ca7b5c3b2ed07a60105bb3 2a159131f063c63dbb123dee387a484266bc8db4 bendzz <bendzz@live.co.uk> 1698735514 -0600	commit: sword laser
+2a159131f063c63dbb123dee387a484266bc8db4 8f3ea81cf5ed5cda06565721aef6d5cda972363e bendzz <bendzz@live.co.uk> 1698737036 -0600	commit: fixed VR sword throwing
+8f3ea81cf5ed5cda06565721aef6d5cda972363e 76648b1f32de6efc39921ac433c9d8ee499d55ee bendzz <bendzz@live.co.uk> 1698737865 -0600	commit: fixed sword physics lag and undead swords
+76648b1f32de6efc39921ac433c9d8ee499d55ee 5f2b5a9dcdce0b62b2de99109877ee0c8c805f00 bendzz <bendzz@live.co.uk> 1698738837 -0600	commit: Added drag
+5f2b5a9dcdce0b62b2de99109877ee0c8c805f00 b5e6c02c57944869468d8f46906f3761c49e04ea bendzz <bendzz@live.co.uk> 1698742251 -0600	commit: Added crossbeams to the wallwarnings
+b5e6c02c57944869468d8f46906f3761c49e04ea 4e542f1e4c93521d1c60c55abb4c01544b95d56e bendzz <bendzz@live.co.uk> 1698754473 -0600	commit: Audio system WIP; Unity audio broken
+4e542f1e4c93521d1c60c55abb4c01544b95d56e adcd9f3df845ad69ddfdd15cb3973468ed939936 bendzz <bendzz@live.co.uk> 1698755436 -0600	commit: Anothyn's map
+adcd9f3df845ad69ddfdd15cb3973468ed939936 33e4bff97af542f06428347d46a9de75472a00ee bendzz <bendzz@live.co.uk> 1698761877 -0600	commit: printing network byte data!
+33e4bff97af542f06428347d46a9de75472a00ee a322853aa033dd3de9c2e91d9e513523edc10ea1 bendzz <bendzz@live.co.uk> 1698822092 -0600	commit: New Rec system WIP
+a322853aa033dd3de9c2e91d9e513523edc10ea1 b3ccfef8c2be44f7b88fb4475a7785d3d854953c bendzz <bendzz@live.co.uk> 1699675245 -0700	commit: Friday night meet
