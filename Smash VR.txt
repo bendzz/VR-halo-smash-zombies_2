@@ -193,13 +193,9 @@ TODOs from oct 30 playtest:
 -track player stats on the player, for now?
 -add vertical/horizontal bars to the wall blocks, like 3d printer mounts
 
+-Make SyncedProperties sync using variable name strings instead of just Entity list indices, to be more robust between different game versions
 
 
-TODO FIRST:
--fix the vr hand jank
--get recording/playback working
-  -reliable rpcs for getting rid of repeated data sends
-  
   
   
   
