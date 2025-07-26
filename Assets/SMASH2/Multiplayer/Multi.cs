@@ -1019,6 +1019,9 @@ public class Multi : NetworkBehaviour
 
     //[ClientRpc]
     [ClientRpc(Delivery = RpcDelivery.Unreliable)]
+    /// <summary>
+    /// applies received data to the local script's variables and methods, to update the game state
+    /// </summary>
     public void syncParam_ClientRpc(int identifier, NetData data, ulong originalSender, ClientRpcParams pars = default)
     //public void syncParam_ClientRpc(SyncedProperty data, ulong originalSender, ClientRpcParams pars = default)
     {
@@ -1041,11 +1044,14 @@ public class Multi : NetworkBehaviour
             return;
 
 
-        if (!(localProp.obj is MethodInfo)) {
+        if (!(localProp.obj is MethodInfo))
+        {
             localProp.netData = data;   // idk if this helps
             localProp.setCurrentValue(data.GetData());
-        } else { 
-            print("Calling method replicated over the network, with "+ ((object[])data.GetData()).Length + " parameters");  // kinda expensive print?
+        }
+        else
+        {
+            print("Calling method replicated over the network, with " + ((object[])data.GetData()).Length + " parameters");  // kinda expensive print?
             localProp.callMethod_LocalClientOnly((object[])data.GetData());
         }
 
@@ -1060,7 +1066,8 @@ public class Multi : NetworkBehaviour
 
 
 
-
+    // Inspired by my old Record.AnimatedProperty class
+    
     /// <summary>
     /// Multiplayer synced and recorded/played-back property, for animating a variable or method in another script
     /// (Doesn't seem to work when you make one for a variable in the current script, only other scripts? Can't read its data? Idk. TODO, test more)
@@ -1116,7 +1123,18 @@ public class Multi : NetworkBehaviour
         public NetData netData;
 
 
+        // /// <summary>
+        // /// In game reference to the variable/method/object etc to be recorded or animated
+        // /// </summary>
+        // public object obj;
 
+        // /// <summary>
+        // /// (Used for Reflection based keyframes) The actual script component or transform or gameobject or whatever that the syncedProperty belongs to.
+        // /// </summary>
+        // public object animatedComponent;
+        
+        
+        
 
 
         // god I fucking hate C# constructor chaining I want to slap the bitch that decided you can't call them from within the constructor body
@@ -1285,7 +1303,7 @@ public class Multi : NetworkBehaviour
                 else
                     netData.setData(getCurrentValue());
 
-                
+
                 // breaks half the properties!
                 //if (netData.GetData() as UnityEngine.Object == null)    // weird null check, for deleted variables
                 //{
@@ -1347,27 +1365,27 @@ public class Multi : NetworkBehaviour
             //{
             //if (property.obj is FieldInfo)
             if (obj is FieldInfo)
-                {
-                    //data = ((FieldInfo)property.obj).GetValue(property.animatedComponent);
-                    data = ((FieldInfo)obj).GetValue(animatedComponent);
-                }
-                else if (obj is PropertyInfo)
-                {
-                    data = ((PropertyInfo)obj).GetValue(animatedComponent);
-                }
-                else if (obj is Transform)
-                {
-                    //print("transform");
-                    data = obj;
-                }
-                else if (obj is MethodInfo)
-                {
-                    // do nothing; methods get synced upon being called
-                }
-                else
-                {
-                    Debug.LogError("unknown type");
-                }
+            {
+                //data = ((FieldInfo)property.obj).GetValue(property.animatedComponent);
+                data = ((FieldInfo)obj).GetValue(animatedComponent);
+            }
+            else if (obj is PropertyInfo)
+            {
+                data = ((PropertyInfo)obj).GetValue(animatedComponent);
+            }
+            else if (obj is Transform)
+            {
+                //print("transform");
+                data = obj;
+            }
+            else if (obj is MethodInfo)
+            {
+                // do nothing; methods get synced upon being called
+            }
+            else
+            {
+                Debug.LogError("unknown type");
+            }
             //
             //catch (MissingReferenceException)     // unreliable; never catches the exception
             //{
@@ -1405,9 +1423,9 @@ public class Multi : NetworkBehaviour
                 tf.localScale = ((Transform)data).localScale;
 
                 if (instance.debug)
-                    print("transform! Local " + ((Transform)obj).position +" "+ ((Transform)obj).rotation);
+                    print("transform! Local " + ((Transform)obj).position + " " + ((Transform)obj).rotation);
                 if (instance.debug)
-                    print("transform! DATA " + ((Transform)data).position +" "+ ((Transform)data).rotation);
+                    print("transform! DATA " + ((Transform)data).position + " " + ((Transform)data).rotation);
             }
             else if (obj is MethodInfo)
             {
@@ -1902,52 +1920,4 @@ public abstract class NetBehaviour : MonoBehaviour
 
 
 
-
-/// <summary>
-/// Adds recording/playback functionality to the Multi.cs multiplayer system, reusing its serialization system.
-/// 2023 remake of Record.cs gameplay recording/playback system (from the OutdoorPacmanVR game).
-/// Inspired by unity's animation system; Clips hold AnimatedProperties hold frames, etc. Except I'm doing away with Clips for the most part, they suck.
-/// </summary>
-public class Rec
-{
-    //public List<byte> byteList = new List<byte>();
-    public byte[] byteArray;
-    public string filePath = Path.Combine(Application.persistentDataPath, "smashRecording.dat");
-
-    // Method to save the byte list to a file
-    public void SaveToFile()
-    {
-        // Convert the list of bytes to an array for writing
-        //byte[] byteArray = byteList.ToArray();
-        //byte[] byteArray = byteList;
-
-        // Write the byte array to the file
-        File.WriteAllBytes(filePath, byteArray);
-
-        Debug.Log($"Saved recording to {filePath}");
-    }
-
-    // Method to load the bytes from a file
-    public void LoadFromFile()
-    {
-        // Check if the file exists before trying to read
-        if (File.Exists(filePath))
-        {
-            // Read the bytes from the file
-            byte[] byteArray = File.ReadAllBytes(filePath);
-
-            // Clear the current list and add the loaded bytes
-            //byteList.Clear();
-            //byteList.AddRange(byteArray);
-            //byteList = byteArray;
-
-            Debug.Log($"Loaded recording from {filePath}");
-        }
-        else
-        {
-            Debug.LogWarning($"File not found: {filePath}");
-        }
-    }
-
-}
 

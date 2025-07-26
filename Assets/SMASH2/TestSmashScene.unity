@@ -9324,6 +9324,7 @@ GameObject:
   - component: {fileID: 1241747564}
   - component: {fileID: 1241747569}
   - component: {fileID: 1241747568}
+  - component: {fileID: 1241747570}
   m_Layer: 0
   m_Name: MULTIPLAYER Singleton
   m_TagString: Untagged
@@ -9416,6 +9417,20 @@ MonoBehaviour:
   animationLength: 0
   clipTime: 0
   playbackSpeed: 1
+--- !u!114 &1241747570
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1241747563}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: af5e83db77b5edf449da79684e556092, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  byteArray: 
+  filePath: 
 --- !u!1 &1259960499
 GameObject:
   m_ObjectHideFlags: 0
