@@ -765,21 +765,44 @@ public class Multi : NetworkBehaviour
         ///// </summary>
         //public NetBehaviour parentScript;
 
+        // /// <summary>
+        // /// The GameObject this entity is attached to (but not the only one it can control)
+        // /// </summary>
+        // public GameObject gameObject;
 
         /// <summary>
+        /// The script that spawned this entity (but not the only script or gameobject it can control!)
+        /// (WARNING not currently assigned on network replicated/spawned entities! Animations might break! TODO! )
+        /// </summary>
+        public NetBehaviour parentScript;
+
+
+        /// <summary>
+        /// (Use the one that assigns the parentScript, or animations might not work!)
         /// see class summary.
         /// (When _parentScript onDestroy() is called, this entity will be destroyed too)
         /// </summary>
         /// <param name="script_Or_AnimatedObject"></param>
         //public Entity(NetBehaviour _parentScript)
+        //public Entity()
+        //public Entity(GameObject _gameObject)
+        // take a script inheriting from netbehavior as the parameter
+        //public Entity<T>() where T : NetBehaviour
         public Entity()
         {
             properties = new List<SyncedProperty>();
             local_entityID = getUniqueLocalIdentifier();
-            //parentScript = _parentScript;
+            //gameObject = _gameObject;
 
             addToLocalEntities();   // idk why I had this separated before. Just do it automatically for now
         }
+
+        public Entity(NetBehaviour _parentScript) : this()
+        {
+            parentScript = _parentScript;
+        }
+
+
 
         /// <summary>
         /// Register on the local list so when the server sends back an entity copy with global property IDs, we can actually link it to the original.

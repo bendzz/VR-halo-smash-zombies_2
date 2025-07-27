@@ -35,7 +35,7 @@ public class SmashGame : NetBehaviour
 
 
         // networking
-        entity = new Multi.Entity();
+        entity = new Multi.Entity(this);
         entity.setCurrents(this, this.gameObject, IsOwner);
         //entity.addSyncedProperty(head.transform);
 

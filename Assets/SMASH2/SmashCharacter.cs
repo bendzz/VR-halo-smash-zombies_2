@@ -187,7 +187,8 @@ public class SmashCharacter : NetBehaviour
 
         // set up SyncedProperties for all variables and synced function calls, in a fixed order
         //entity = new Multi.Entity(this);
-        entity = new Multi.Entity();
+        //entity = new Multi.Entity();
+        entity = new Multi.Entity(this);
         //entity.addToLocalEntities();
 
         entity.setCurrents(this, head.gameObject, IsOwner);

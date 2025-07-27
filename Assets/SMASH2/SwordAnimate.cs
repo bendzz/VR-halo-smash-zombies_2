@@ -82,7 +82,7 @@ public class SwordAnimate : NetBehaviour
 
 
         //entity = new Multi.Entity(this);
-        entity = new Multi.Entity();
+        entity = new Multi.Entity(this);
         //entity.addToLocalEntities();
 
         entity.setCurrents(this, this.gameObject, IsOwner);

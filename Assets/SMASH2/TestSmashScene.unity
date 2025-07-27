@@ -9431,6 +9431,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   byteArray: 
   filePath: 
+  targetEntities: []
 --- !u!1 &1259960499
 GameObject:
   m_ObjectHideFlags: 0
