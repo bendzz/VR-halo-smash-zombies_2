@@ -1,7 +1,11 @@
+// TODO LATER:
+// - Every transform/velocity frame gets recorded; need a way to ignore tiny changes, only record unique frames
+
 using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using Unity.Collections;
 using Unity.Collections.LowLevel.Unsafe;
 using Unity.Netcode;
@@ -23,9 +27,17 @@ public class Clip : MonoBehaviour
     public string filePath;
 
 
+    public bool isRecording = false;
+    bool wasRecording = false; // used to detect when recording starts/stops
+    public float startedRecordingTime = 0f;
+
+
+    public bool isPlaying = false;
+
+
 
     //public SmashCharacter testChar;
-    
+
     /// <summary>
     /// the entities to record/playback
     /// </summary>
@@ -41,10 +53,11 @@ public class Clip : MonoBehaviour
     [Serializable]
     public class Entity
     {
+        public string info;
+
         [HideInInspector]
         [SerializeReference]    // avoid infinite loops during serialization
         public Clip parentClip;
-        public string info;
 
         /// <summary>
         /// Original entity
@@ -77,8 +90,17 @@ public class Clip : MonoBehaviour
                 //print("property added" + p.info);
             }
 
-                //  Property p = new Property(this, entity.properties[1]);
-                //  properties.Add(p);
+            //  Property p = new Property(this, entity.properties[1]);
+            //  properties.Add(p);
+        }
+
+        public void updateFrameCounts()
+        {
+            //loop through properties
+            foreach (var property in properties)
+            {
+                property.frameCount = property.frames.Count;
+            }
         }
     }
 
@@ -86,8 +108,10 @@ public class Clip : MonoBehaviour
     [Serializable]
     public class Property
     {
+        [HideInInspector]
         public string info;
         public bool canPlayBack = true;
+        public bool canRecord = true;
 
         [HideInInspector]
         [SerializeReference]    // Tell it not to serialize the whole parent object or you get an infinite loop and unity hardlocks
@@ -95,8 +119,13 @@ public class Clip : MonoBehaviour
 
         public Multi.SyncedProperty property;
 
-        public List<Frame> frames = new List<Frame>();
+        [HideInInspector]
+        [SerializeReference]
+        public List<Frame> frames;
 
+        //public int frameCount => frames.Count;
+        [Tooltip("(Only updated periodically, or the editor lags)")]
+        public int frameCount = 0;
 
 
         public Property(Entity _entity, Multi.SyncedProperty _proprerty)
@@ -104,25 +133,18 @@ public class Clip : MonoBehaviour
             //parentEntity = _entity;
 
             property = _proprerty;
-            
+
             //if (_entity != null)
-                info = "Property: GO: " + property.gameObject.name + " AC: " + property.animatedComponent + " obj: " + property.obj;
+            info = "Property: GO: " + property.gameObject.name + " AC: " + property.animatedComponent + " obj: " + property.obj;
             //else
             //    info = "Property: (No entity set) " + property.gameObject.name + " " + property.animatedComponent + " " + property.obj;
+
+            frames = new List<Frame>();
         }
 
-
-
-
-        //public int frameCount;
-
-        // public GameObject gameObject;
-        // public Component animatedComponent;
-        // public object obj;  // the actual data, e.g. a Transform, Vector3, etc
-        // public Multi.NetData netData;  // the serialized data for this property
     }
 
-    [Serializable]
+    //[Serializable]
     public class Frame
     {
         public float time;
@@ -176,7 +198,17 @@ public class Clip : MonoBehaviour
 
 
 
-
+void updateEntityFrameCounts()  // just so I can see them in inspector
+    {
+        // loop through entities and update their frame counts
+        foreach (var entity in entities)
+        {
+            if (entity != null)
+            {
+                entity.updateFrameCounts();
+            }
+        }
+    }
 
     public void Update()
     {
@@ -202,13 +234,77 @@ public class Clip : MonoBehaviour
                         entities.Add(newEntity);
 
                         entityLookup.Add(target, newEntity);
-                        
-                        print("Clip "+ this.gameObject +" added new entity: " + newEntity.info);
+
+                        print("Clip " + this.gameObject + " added new entity: " + newEntity.info);
                         //print("Clip "+ this.gameObject +" added new entity: ");
                     }
                 }
             }
         }
+
+        if (isRecording && !wasRecording)   // recording just started
+        {
+            startedRecordingTime = Time.time;
+            wasRecording = isRecording;
+            print("Recording started at " + startedRecordingTime);
+        }
+        else if (!isRecording && wasRecording)  // recording just stopped
+        {
+            wasRecording = isRecording;
+            updateEntityFrameCounts();
+            print("Recording stopped at " + Time.time + ". Duration: " + (Time.time - startedRecordingTime));
+        }
+
+
+        if (isRecording)    // record frames
+        {
+
+            // Loop through each entity and its properties, capturing their data
+            foreach (var entity in entities)
+            {
+                if (entity != null && entity.entity != null)
+                {
+
+
+                    // Capture the data for each property
+                    foreach (var property in entity.properties)
+                    {
+                        if (property.canRecord)
+                        {
+                            if (property.property.netData == null)
+                                continue;
+
+                            // Create a new frame for this entity
+                            Frame frame = new Frame();
+                            frame.time = Time.time - startedRecordingTime;
+
+
+                            // Capture the property's data
+                            var bytes = Capture(property.property.netData);
+                            frame.data = bytes; // Store the captured data in the frame
+
+
+                            // check for duplicate frames
+                            if (property.frames.Count > 1)
+                            {
+                                // check if the frame bytedata is identical
+                                if (property.frames[property.frames.Count - 1].data.SequenceEqual(frame.data))
+                                {
+                                    // skip adding this frame, it's a duplicate
+                                    continue;
+                                }
+                            }
+
+
+                            // record frame
+                            property.frames.Add(frame);
+                            //property.frameCount = property.frames.Count;
+                        }
+                    }
+                }
+            }
+        }
+
 
 
 
@@ -237,7 +333,7 @@ public class Clip : MonoBehaviour
                     }
                 }
             }
-        
+
     }
 
 
