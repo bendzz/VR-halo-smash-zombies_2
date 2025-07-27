@@ -67,9 +67,9 @@ public class SmashMulti : NetworkBehaviour
     public override void OnNetworkSpawn()
     {
         multi = Multi.instance;
-        clip = multi.clip;
+        // clip = multi.clip;
 
-        clip = new Record.Clip("SmashGameClip " + UnityEngine.Random.value * 100000);
+        // clip = new Record.Clip("SmashGameClip " + UnityEngine.Random.value * 100000);
 
 
         dummyXR_Rigs = new List<XR_Dummies_Sync>();

@@ -15,7 +15,7 @@ public class SmashGame : NetBehaviour
     public Dictionary<string, PlayerStats> playerStats;
 
 
-    Multi.Entity entity;
+    //Multi.Entity entity;
 
 
     private void Start()

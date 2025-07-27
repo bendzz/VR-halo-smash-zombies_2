@@ -125,7 +125,7 @@ public class SmashCharacter : NetBehaviour
     Material glowMaterial;
 
 
-    public Multi.Entity entity;
+    //public Multi.Entity entity;
 
     LineRenderer laserLine;
 

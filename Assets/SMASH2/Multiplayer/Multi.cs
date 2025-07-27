@@ -201,10 +201,10 @@ public class Multi : NetworkBehaviour
     }
 
 
-    /// <summary>
-    /// Temp test
-    /// </summary>
-    Rec testRec;
+    // /// <summary>
+    // /// Temp test
+    // /// </summary>
+    // Rec testRec;
 
 
     public override void OnNetworkSpawn() 
@@ -232,7 +232,7 @@ public class Multi : NetworkBehaviour
         }
 
 
-        testRec = new Rec();
+        //testRec = new Rec();
     }
 
 
@@ -989,7 +989,10 @@ public class Multi : NetworkBehaviour
 
 
 
+    // TODO this runs for both methods and variable updates atm; for methods it should be Reliable, to ensure net syncing. For variables it should only run if they've changed?
+    
     /// <summary>
+    /// Replicate a method?
     /// Because you can't do network RPCs in classes that don't fucking inherit from NetworkBehaviour, and those are hard/expensive to spawn
     /// </summary>
     /// <param name="value"></param>
@@ -1067,6 +1070,7 @@ public class Multi : NetworkBehaviour
 
 
     // Inspired by my old Record.AnimatedProperty class
+    // TODO decouple from Record.cs
     
     /// <summary>
     /// Multiplayer synced and recorded/played-back property, for animating a variable or method in another script
@@ -1132,9 +1136,12 @@ public class Multi : NetworkBehaviour
         // /// (Used for Reflection based keyframes) The actual script component or transform or gameobject or whatever that the syncedProperty belongs to.
         // /// </summary>
         // public object animatedComponent;
-        
-        
-        
+
+
+
+
+
+
 
 
         // god I fucking hate C# constructor chaining I want to slap the bitch that decided you can't call them from within the constructor body
@@ -1620,6 +1627,10 @@ public class Multi : NetworkBehaviour
                 _dataType = TypeToInt.Int(data.GetType());
         }
 
+        /// <summary>
+        /// A generic serializer for sending/receiving any data types. (Called by unity's Netcode for Gameobjects system each multiplayer frame)
+        /// (To support more data types, add them to this and serializeVariable and TypeToInt etc)
+        /// </summary>
         public void NetworkSerialize<T>(BufferSerializer<T> serializer) where T : IReaderWriter
         {
             // unsafe      // Capture all the networking data in a byte array, to be recorded to a file for playback
@@ -1640,8 +1651,9 @@ public class Multi : NetworkBehaviour
 
 
             // these calls handle both sending/serializing data and receiving/deserializing data
-            serializer.SerializeValue(ref isList);   
-            serializer.SerializeValue(ref isObjectList); 
+            // TODO combine bools into int binary flags to save space
+            serializer.SerializeValue(ref isList);
+            serializer.SerializeValue(ref isObjectList);
             serializer.SerializeValue(ref _dataType);
 
 
@@ -1703,7 +1715,7 @@ public class Multi : NetworkBehaviour
                 Type itemType = TypeToInt.Type(_dataType);
 
                 // Cast the _data to an IList for easier manipulation
-                IList dataList = (IList)_data; 
+                IList dataList = (IList)_data;
 
                 if (instance.debug)
                     print("Serializing list with " + listCount + " IsWriter " + serializer.IsWriter);
@@ -1736,12 +1748,12 @@ public class Multi : NetworkBehaviour
                     if (serializer.IsReader)
                         dataList.Add(item);
                 }
-                    //else
-                    //{
-                    //    // Deserialize each item and add it to the list
-                    //    object item = Activator.CreateInstance(itemType);
-                    //    serializer.SerializeValue(ref item, itemType);
-                    //}
+                //else
+                //{
+                //    // Deserialize each item and add it to the list
+                //    object item = Activator.CreateInstance(itemType);
+                //    serializer.SerializeValue(ref item, itemType);
+                //}
                 //}
             }
             else
@@ -1750,29 +1762,29 @@ public class Multi : NetworkBehaviour
             }
 
 
-                // if (serializer.IsReader)
-                // {
-                //     byte* ptrEnd = reader.GetUnsafePtrAtCurrentPosition();
+            // if (serializer.IsReader)
+            // {
+            //     byte* ptrEnd = reader.GetUnsafePtrAtCurrentPosition();
 
-                //     int size = (int)(ptrEnd - ptrStart);
-                //     //print("_dataType " + TypeToInt.Type(_dataType).ToString() + " data " + _data + " size " + size);
+            //     int size = (int)(ptrEnd - ptrStart);
+            //     //print("_dataType " + TypeToInt.Type(_dataType).ToString() + " data " + _data + " size " + size);
 
-                //     byteArray = new byte[size];
-                //     //System.Runtime.InteropServices.Marshal.Copy((IntPtr)ptrEnd, byteArray, 0, size);
-                //     System.Runtime.InteropServices.Marshal.Copy((IntPtr)ptrStart, byteArray, 0, size);
+            //     byteArray = new byte[size];
+            //     //System.Runtime.InteropServices.Marshal.Copy((IntPtr)ptrEnd, byteArray, 0, size);
+            //     System.Runtime.InteropServices.Marshal.Copy((IntPtr)ptrStart, byteArray, 0, size);
 
-                //     string hexString = BitConverter.ToString(byteArray);
-                //     //print(hexString);
+            //     string hexString = BitConverter.ToString(byteArray);
+            //     //print(hexString);
 
-                //     if (_dataType== TypeToInt.Int(typeof(Entity)))
-                //     {
-                        
-                //         print("Saved data");
-                //         //Multi.instance.testRec.byteList = (List<byte>)_data;
-                //         Multi.instance.testRec.byteArray = byteArray;
-                //         Multi.instance.testRec.SaveToFile(); 
-                //     }
-                // }
+            //     if (_dataType== TypeToInt.Int(typeof(Entity)))
+            //     {
+
+            //         print("Saved data");
+            //         //Multi.instance.testRec.byteList = (List<byte>)_data;
+            //         Multi.instance.testRec.byteArray = byteArray;
+            //         Multi.instance.testRec.SaveToFile(); 
+            //     }
+            // }
 
 
             //}   //  /unsafe
@@ -1913,11 +1925,29 @@ public abstract class NetBehaviour : MonoBehaviour
 
     public abstract void OnNetworkSpawn();
 
+    /// <summary>
+    /// Everything to be multiplayer synced or recorded/played back
+    /// </summary>
+    public Multi.Entity entity;
+
 
 }
 
 
 
+
+
+
+
+
+// /// <summary>
+// /// A recorded animation clip, piggybacking off Multi.cs's multiplayer serialization systems.
+// /// Inspired by unity's animation system; Clips hold AnimatedProperties hold frames, etc.
+// /// </summary>
+// public class Clip
+// {
+    
+// }
 
 
 

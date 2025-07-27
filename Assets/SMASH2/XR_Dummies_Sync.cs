@@ -9,6 +9,7 @@ using UnityEngine;
 //public class XR_Dummies_Sync : NetworkBehaviour
 //public class XR_Dummies_Sync : NetBehaviour
 public class XR_Dummies_Sync : NetBehaviour
+//public class XR_Dummies_Sync : MonoBehaviour
 {
     //public SO_MyMultiplayer so_MyMultiplayer;
 

@@ -12,9 +12,10 @@ using UnityEngine;
 /// <summary>
 /// Adds recording/playback functionality to the Multi.cs multiplayer system, reusing its serialization system.
 /// 2023 remake of Record.cs gameplay recording/playback system (from the OutdoorPacmanVR game).
-/// Inspired by unity's animation system; Clips hold AnimatedProperties hold frames, etc. Except I'm doing away with Clips for the most part, they suck.
+/// Inspired by unity's animation system; Clips hold AnimatedProperties hold frames, etc (which is all inferred from the multiplayer entities/properties)
 /// </summary>
-public class Rec : MonoBehaviour
+//public class Rec : MonoBehaviour
+public class Clip : MonoBehaviour
 {
     //public List<byte> byteList = new List<byte>();
     public byte[] byteArray;
@@ -22,7 +23,13 @@ public class Rec : MonoBehaviour
 
 
 
-    public SmashCharacter testChar;
+    //public SmashCharacter testChar;
+    
+    /// <summary>
+    /// the entities to record/playback
+    /// </summary>
+    //public Multi.Entity entity;
+    public List<NetBehaviour> targetEntities;
 
 
     public void Start()
@@ -61,56 +68,38 @@ public class Rec : MonoBehaviour
         return value;
     }
 
- 
 
- 
 
-    // public struct RecordingWriter : IReaderWriter
-    // {
-    //     public static readonly List<byte> Capture = new();
-
-    //     // ----- required by the interface -----
-    //     public bool IsReader => false;    // we only write
-    //     public int Length => Capture.Count;
-    //     public int Position { get; private set; }
-
-    //     public void SerializeValue(ref byte value) => Write(ref value);
-    //     public void SerializeValue(ref string s, bool _ = false)
-    //     {
-    //         var bytes = System.Text.Encoding.UTF8.GetBytes(s);
-    //         int len = bytes.Length;
-    //         SerializeValue(ref len);
-    //         Capture.AddRange(bytes);
-    //         Position += len;
-    //     }
-
-    //     // ... repeat tiny wrappers for other primitive overloads as needed ...
-
-    //     // generic helper for blittable structs
-    //     private unsafe void Write<T>(ref T value) where T : unmanaged
-    //     {
-    //         int size = UnsafeUtility.SizeOf<T>();
-    //         byte* p = (byte*)UnsafeUtility.AddressOf(ref value);
-    //         for (int i = 0; i < size; i++) Capture.Add(p[i]);
-    //         Position += size;
-    //     }
-
-    //     // required but unused methods
-    //     public bool PreCheck(int amount) => true;
-    //     // other interface members can be empty or throw if they’re reader‑only
-    // }
 
 
     public void Update()
     {
 
-        if (testChar != null)
+        if (targetEntities != null && targetEntities.Count > 0)
         {
-            var bytes = Capture(testChar.entity);
-            //print("bytes " + bytes);
-            Print(bytes, "Captured Entity Data");
-        }
+            foreach (var target in targetEntities)
+            {
+                if (target != null && target.entity != null)
+                {
+                    var entity = target.entity;
 
+                    var bytes = Capture(entity);
+                    Print(bytes, "Captured Entity Data");
+
+                    print("entity properties count: " + entity.properties.Count);
+                    foreach (var property in entity.properties)
+                    {
+                        print("Property: gameObject " + property.gameObject + " animatedComponent " + property.animatedComponent + " obj " + property.obj);
+                        if (property.netData != null)
+                        {
+                            bytes = Capture(property.netData);
+                            Print(bytes, "Property Data");
+                        }
+                    }
+                }
+            }
+        }
+        
     }
 
 

@@ -48,7 +48,7 @@ public class SwordAnimate : NetBehaviour
     MeshRenderer renderer;
     Material swordGlowMaterial;
 
-    Multi.Entity entity;
+    //Multi.Entity entity;
 
     SyncedProperty body_velocity;
     SyncedProperty body_angularVelocity;
