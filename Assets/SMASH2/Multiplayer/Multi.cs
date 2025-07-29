@@ -1932,14 +1932,27 @@ public class Multi : NetworkBehaviour
 /// REPLACEMENT for unity NetworkBehaviour (since I need to set IsOwner manually on manual spawns, and they locked that off, f*ckers)
 /// </summary>
 public abstract class NetBehaviour : MonoBehaviour
-{
-    /// <summary>
-    /// Whether to run game logic, or just let the multiplayer or recording-playback system control this intance
-    /// </summary>
-    public bool IsSimulating;
+ {
+    //     public static HashSet<NetBehaviour> AllNetBehaviours = new HashSet<NetBehaviour>();
 
+
+
+    // /// <summary>
+    // /// Whether to run game logic, or just let the multiplayer or recording-playback system control this intance
+    // /// </summary>
+    // public bool IsSimulating;
+
+    /// <summary>
+    /// Whether this client machine runs this script, or if it's just a remote client receiving data from the server
+    /// </summary>
     public bool IsOwner;
-    public bool IsServer;
+    public bool IsServer;   // Unused?
+
+    /// <summary>
+    /// If it's being puppeteered by a Clip doing playback; disable some script logic to avoid conflicts
+    /// </summary>
+    public bool IsPlayBack;
+
 
     /// <summary>
     /// Equivalent to 'gameObject.GetComponent<NetworkObject>().OwnerClientId' in unity; if a client owns these objects, like say a player model,

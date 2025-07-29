@@ -59,13 +59,42 @@ public class Clip : MonoBehaviour
 
 
 
+
     //public SmashCharacter testChar;
 
     /// <summary>
     /// the entities to record/playback
     /// </summary>
     //public Multi.Entity entity;
-    public List<NetBehaviour> targetEntities = new List<NetBehaviour>();
+    public List<NetBehaviour> targetNetBehaviours = new List<NetBehaviour>();
+
+
+
+    /// <summary>
+    /// Just to record the original IsOwner value, so it can be restored after playback
+    /// </summary>
+    public class NetBehaviourInfo
+    {
+        /// <summary>
+        /// The original IsOwner value, to reset it after playback. (It gets disabled (maybe?) to make scripts play nicer with playback)
+        /// </summary>
+        public bool Old_IsOwner = false;    // hope this doesn't ever change during gameplay...
+        public NetBehaviour netBehaviour;
+
+        public NetBehaviourInfo(NetBehaviour _netBehaviour)
+        {
+            netBehaviour = _netBehaviour;
+            Old_IsOwner = netBehaviour.IsOwner;  // save the original IsOwner value
+        }
+    }
+    /// <summary>
+    /// Just to record the original IsOwner values, so they can be restored after playback
+    /// </summary>
+    public Dictionary<NetBehaviour, NetBehaviourInfo> netBehaviourInfos = new Dictionary<NetBehaviour, NetBehaviourInfo>();
+
+
+
+
 
 
 
@@ -91,12 +120,19 @@ public class Clip : MonoBehaviour
         [Tooltip("Animation tracks for this entity; copied from the entity's multiplayer SyncedProperties")]
         public List<Property> properties;
 
+        // /// <summary>
+        // /// The original IsOwner value, to reset it after playback. (It gets disabled to make scripts play nicer with playback)
+        // /// </summary>
+        // bool old_IsOwner = false;   // TODO
+
+
 
         // constrauctor
         public Entity(Multi.Entity entity, Clip clip)
         {
             this.entity = entity;
             this.parentClip = clip;
+
 
             if (entity.parentScript != null)
                 //info = "Entity. parentScript: " + entity.parentScript + " Gameobject: " + entity.parentScript.gameObject.name + "";
@@ -134,6 +170,10 @@ public class Clip : MonoBehaviour
     {
         [HideInInspector]
         public string info;
+
+        public GameObject gameObject;   // display for debugging
+        
+        
         public bool canPlayBack = true;
         public bool canRecord = true;
 
@@ -157,6 +197,8 @@ public class Clip : MonoBehaviour
             //parentEntity = _entity;
 
             property = _proprerty;
+
+            gameObject = property.gameObject;
 
             //if (_entity != null)
             info = "Property: GO: " + property.gameObject.name + " AC: " + property.animatedComponent + " obj: " + property.obj;
@@ -249,15 +291,23 @@ void updateEntityFrameCounts()  // just so I can see them in inspector
         clipTime += frameDelta;
     }
 
-    public void Update()
+    //public void Update()
+    public void LateUpdate() 
     {
 
         // loop through targetEntities, check if they're already contained in entities list, add them if not
-        if (targetEntities != null && targetEntities.Count > 0)
+        if (targetNetBehaviours != null && targetNetBehaviours.Count > 0)
         {
-            foreach (var target in targetEntities)
+            foreach (var target in targetNetBehaviours)
             {
-                if (target != null && target.entity != null)
+                if (target == null)
+                    continue; 
+                    
+                if (!netBehaviourInfos.ContainsKey(target))
+                    netBehaviourInfos.Add(target, new NetBehaviourInfo(target));
+                    
+                
+                if (target.entity != null)
                 {
                     var entity = target.entity;
 
@@ -301,22 +351,6 @@ void updateEntityFrameCounts()  // just so I can see them in inspector
                 updateEntityFrameCounts();
                 //print("Recording stopped at " + Time.time + ". Duration: " + (Time.time - startedRecordingTime));
                 print("Recording stopped at " + Time.time + ". New duration: " + clipLength);
-            }
-        }
-
-
-        // playback start/stop
-        {
-            if (isPlaying && !wasPlaying)   // playback just started
-            {
-                wasPlaying = isPlaying;
-                lastFrameTImestamp = Time.time;
-                print("Playback started at " + Time.time);
-            }
-            else if (!isPlaying && wasPlaying)  // playback just stopped
-            {
-                wasPlaying = isPlaying;
-                print("Playback stopped at " + Time.time);
             }
         }
 
@@ -381,58 +415,94 @@ void updateEntityFrameCounts()  // just so I can see them in inspector
             }
         }
 
-        if (isPlaying)
+
+        // PLAYBACK
         {
-            incrementClipTime();
-            if (clipTime > clipLength)  // reset clipTime if it goes past the end of the clip
+            // playback start/stop
             {
-                if (loop)
-                    clipTime = 0;
-                else
+                if (isPlaying && !wasPlaying)   // playback just started
                 {
-                    // ???
+                    wasPlaying = isPlaying;
+                    lastFrameTImestamp = Time.time;
+
+                    foreach (var netBehaviourInfo in netBehaviourInfos)
+                    {
+                        netBehaviourInfo.Value.Old_IsOwner = netBehaviourInfo.Value.netBehaviour.IsOwner; // save the original IsOwner value
+                        netBehaviourInfo.Value.netBehaviour.IsOwner = false; // set IsOwner to false for playback, so scripts play nicer
+                        netBehaviourInfo.Value.netBehaviour.IsPlayBack = true;
+                    }
+
+
+                    print("Playback started at " + Time.time);
+                }
+                else if (!isPlaying && wasPlaying)  // playback just stopped
+                {
+                    wasPlaying = isPlaying;
+
+                    foreach (var netBehaviourInfo in netBehaviourInfos)
+                    {
+                        netBehaviourInfo.Value.netBehaviour.IsOwner = netBehaviourInfo.Value.Old_IsOwner; // restore the original IsOwner value
+                        netBehaviourInfo.Value.netBehaviour.IsPlayBack = false;
+                    }
+
+                    print("Playback stopped at " + Time.time);
                 }
             }
 
 
-            // Loop through each entity and its properties, capturing their data
-            foreach (var entity in entities)
+
+
+            if (isPlaying)
             {
-                if (entity != null && entity.entity != null && entity.entity.parentScript != null)
+                incrementClipTime();
+                if (clipTime > clipLength)  // reset clipTime if it goes past the end of the clip
                 {
-                    // Capture the data for each property
-                    foreach (var property in entity.properties)
+                    if (loop)
+                        clipTime = 0;
+                }
+
+
+                // Loop through each entity and its properties, capturing their data
+                foreach (var entity in entities)
+                {
+
+                    if (entity != null && entity.entity != null && entity.entity.parentScript != null)
                     {
-                        if (property.canRecord)
+                        // Capture the data for each property
+                        foreach (var property in entity.properties)
                         {
-                            if (property.property.netData == null)
-                                continue;
-
-                            int frameIndex = FindFrameBefore(property.frames, clipTime);
-                            if (frameIndex == -1)
+                            if (property.canRecord)
                             {
-                                // Clip time is before first frame; play that frame
-                                frameIndex = 0;
+                                if (property.property.netData == null)
+                                    continue;
+
+                                int frameIndex = FindFrameBefore(property.frames, clipTime);
+                                if (frameIndex == -1)
+                                {
+                                    // Clip time is before first frame; play that frame
+                                    frameIndex = 0;
+                                }
+
+                                // TODO interpolation between frames
+
+                                // Get the frame data
+                                byte[] frameData = property.frames[frameIndex].data;
+
+
+
+                                // apply frame
+
+                                //property.property.netData = Playback<Multi.INetData>(frameData); 
+                                property.property.netData = Playback<Multi.NetData>(frameData);
+
+                                property.property.setCurrentValue(property.property.netData.GetData()); // apply the data to the property
+
+
                             }
-
-                            // TODO interpolation between frames
-
-                            // Get the frame data
-                            byte[] frameData = property.frames[frameIndex].data;
-
-
-
-                            // apply frame
-
-                            //property.property.netData = Playback<Multi.INetData>(frameData); 
-                            property.property.netData = Playback<Multi.NetData>(frameData);
-
-                            property.property.setCurrentValue(property.property.netData.GetData()); // apply the data to the property
-                            
-
                         }
                     }
                 }
+
             }
         }
 
@@ -442,11 +512,10 @@ void updateEntityFrameCounts()  // just so I can see them in inspector
 
 
 
-
         // Debugging: Print the captured data
-        if (targetEntities != null && targetEntities.Count > 0 && false)
+        if (targetNetBehaviours != null && targetNetBehaviours.Count > 0 && false)
         {
-            foreach (var target in targetEntities)
+            foreach (var target in targetNetBehaviours)
             {
                 if (target != null && target.entity != null)
                 {

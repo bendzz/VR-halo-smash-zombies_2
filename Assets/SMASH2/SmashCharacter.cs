@@ -17,6 +17,12 @@ using UnityEngine;
 //public class SmashCharacter : NetworkBehaviour
 public class SmashCharacter : NetBehaviour
 {
+    // // TEMP DEBUGGING
+    // public float handThruster1;
+    // public float handThruster2;
+
+
+
     public Rigidbody body;
     public FeetCollider feetCollider;
 
@@ -340,6 +346,10 @@ public class SmashCharacter : NetBehaviour
             }
         }
 
+
+        // // DEBUG TEMP
+        // handThruster1 = leftie.thruster;
+        // handThruster2 = rightie.thruster;
     }
 
 
@@ -364,7 +374,7 @@ public class SmashCharacter : NetBehaviour
             // head visuals
             if (input != null)
             {
-                if (IsOwner)
+                if (IsOwner || IsPlayBack)  // TODO should only head hide during playback if you're using the first person camera; 'possessing' this character. 
                 {
                     Head_VR.SetActive(false);
                     Head_PC.SetActive(false);
@@ -940,6 +950,8 @@ public class SmashCharacter : NetBehaviour
             //    thrusterSynced.Value = thruster;
             //thruster = thrusterSynced.Value;
 
+            //print( " thruster " + thruster);
+
             if (thruster > 0)
             {
                 if (!handJetFlames.isPlaying)
@@ -948,7 +960,7 @@ public class SmashCharacter : NetBehaviour
 
                 Quaternion rotation = Quaternion.LookRotation(thrusterDirection, Vector3.up);
                 handJetFlames.transform.rotation = rotation;
-                //print("rotation " + rotation + " thruster " + thruster);
+                // print("rotation " + rotation + " thruster " + thruster);
             }
             else
                 handJetFlames.Stop();
