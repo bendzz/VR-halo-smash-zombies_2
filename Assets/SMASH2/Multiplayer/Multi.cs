@@ -1448,12 +1448,15 @@ public class Multi : NetworkBehaviour
             {
                 Transform tf = (Transform)obj;
 
-                tf.position = ((Transform)data).position;
-                tf.rotation = ((Transform)data).rotation;
+                // tf.position = ((Transform)data).position;
+                // tf.rotation = ((Transform)data).rotation;
+                // tf.localScale = ((Transform)data).localScale;
+                tf.localPosition = ((Transform)data).localPosition;
+                tf.localRotation = ((Transform)data).localRotation;
                 tf.localScale = ((Transform)data).localScale;
 
                 if (instance.debug)
-                    print("transform! Local " + ((Transform)obj).position + " " + ((Transform)obj).rotation);
+                    print("transform! Local " + ((Transform)obj).localPosition + " " + ((Transform)obj).localRotation);
                 if (instance.debug)
                     print("transform! DATA " + ((Transform)data).position + " " + ((Transform)data).rotation);
             }
@@ -1856,15 +1859,15 @@ public class Multi : NetworkBehaviour
                     Transform transformData = SmashMulti.instance.transform;    // just need a random non-null id
                     if (serializer.IsWriter)
                         transformData = (Transform)_data;
-                    Vector3 position = transformData.position;
-                    Quaternion rotation = transformData.rotation;
+                    Vector3 position = transformData.localPosition;
+                    Quaternion rotation = transformData.localRotation;
                     Vector3 scale = transformData.localScale;
                     serializer.SerializeValue(ref position);
                     serializer.SerializeValue(ref rotation);
                     serializer.SerializeValue(ref scale);
                     // receiving data
-                    transformData.position = position;
-                    transformData.rotation = rotation;
+                    transformData.localPosition = position;
+                    transformData.localRotation = rotation;
                     transformData.localScale = scale;
                     _data = transformData;
                     break;
