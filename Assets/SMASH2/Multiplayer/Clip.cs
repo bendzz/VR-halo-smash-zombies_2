@@ -22,6 +22,8 @@ using UnityEngine;
 //public class Rec : MonoBehaviour
 public class Clip : MonoBehaviour
 {
+    public string clipName;
+    
     //public List<byte> byteList = new List<byte>();
     //public byte[] byteArray;
     public string filePath;
@@ -33,7 +35,7 @@ public class Clip : MonoBehaviour
     public bool isPlaying = false;
     bool wasPlaying = false; // used to detect when playback starts/stops
 
-    public bool isLooping = true;
+    public bool loop = true;
 
 
     [HideInInspector]
@@ -63,7 +65,7 @@ public class Clip : MonoBehaviour
     /// the entities to record/playback
     /// </summary>
     //public Multi.Entity entity;
-    public List<NetBehaviour> targetEntities;
+    public List<NetBehaviour> targetEntities = new List<NetBehaviour>();
 
 
 
@@ -191,7 +193,11 @@ public class Clip : MonoBehaviour
         filePath = Path.Combine(Application.persistentDataPath, "smashRecording.dat");
 
 
-
+        if (clipName == null || clipName == "")
+        {
+            // Generate a default name if none is provided
+            clipName = "New Clip_ Date: " + DateTime.Now.ToString("yy/MM/dd_HH/mm/ss") + " RNG: " + Mathf.Round(UnityEngine.Random.Range(0f, 1000f)).ToString();
+        }
 
 
         // var bytes = Capture(testChar.entity);
@@ -330,10 +336,10 @@ void updateEntityFrameCounts()  // just so I can see them in inspector
             }
 
 
-            // Loop through each entity and its properties, capturing their data
+            // Loop through each entity and its properties, capturing their frame data
             foreach (var entity in entities)
             {
-                if (entity != null && entity.entity != null)
+                if (entity != null && entity.entity != null && entity.entity.parentScript != null)
                 {
                     // Capture the data for each property
                     foreach (var property in entity.properties)
@@ -343,7 +349,7 @@ void updateEntityFrameCounts()  // just so I can see them in inspector
                             if (property.property.netData == null)
                                 continue;
 
-                            // Create a new frame for this entity
+
                             Frame frame = new Frame();
                             //frame.time = Time.time - startedRecordingTime;
                             frame.time = clipTime;
@@ -380,7 +386,7 @@ void updateEntityFrameCounts()  // just so I can see them in inspector
             incrementClipTime();
             if (clipTime > clipLength)  // reset clipTime if it goes past the end of the clip
             {
-                if (isLooping)
+                if (loop)
                     clipTime = 0;
                 else
                 {
@@ -392,7 +398,7 @@ void updateEntityFrameCounts()  // just so I can see them in inspector
             // Loop through each entity and its properties, capturing their data
             foreach (var entity in entities)
             {
-                if (entity != null && entity.entity != null)
+                if (entity != null && entity.entity != null && entity.entity.parentScript != null)
                 {
                     // Capture the data for each property
                     foreach (var property in entity.properties)
@@ -423,16 +429,6 @@ void updateEntityFrameCounts()  // just so I can see them in inspector
 
                             property.property.setCurrentValue(property.property.netData.GetData()); // apply the data to the property
                             
-                            
-                            // If you know the concrete type of netData, use it here instead of Multi.INetData.
-                            // For example, if netData is always of type MyNetData, use Playback<MyNetData>(frameData).
-                            // Otherwise, you must use the correct type argument explicitly.
-                            // Example:
-                            // property.property.netData = Playback<MyNetData>(frameData);
-
-                            // If you need to support multiple types, you may need to store the type info and use reflection or a type switch.
-                            // localProp.netData = data;   // idk if this helps
-                            // localProp.setCurrentValue(data.GetData());
 
                         }
                     }

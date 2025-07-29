@@ -8238,6 +8238,7 @@ GameObject:
   - component: {fileID: 1110405583}
   - component: {fileID: 1110405584}
   - component: {fileID: 1110405585}
+  - component: {fileID: 1110405586}
   m_Layer: 0
   m_Name: GAME Singleton
   m_TagString: Untagged
@@ -8326,6 +8327,19 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   smashHitPrefab: {fileID: 919132149155446097, guid: 0338b64f4e7867149914f7b687b6e50f,
     type: 3}
+--- !u!114 &1110405586
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1110405579}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: b23c43156de17ab46b72c5f233219255, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  clip: {fileID: 0}
 --- !u!1 &1121306864
 GameObject:
   m_ObjectHideFlags: 0
@@ -9424,14 +9438,24 @@ MonoBehaviour:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1241747563}
-  m_Enabled: 1
+  m_Enabled: 0
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: c31689df2f9cdd844b207364329ec605, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  byteArray: 
+  clipName: 
   filePath: 
+  isRecording: 0
+  isPlaying: 0
+  isLooping: 1
+  lastFrameTImestamp: 0
+  clipTime: 0
+  clipLength: 0
   targetEntities: []
+  entities: []
+  references:
+    version: 2
+    RefIds: []
 --- !u!1 &1259960499
 GameObject:
   m_ObjectHideFlags: 0
