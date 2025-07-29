@@ -1428,7 +1428,7 @@ public class Multi : NetworkBehaviour
             return data;
         }
 
-        /// <summary>
+        /// <summary>   // shouldn't this be "apply the data to the scene variable"?
         /// Set the id to the script variable referenced in the scene
         /// </summary>
         public void setCurrentValue(object data)

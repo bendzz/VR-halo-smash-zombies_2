@@ -29,10 +29,31 @@ public class Clip : MonoBehaviour
 
     public bool isRecording = false;
     bool wasRecording = false; // used to detect when recording starts/stops
-    public float startedRecordingTime = 0f;
-
 
     public bool isPlaying = false;
+    bool wasPlaying = false; // used to detect when playback starts/stops
+
+    public bool isLooping = true;
+
+
+    [HideInInspector]
+    /// <summary>
+    /// Used to check how long it was since the last frame was recorded, to add to the clipTime/length
+    /// </summary>
+    public float lastFrameTImestamp = 0;
+    
+    //[HideInInspector]
+    //public float startedRecordingTime = 0f;
+    [Tooltip("The playback/recording time of this clip")]
+    public float clipTime = 0;
+
+    [Tooltip("End 'end' of the clip. (Note, frames might go past this if the code screws up)")]
+    public float clipLength = 0;
+    
+
+
+
+
 
 
 
@@ -53,6 +74,7 @@ public class Clip : MonoBehaviour
     [Serializable]
     public class Entity
     {
+        [HideInInspector]
         public string info;
 
         [HideInInspector]
@@ -210,6 +232,17 @@ void updateEntityFrameCounts()  // just so I can see them in inspector
         }
     }
 
+
+
+    void incrementClipTime()    // tick clip forward 1 frame, during recording/playback
+    {
+        float currentTime = Time.time;
+        float frameDelta = currentTime - lastFrameTImestamp;
+        lastFrameTImestamp = currentTime;
+
+        clipTime += frameDelta;
+    }
+
     public void Update()
     {
 
@@ -242,30 +275,66 @@ void updateEntityFrameCounts()  // just so I can see them in inspector
             }
         }
 
-        if (isRecording && !wasRecording)   // recording just started
+
+        // recording start/stop
         {
-            startedRecordingTime = Time.time;
-            wasRecording = isRecording;
-            print("Recording started at " + startedRecordingTime);
+            if (isRecording && !wasRecording)   // recording just started
+            {
+                //startedRecordingTime = Time.time;
+
+                lastFrameTImestamp = Time.time;
+                clipTime = clipLength;  // just start all recordings from the end of the clip, for now
+
+                wasRecording = isRecording;
+                //print("Recording started at " + startedRecordingTime);
+                print("Recording started at" + Time.time + ". Clip length: " + clipLength);
+            }
+            else if (!isRecording && wasRecording)  // recording just stopped
+            {
+                wasRecording = isRecording;
+                updateEntityFrameCounts();
+                //print("Recording stopped at " + Time.time + ". Duration: " + (Time.time - startedRecordingTime));
+                print("Recording stopped at " + Time.time + ". New duration: " + clipLength);
+            }
         }
-        else if (!isRecording && wasRecording)  // recording just stopped
+
+
+        // playback start/stop
         {
-            wasRecording = isRecording;
-            updateEntityFrameCounts();
-            print("Recording stopped at " + Time.time + ". Duration: " + (Time.time - startedRecordingTime));
+            if (isPlaying && !wasPlaying)   // playback just started
+            {
+                wasPlaying = isPlaying;
+                lastFrameTImestamp = Time.time;
+                print("Playback started at " + Time.time);
+            }
+            else if (!isPlaying && wasPlaying)  // playback just stopped
+            {
+                wasPlaying = isPlaying;
+                print("Playback stopped at " + Time.time);
+            }
         }
 
 
         if (isRecording)    // record frames
         {
+            isPlaying = false;  // stop playback if recording (I figure if it was a mistake, this will alert the user best)
+
+            // clipTime = Time.time - startedRecordingTime;
+            // clipLength = clipTime;
+
+            // TODO should add 1 extra frame time when recording stops, so it's not mushed together
+            // TODO should add a highlight to frames that are the first frame in a recording or cut, for easier editing
+            {
+                incrementClipTime();
+                clipLength = clipTime;  // TODO what if u start recording halfway through a clip? (Also how would it overwrite the clip? Is that even a good idea?)
+            }
+
 
             // Loop through each entity and its properties, capturing their data
             foreach (var entity in entities)
             {
                 if (entity != null && entity.entity != null)
                 {
-
-
                     // Capture the data for each property
                     foreach (var property in entity.properties)
                     {
@@ -276,7 +345,8 @@ void updateEntityFrameCounts()  // just so I can see them in inspector
 
                             // Create a new frame for this entity
                             Frame frame = new Frame();
-                            frame.time = Time.time - startedRecordingTime;
+                            //frame.time = Time.time - startedRecordingTime;
+                            frame.time = clipTime;
 
 
                             // Capture the property's data
@@ -305,34 +375,103 @@ void updateEntityFrameCounts()  // just so I can see them in inspector
             }
         }
 
-
-
-
-        // Debugging: Print the captured data
-            if (targetEntities != null && targetEntities.Count > 0 && false)
+        if (isPlaying)
+        {
+            incrementClipTime();
+            if (clipTime > clipLength)  // reset clipTime if it goes past the end of the clip
             {
-                foreach (var target in targetEntities)
+                if (isLooping)
+                    clipTime = 0;
+                else
                 {
-                    if (target != null && target.entity != null)
+                    // ???
+                }
+            }
+
+
+            // Loop through each entity and its properties, capturing their data
+            foreach (var entity in entities)
+            {
+                if (entity != null && entity.entity != null)
+                {
+                    // Capture the data for each property
+                    foreach (var property in entity.properties)
                     {
-                        var entity = target.entity;
-
-                        var bytes = Capture(entity);
-                        Print(bytes, "Captured Entity Data");
-
-                        print("entity properties count: " + entity.properties.Count);
-                        foreach (var property in entity.properties)
+                        if (property.canRecord)
                         {
-                            print("Property: gameObject " + property.gameObject + " animatedComponent " + property.animatedComponent + " obj " + property.obj);
-                            if (property.netData != null)
+                            if (property.property.netData == null)
+                                continue;
+
+                            int frameIndex = FindFrameBefore(property.frames, clipTime);
+                            if (frameIndex == -1)
                             {
-                                bytes = Capture(property.netData);
-                                Print(bytes, "Property Data");
+                                // Clip time is before first frame; play that frame
+                                frameIndex = 0;
                             }
+
+                            // TODO interpolation between frames
+
+                            // Get the frame data
+                            byte[] frameData = property.frames[frameIndex].data;
+
+
+
+                            // apply frame
+
+                            //property.property.netData = Playback<Multi.INetData>(frameData); 
+                            property.property.netData = Playback<Multi.NetData>(frameData);
+
+                            property.property.setCurrentValue(property.property.netData.GetData()); // apply the data to the property
+                            
+                            
+                            // If you know the concrete type of netData, use it here instead of Multi.INetData.
+                            // For example, if netData is always of type MyNetData, use Playback<MyNetData>(frameData).
+                            // Otherwise, you must use the correct type argument explicitly.
+                            // Example:
+                            // property.property.netData = Playback<MyNetData>(frameData);
+
+                            // If you need to support multiple types, you may need to store the type info and use reflection or a type switch.
+                            // localProp.netData = data;   // idk if this helps
+                            // localProp.setCurrentValue(data.GetData());
+
                         }
                     }
                 }
             }
+        }
+
+
+
+
+
+
+
+
+        // Debugging: Print the captured data
+        if (targetEntities != null && targetEntities.Count > 0 && false)
+        {
+            foreach (var target in targetEntities)
+            {
+                if (target != null && target.entity != null)
+                {
+                    var entity = target.entity;
+
+                    var bytes = Capture(entity);
+                    Print(bytes, "Captured Entity Data");
+
+                    print("entity properties count: " + entity.properties.Count);
+                    foreach (var property in entity.properties)
+                    {
+                        print("Property: gameObject " + property.gameObject + " animatedComponent " + property.animatedComponent + " obj " + property.obj);
+                        if (property.netData != null)
+                        {
+                            bytes = Capture(property.netData);
+                            Print(bytes, "Property Data");
+                        }
+                    }
+                }
+            }
+        }
 
     }
 
@@ -345,6 +484,37 @@ void updateEntityFrameCounts()  // just so I can see them in inspector
         // Decimal view
         Debug.Log($"{label} (dec): {string.Join(", ", bytes)}");
     }
+
+
+    /// <summary>
+    /// Returns the index of the frame whose time is the last one < clipTime.
+    /// Returns -1 if no such frame exists (i.e. clipTime is before the first frame).
+    /// Assumes property.frames is sorted ascending by Frame.time.
+    /// </summary>
+    public static int FindFrameBefore(List<Frame> frames, float clipTime)   // TODO could I prime this with the last frame index, so it doesn't have to start from 0 every time? Probably thrashing the cache
+    {
+        int lo = 0;
+        int hi = frames.Count - 1;
+        int result = -1;               // keeps track of best candidate so far
+
+        while (lo <= hi)
+        {
+            int mid = (lo + hi) >> 1;  // faster int division by 2
+
+            if (frames[mid].time < clipTime)
+            {
+                result = mid;          // mid is valid—search right half for a later one
+                lo = mid + 1;
+            }
+            else                       // mid.time >= clipTime → search left half
+            {
+                hi = mid - 1;
+            }
+        }
+        return result;
+    }
+
+
 
 
 
