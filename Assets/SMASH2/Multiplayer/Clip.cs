@@ -302,12 +302,18 @@ public class Clip : MonoBehaviour
 
             if (serializer.IsReader)
             {
-                byte[] bytes = Capture(syncedProperty.netData);
-                Print(bytes, "Captured Property frames Data");
+                // byte[] bytes = Capture(syncedProperty.netData);
+                // Print(bytes, "Captured Property frames Data for " + info);
 
                 syncedProperty.setCurrentValue(syncedProperty.netData.GetData()); // apply the data to the script variable
 
-                print("frames count: " + frames.Count);
+                // print("frames count: " + frames.Count);
+                // if (frames.Count > 50)
+                // {
+                //     Print(frames[0].data, "frame 0");
+                //     Print(frames[50].data, "frame 50");
+                //     //print("frame 1 time: " + frames[0].data.ToString() + " frame 2 time: " + frames[1].data.ToString());
+                // }
             }
 
         }
@@ -470,18 +476,28 @@ void updateFrameCountsDisplay()  // just so I can see them in inspector
                 int netPropCount = netEntity.properties.Count;
                 int recPropCount = entity.properties.Count;
                 
-                if (netPropCount != recPropCount)
+                if (entity.reassignEntityRefs.entity == null)
                 {
-                    Debug.LogError("Entity " + entity.info + "'s reassignEntityRefs: " + entity.reassignEntityRefs + " have different property counts; netPropCount " + netPropCount + " vs recPropCount " + recPropCount);
+                    Debug.LogError("Entity " + entity.info + "'s reassignEntityRefs is null; skipping reassignEntityRefs");
                     entity.reassignEntityRefs = null;
-                    continue; // skip this entity if the property counts don't match
+                    continue; // skip this entity if the reassignEntityRefs is null
                 }
+                
+                if (netPropCount != recPropCount)
+                    {
+                        Debug.LogError("Entity " + entity.info + "'s reassignEntityRefs: " + entity.reassignEntityRefs + " have different property counts; netPropCount " + netPropCount + " vs recPropCount " + recPropCount);
+                        entity.reassignEntityRefs = null;
+                        continue; // skip this entity if the property counts don't match
+                    }
                 print("Reassigning " + netPropCount + " properties of entity " + entity.info + " to reference " + entity.reassignEntityRefs + " properties instead.");
                 //print("Reassigning " + netPropCount + " properties of entity " + entity
 
                 //reassignPropertyRefs
                 // Just lines up properties using their indices; Fragile...
                 //foreach (var property in entity.properties)
+                entity.entity = netEntity;
+                //entity.parentScript = netEntity.parentScript; // reassign parentScript to the new entity's parentScript
+                entity.parentClip = this;   // unncessary?
                 for (int i = 0; i < netPropCount; i++)
                 {
                     entity.properties[i].reassignPropertyRefs(netEntity.properties[i]);
@@ -624,17 +640,23 @@ void updateFrameCountsDisplay()  // just so I can see them in inspector
                 // Loop through each entity and its properties, capturing their data
                 foreach (var entity in entities)
                 {
-
+                    //print("1");
+                    // print(entity);
+                    // print(entity.entity);
+                    // print(entity.entity.parentScript);
                     if (entity != null && entity.entity != null && entity.entity.parentScript != null)
                     {
+                        //print("2");
                         // Capture the data for each property
                         foreach (var property in entity.properties)
                         {
+                            //print("3");
                             if (property.canRecord)
                             {
+                                //print("4");
                                 if (property.property.netData == null)
                                     continue;
-
+                                //print("5");
                                 int frameIndex = FindFrameBefore(property.frames, clipTime);
                                 if (frameIndex == -1)
                                 {
@@ -655,6 +677,15 @@ void updateFrameCountsDisplay()  // just so I can see them in inspector
                                 property.property.netData = Playback<Multi.NetData>(frameData);
 
                                 property.property.setCurrentValue(property.property.netData.GetData()); // apply the data to the script variable
+                                //print("6");
+                                // if (property.gameObject.name.Contains("Body") && property.property.obj is Transform)
+                                // {
+                                //     print("Playing back property: " + property.info + " at time: " + clipTime + " frameIndex: " + frameIndex);
+                                //     print("Property data: " + property.property.netData.GetData());
+                                //     print("property.property.obj " + property.property.obj + " null: " + null);
+                                //     Print(frameData, "Playback frame data");
+                                //     //print("Property data: " + property.property.netData.GetData());
+                                // }
 
 
                             }
