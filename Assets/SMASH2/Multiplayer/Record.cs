@@ -400,7 +400,8 @@ public class Record : MonoBehaviour
 
             frames = new List<FrameData>();
 
-            frameDataFactory(this, 0);  // Will log an error if the frame type isn't supported. (Note: causes a bit of garbage collection)
+            // Disabled for 2025 system
+            //frameDataFactory(this, 0);  // Will log an error if the frame type isn't supported. (Note: causes a bit of garbage collection)
         }
 
         /// <summary>
@@ -447,7 +448,7 @@ public class Record : MonoBehaviour
                     }
                 }
                 if (obj == null)
-                    Debug.LogError("Reflection failed");
+                    Debug.LogError("Reflection failed for " + _animatedObject.ToString());
 
                 finishConstructor();
             }

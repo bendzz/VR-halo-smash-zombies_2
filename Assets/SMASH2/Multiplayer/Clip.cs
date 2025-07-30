@@ -219,18 +219,33 @@ public class Clip : MonoBehaviour
         // TODO in curve handle, out curve handle, etc. Like unity frames
     }
 
-    
-    
-    
-    
-    
 
+
+
+    // FILE I/O
+
+    /// <summary>
+    /// Used to save/load the clip to/from a file; Stores all the recordings. Piggybacks off Multiplayer code, but isn't network synced
+    /// </summary>
+    List<Multi.SyncedProperty> clipProperties;
+    [Tooltip("Saves to a file the moment you press this")]
+    public bool SaveFileNow = false;
+
+    [Tooltip("WIP! NOT FUNCTIONAL YET!")]   // TODO
+    public bool SaveFileOnExit = false;
+
+
+
+
+
+
+
+
+
+    public Dictionary<float, int> tempDict;
 
     public void Start()
     {
-        // Initialize the byte array or list if needed
-        //byteList = new List<byte>();
-        //byteArray = new byte[0]; // or initialize with a specific size if needed
 
         filePath = Path.Combine(Application.persistentDataPath, "smashRecording.dat");
 
@@ -242,12 +257,19 @@ public class Clip : MonoBehaviour
         }
 
 
-        // var bytes = Capture(testChar.entity);
-        // print("bytes " + bytes);
+
+        //tempDict = new Dictionary<string, int> { { "Alice", 10 }, { "Bob", 20 }, { "Carol", 30 } };
+        tempDict = new Dictionary<float, int> { { .1f, 10 }, { .2f, 20 }, { .3f, 30 } };
 
 
-        //BufferSerializer<IReaderWriter> serializer = new BufferSerializer<IReaderWriter>();
+        // I/O
+        clipProperties = new List<Multi.SyncedProperty>();
 
+        //clipProperties.Add(new Multi.SyncedProperty(Multi.SyncedProperty.invalidIdentifier, this, netBehaviourInfos, gameObject, Multi.instance.clip, true));
+        clipProperties.Add(new Multi.SyncedProperty(Multi.SyncedProperty.invalidIdentifier, this, tempDict, gameObject, Multi.instance.clip, true));
+        //clipProperties.Add(new Multi.SyncedProperty(Multi.SyncedProperty.invalidIdentifier, this, entities, gameObject, Multi.instance.clip, true));
+        
+        print("clipProperties count: " + clipProperties.Count);
     }
 
 
@@ -506,6 +528,45 @@ void updateEntityFrameCounts()  // just so I can see them in inspector
             }
         }
 
+
+        // File I/O
+        if (SaveFileNow)
+        {
+            SaveFileNow = false;
+
+            print("clipProperties " + clipProperties.Count);
+
+            //clipProperties
+            foreach (var property in clipProperties)
+            {
+                if (property == null)
+                    continue;
+
+                //property.netData.setData();
+                property.netData = new Multi.NetData(property.getCurrentValue());
+
+                byte[] bytes = Capture(property.netData);
+                Print(bytes, "Captured Clip Property Data");
+
+
+
+
+
+                //Multi.NetData temp = new Multi.NetData();
+                //temp = Playback<Multi.NetData>(bytes);
+                property.netData = Playback<Multi.NetData>(bytes);
+
+                Dictionary<float, int> dict = property.netData.GetData() as Dictionary<float, int>;
+
+                print("dict count: " + dict.Count);
+                foreach (KeyValuePair<float, int> kvp in dict)   // use your real key/value types
+                {
+                    print("key = " + kvp.Key + ", value = " + kvp.Value);
+                }
+                print("Done");
+
+            }
+        }
 
 
 

@@ -1622,6 +1622,9 @@ public class Multi : NetworkBehaviour
         private int _dataType = 0;
         private bool isList = false;
         private bool isObjectList = false;
+        private bool isDictionary = false;
+        private int _dataType2 = 0; // For dictionaries; key/value pair is <_dataType, _dataType2>
+
 
         public NetData()
         {
@@ -1644,10 +1647,21 @@ public class Multi : NetworkBehaviour
             if (data is object[])
             {
                 isObjectList = true;
-            } else if (data is IList)   // object[] arrays/lists will trigger this too, then cause an error lol
+            }
+            else if (data is IList)   // object[] arrays/lists will trigger this too, then cause an error lol
             {
                 isList = true;
                 _dataType = TypeToInt.Int(data.GetType().GetGenericArguments()[0]);
+            }
+            else if (data is IDictionary)
+            {
+                isDictionary = true;
+                // _dataType = TypeToInt.Int(data.GetType().GetGenericArguments()[0]);
+                // _dataType2 = TypeToInt.Int(data.GetType().GetGenericArguments()[1]);
+                var args = data.GetType().GetGenericArguments(); // grabs both TKey and TValue
+                _dataType = TypeToInt.Int(args[0]);  // key type
+                _dataType2 = TypeToInt.Int(args[1]);  // value type
+                //print("Dictionary data type: " + _dataType + " " + _dataType2);
             }
             else
                 _dataType = TypeToInt.Int(data.GetType());
@@ -1679,8 +1693,10 @@ public class Multi : NetworkBehaviour
             // these calls handle both sending/serializing data and receiving/deserializing data
             // TODO combine bools into int binary flags to save space
             serializer.SerializeValue(ref isList);
+            serializer.SerializeValue(ref isDictionary);
             serializer.SerializeValue(ref isObjectList);
             serializer.SerializeValue(ref _dataType);
+            serializer.SerializeValue(ref _dataType2);
 
 
             if (isObjectList)
@@ -1781,6 +1797,78 @@ public class Multi : NetworkBehaviour
                 //    serializer.SerializeValue(ref item, itemType);
                 //}
                 //}
+            }
+            else if (isDictionary)
+            {
+                int dictCount = 0;
+                if (serializer.IsWriter)
+                    dictCount = ((IDictionary)_data).Count;
+                serializer.SerializeValue(ref dictCount);
+
+                Type keyType = TypeToInt.Type(_dataType);      // e.g. typeof(int)
+                Type valueType = TypeToInt.Type(_dataType2);     // e.g. typeof(string)
+
+                if (serializer.IsReader)
+                    //_data = Activator.CreateInstance(typeof(List<>).MakeGenericType(TypeToInt.Type(_dataType)), dictCount);
+                    //_data = Activator.CreateInstance(typeof(Dictionary<,>).MakeGenericType(TypeToInt.Type(_dataType), typeof(object)), dictCount);
+                    //_data = Activator.CreateInstance(typeof(Dictionary<,>).MakeGenericType(TypeToInt.Type(_dataType), TypeToInt.Type(_dataType2)), dictCount);
+                    _data = Activator.CreateInstance(typeof(Dictionary<,>).MakeGenericType(keyType, valueType),dictCount);   
+                    
+
+                // do list
+                // Get the type of the items in the list
+                //Type itemType = TypeToInt.Type(_dataType);
+                //Type itemType = TypeToInt.Type(_dataType);
+
+                // Cast the _data to an IList for easier manipulation
+                IDictionary dict = (IDictionary)_data;
+
+                if (instance.debug)
+                    print("Serializing dictionary with " + dictCount + " IsWriter " + serializer.IsWriter);
+
+
+                IEnumerator enumWriter = null;
+                if (serializer.IsWriter)
+                    enumWriter = dict.GetEnumerator();  // To loop through the dictionary like it were a list
+                DictionaryEntry entry;
+
+                //for (int i = 0; i < dictCount; i++)
+                //foreach(KeyValuePair<object, object> kvp in dict)
+                //foreach (DictionaryEntry kvp in (IDictionary)dict)
+                for (int i = 0; i < dictCount; i++)
+                {
+                    if (serializer.IsWriter)
+                    {
+                        enumWriter.MoveNext();
+                        entry = (DictionaryEntry)enumWriter.Current;
+                        // key = entry.Key;
+                        // value = entry.Value;
+                    }
+
+
+                    // ----- KEY -----
+                    object key = Activator.CreateInstance(keyType);
+                    //object key = null;
+                    if (serializer.IsWriter)
+                        //key = ((IDictionary)_data)[i];   // pull real key
+                        //key = kvp.Key;   // pull real key
+                        key = entry.Key; 
+                    key = serializeVariable(key, _dataType, serializer);
+
+                    // ----- VALUE -----
+                    object value = Activator.CreateInstance(valueType);
+                    if (serializer.IsWriter)
+                        //value = ((IDictionary)_data)[key]; // dict lookup
+                        //value = kvp.Value;  // dict lookup
+                        value = entry.Value; 
+                    value = serializeVariable(value, _dataType2, serializer);
+
+                    // ----- ADD TO DICT WHEN READING -----
+                    if (serializer.IsReader)
+                        dict.Add(key, value);
+
+                    //print("key " + key + " value " + value + " type " + keyType + " " + valueType);
+                }
             }
             else
             {
