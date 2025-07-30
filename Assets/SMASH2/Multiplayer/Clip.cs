@@ -58,6 +58,19 @@ public class Clip : MonoBehaviour
     public static Clip currentlyLoadingClip;
 
 
+    // FILE I/O
+
+    /// <summary>
+    /// Used to save/load the clip to/from a file; Stores all the recordings. Piggybacks off Multiplayer code, but isn't network synced
+    /// </summary>
+    List<Multi.SyncedProperty> clipProperties;
+    [Tooltip("Saves to a file the moment you press this")]
+    public bool SaveFileNow = false;
+
+    [Tooltip("WIP! NOT FUNCTIONAL YET!")]   // TODO
+    public bool SaveFileOnExit = false;
+
+
 
 
 
@@ -148,8 +161,7 @@ public class Clip : MonoBehaviour
                 //syncedProperty.netData = Playback<Multi.NetData>(bytes);
                 syncedProperty.setCurrentValue(syncedProperty.netData.GetData()); // apply the data to the script variable
 
-                //print("Entity.NetworkSerialize: Reading syncedProperty.netData: " + syncedProperty.netData);
-                print("property count: " + properties.Count);
+                //print("property count: " + properties.Count);
             }
 
 
@@ -243,7 +255,9 @@ public class Clip : MonoBehaviour
         public int frameCount = 0;
 
 
-        public Property() { }  // default constructor for serialization
+
+        public Property()
+        { frames = new List<Frame>(); }  // default constructor for serialization
 
         public Property(Entity _entity, Multi.SyncedProperty _proprerty)
         {
@@ -266,39 +280,64 @@ public class Clip : MonoBehaviour
             //    info = "Property: (No entity set) " + property.gameObject.name + " " + property.animatedComponent + " " + property.obj;
         }
 
+
+
+        /// <summary>
+        /// Serializes the frames list for file I/O
+        /// </summary>
+        Multi.SyncedProperty syncedProperty;
+
         public void NetworkSerialize<T>(BufferSerializer<T> serializer) where T : IReaderWriter // for file I/O
         {
             serializer.SerializeValue(ref info);
             //serializer.SerializeValue(ref gameObject);
             serializer.SerializeValue(ref canPlayBack);
             serializer.SerializeValue(ref canRecord);
+
+
+            syncedProperty = new Multi.SyncedProperty(Multi.SyncedProperty.invalidIdentifier, this, frames, currentlyLoadingClip.gameObject, Multi.instance.clip, true);
+            syncedProperty.netData = new Multi.NetData(syncedProperty.getCurrentValue());
+
+            serializer.SerializeValue(ref syncedProperty.netData);  // save the frames list
+
+            if (serializer.IsReader)
+            {
+                byte[] bytes = Capture(syncedProperty.netData);
+                Print(bytes, "Captured Property frames Data");
+
+                syncedProperty.setCurrentValue(syncedProperty.netData.GetData()); // apply the data to the script variable
+
+                print("frames count: " + frames.Count);
+            }
+
         }
 
     }
 
+
+
     //[Serializable]
-    public class Frame
+    public class Frame : INetworkSerializable
     {
         public float time;
         public byte[] data; // byte array
-        
+
         // TODO in curve handle, out curve handle, etc. Like unity frames
+
+
+
+        public void NetworkSerialize<T>(BufferSerializer<T> serializer) where T : IReaderWriter // for file I/O
+        {
+            serializer.SerializeValue(ref time);
+            serializer.SerializeValue(ref data);
+            //print("Frame.NetworkSerialize: time: " + time + " data length: " + data.Length);
+        }
     }
 
 
 
 
-    // FILE I/O
 
-    /// <summary>
-    /// Used to save/load the clip to/from a file; Stores all the recordings. Piggybacks off Multiplayer code, but isn't network synced
-    /// </summary>
-    List<Multi.SyncedProperty> clipProperties;
-    [Tooltip("Saves to a file the moment you press this")]
-    public bool SaveFileNow = false;
-
-    [Tooltip("WIP! NOT FUNCTIONAL YET!")]   // TODO
-    public bool SaveFileOnExit = false;
 
 
 
@@ -359,7 +398,7 @@ public class Clip : MonoBehaviour
 
 
 
-void updateEntityFrameCounts()  // just so I can see them in inspector
+void updateFrameCountsDisplay()  // just so I can see them in inspector
     {
         // loop through entities and update their frame counts
         foreach (var entity in entities)
@@ -468,7 +507,7 @@ void updateEntityFrameCounts()  // just so I can see them in inspector
             else if (!isRecording && wasRecording)  // recording just stopped
             {
                 wasRecording = isRecording;
-                updateEntityFrameCounts();
+                updateFrameCountsDisplay();
                 //print("Recording stopped at " + Time.time + ". Duration: " + (Time.time - startedRecordingTime));
                 print("Recording stopped at " + Time.time + ". New duration: " + clipLength);
             }
@@ -660,6 +699,8 @@ void updateEntityFrameCounts()  // just so I can see them in inspector
                 property.setCurrentValue(property.netData.GetData()); // apply the data to the script variable
 
 
+
+                updateFrameCountsDisplay();
 
                 // Dictionary<float, int> dict = property.netData.GetData() as Dictionary<float, int>;
 

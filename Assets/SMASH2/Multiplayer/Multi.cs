@@ -1096,8 +1096,8 @@ public class Multi : NetworkBehaviour
     // TODO decouple from Record.cs
     
     /// <summary>
-    /// Multiplayer synced and recorded/played-back property, for animating a variable or method in another script
-    /// (Doesn't seem to work when you make one for a variable in the current script, only other scripts? Can't read its data? Idk. TODO, test more)
+    /// Multiplayer synced and recorded/played-back property, for animating a (public) variable or method in another script
+    /// (Doesn't seem to work when you make one for a variable in the current script, only other scripts? Can't read its data? Idk. TODO, test more) (EDIT I think this works fine now)
     /// </summary>
     public class SyncedProperty : Record.AnimatedProperty
     {
@@ -1579,6 +1579,8 @@ public class Multi : NetworkBehaviour
             if (type == typeof(ulong)) return 10;
             if (type == typeof(Clip.Entity)) return 11;
             if (type == typeof(Clip.Property)) return 12;
+            if (type == typeof(Clip.Frame)) return 13;
+            if (type == typeof(byte)) return 14;
             // ... Add other types as needed
 
             throw new ArgumentException("Unsupported type: " + type);
@@ -1603,6 +1605,8 @@ public class Multi : NetworkBehaviour
                 case 10: return typeof(ulong);
                 case 11: return typeof(Clip.Entity);
                 case 12: return typeof(Clip.Property);
+                case 13: return typeof(Clip.Frame);
+                case 14: return typeof(byte);
                 // ... Add other types as needed
 
                 default: throw new ArgumentException("Unsupported code: " + code);
@@ -1915,7 +1919,7 @@ public class Multi : NetworkBehaviour
         }
 
 
-        // Why did I make this capable of doing ints and floats etc, stuff the built in BufferSerializer.cs can do??
+        // Why did I make this capable of doing ints and floats etc, stuff the built in BufferSerializer.cs can do?? ...Is it neccessary for this generic system, to turn object data back to original types?
 
         /// <summary>
         /// sends and receives arbitrary variables/objects (but not lists)
@@ -2027,6 +2031,25 @@ public class Multi : NetworkBehaviour
                         CPropertyData = new Clip.Property();
                     serializer.SerializeValue(ref CPropertyData);
                     _data = CPropertyData;
+                    break;
+
+                case int when _dataType == TypeToInt.Int(typeof(Clip.Frame)):
+                    Clip.Frame CFrameData;
+                    if (serializer.IsWriter)
+                        CFrameData = (Clip.Frame)_data;
+                    else
+                        CFrameData = new Clip.Frame();
+                    serializer.SerializeValue(ref CFrameData);
+                    _data = CFrameData;
+                    break;
+
+                // Generic types
+                case int when _dataType == TypeToInt.Int(typeof(byte)):
+                    byte byteData = 0;
+                    if (serializer.IsWriter)
+                        byteData = (byte)_data;
+                    serializer.SerializeValue(ref byteData);
+                    _data = byteData;
                     break;
 
                 // ... add other types similarly
