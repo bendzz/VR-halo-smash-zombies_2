@@ -1556,6 +1556,8 @@ public class Multi : NetworkBehaviour
 
 
 
+    // Why did I make a custom serializer for these sorts of primitives? I know the built in serializer can do ints etc
+    
     /// <summary>
     /// For passing variable Types over the network with minimal bandwidth. Speedy, uses IFs/switches
     /// </summary>
@@ -1575,6 +1577,8 @@ public class Multi : NetworkBehaviour
             if (type == typeof(bool)) return 8;
             if (type == typeof(Color)) return 9;
             if (type == typeof(ulong)) return 10;
+            if (type == typeof(Clip.Entity)) return 11;
+            if (type == typeof(Clip.Property)) return 12;
             // ... Add other types as needed
 
             throw new ArgumentException("Unsupported type: " + type);
@@ -1597,6 +1601,8 @@ public class Multi : NetworkBehaviour
                 case 8: return typeof(bool);
                 case 9: return typeof(Color);
                 case 10: return typeof(ulong);
+                case 11: return typeof(Clip.Entity);
+                case 12: return typeof(Clip.Property);
                 // ... Add other types as needed
 
                 default: throw new ArgumentException("Unsupported code: " + code);
@@ -1664,7 +1670,11 @@ public class Multi : NetworkBehaviour
                 //print("Dictionary data type: " + _dataType + " " + _dataType2);
             }
             else
+            {
+                //print("data " + data);
                 _dataType = TypeToInt.Int(data.GetType());
+                //print("data type: " + _dataType);
+            }
         }
 
         /// <summary>
@@ -1904,6 +1914,9 @@ public class Multi : NetworkBehaviour
             //}   //  /unsafe
         }
 
+
+        // Why did I make this capable of doing ints and floats etc, stuff the built in BufferSerializer.cs can do??
+
         /// <summary>
         /// sends and receives arbitrary variables/objects (but not lists)
         /// </summary>
@@ -1993,6 +2006,27 @@ public class Multi : NetworkBehaviour
                         ulongData = (ulong)_data;
                     serializer.SerializeValue(ref ulongData);
                     _data = ulongData;
+                    break;
+
+                // Clip.cs stuff
+                case int when _dataType == TypeToInt.Int(typeof(Clip.Entity)):
+                    Clip.Entity CEntityData;
+                    if (serializer.IsWriter)
+                        CEntityData = (Clip.Entity)_data;
+                    else
+                        CEntityData = new Clip.Entity();
+                    serializer.SerializeValue(ref CEntityData);
+                    _data = CEntityData;
+                    break;
+
+                case int when _dataType == TypeToInt.Int(typeof(Clip.Property)):
+                    Clip.Property CPropertyData;
+                    if (serializer.IsWriter)
+                        CPropertyData = (Clip.Property)_data;
+                    else
+                        CPropertyData = new Clip.Property();
+                    serializer.SerializeValue(ref CPropertyData);
+                    _data = CPropertyData;
                     break;
 
                 // ... add other types similarly

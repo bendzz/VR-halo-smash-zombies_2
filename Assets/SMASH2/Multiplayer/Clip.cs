@@ -1,5 +1,5 @@
 // TODO LATER:
-// - Every transform/velocity frame gets recorded; need a way to ignore tiny changes, only record unique frames
+// - Currently about every transform/velocity frame gets recorded; need a way to ignore tiny changes, only record unique frames
 
 using System;
 using System.Collections;
@@ -52,7 +52,10 @@ public class Clip : MonoBehaviour
     [Tooltip("End 'end' of the clip. (Note, frames might go past this if the code screws up)")]
     public float clipLength = 0;
     
-
+    /// <summary>
+    /// When a clip is loading entities/properties, the newly spawned ones don't know which clip/script they belong to, so they read this. (It's seriallizer weirdness)
+    /// </summary>
+    public static Clip currentlyLoadingClip;
 
 
 
@@ -103,7 +106,7 @@ public class Clip : MonoBehaviour
     Dictionary<NetBehaviour, Entity> entityLookup = new Dictionary<NetBehaviour, Entity>();
 
     [Serializable]
-    public class Entity
+    public class Entity : INetworkSerializable
     {
         [HideInInspector]
         public string info;
@@ -111,6 +114,78 @@ public class Clip : MonoBehaviour
         [HideInInspector]
         [SerializeReference]    // avoid infinite loops during serialization
         public Clip parentClip;
+
+
+        //Multi.NetData netData;
+
+        /// <summary>
+        /// Serializes the properties list for file I/O
+        /// </summary>
+        Multi.SyncedProperty syncedProperty;   
+        
+        public void NetworkSerialize<T>(BufferSerializer<T> serializer) where T : IReaderWriter // Not for multiplayer; for saving/loading clips to files
+        {
+
+            serializer.SerializeValue(ref info);
+            //serializer.SerializeReference(ref parentClip);
+
+            //if (serializer.IsReader)
+            //    print("Entity.NetworkSerialize: Reading info: " + info);
+
+            if (serializer.IsReader)
+                parentClip = currentlyLoadingClip; // newly spawned entities don't know which clip they belong to
+                
+
+            syncedProperty = new Multi.SyncedProperty(Multi.SyncedProperty.invalidIdentifier, this, properties, parentClip.gameObject, Multi.instance.clip, true);
+            syncedProperty.netData = new Multi.NetData(syncedProperty.getCurrentValue());
+
+            byte[] bytes = Capture(syncedProperty.netData);
+            Print(bytes, "Captured Clip Property Data");
+
+            serializer.SerializeValue(ref syncedProperty.netData);
+
+            if (serializer.IsReader)
+            {
+                //syncedProperty.netData = Playback<Multi.NetData>(bytes);
+                syncedProperty.setCurrentValue(syncedProperty.netData.GetData()); // apply the data to the script variable
+
+                print("Entity.NetworkSerialize: Reading syncedProperty.netData: " + syncedProperty.netData);
+                print("property count: " + properties.Count);
+            }
+
+            // //if (properties != null)
+            // int propertiesCount = 0;
+            // if (serializer.IsWriter)
+            //     propertiesCount = properties.Count;
+            // serializer.SerializeValue(ref propertiesCount);
+
+            // if (propertiesCount > 0)
+            // {
+            //     print("propertiesCount: " + propertiesCount);
+
+            //     netData = new Multi.NetData(properties);
+
+            //     //byte[] bytes = Capture(netData);
+            //     //Print(bytes, "Captured entity's properties Data");
+
+            //     serializer.SerializeValue(ref netData);
+
+            //     if (serializer.IsReader)
+            //     {
+            //         print("Entity.NetworkSerialize: Reading netData: " + netData);
+            //         //print("Entity.NetworkSerialize: Reading netData: " + netData.GetData());
+
+
+            //     }
+
+
+            // }
+
+
+            // TODO serialize the bytes
+            // TODO deserialize too
+
+        }
 
         /// <summary>
         /// Original entity
@@ -126,6 +201,9 @@ public class Clip : MonoBehaviour
         // bool old_IsOwner = false;   // TODO
 
 
+
+        public Entity()
+        { properties = new List<Property>(); }  // default constructor for serialization
 
         // constrauctor
         public Entity(Multi.Entity entity, Clip clip)
@@ -164,22 +242,27 @@ public class Clip : MonoBehaviour
         }
     }
 
- 
+
+
+
     [Serializable]
-    public class Property
+    public class Property : INetworkSerializable
     {
         [HideInInspector]
         public string info;
 
         public GameObject gameObject;   // display for debugging
-        
-        
+
+
         public bool canPlayBack = true;
+
+
+
         public bool canRecord = true;
 
         [HideInInspector]
         [SerializeReference]    // Tell it not to serialize the whole parent object or you get an infinite loop and unity hardlocks
-        public Entity parentEntity; 
+        public Entity parentEntity;
 
         public Multi.SyncedProperty property;
 
@@ -191,6 +274,8 @@ public class Clip : MonoBehaviour
         [Tooltip("(Only updated periodically, or the editor lags)")]
         public int frameCount = 0;
 
+
+        public Property() { }  // default constructor for serialization
 
         public Property(Entity _entity, Multi.SyncedProperty _proprerty)
         {
@@ -206,6 +291,13 @@ public class Clip : MonoBehaviour
             //    info = "Property: (No entity set) " + property.gameObject.name + " " + property.animatedComponent + " " + property.obj;
 
             frames = new List<Frame>();
+        }
+
+        public void NetworkSerialize<T>(BufferSerializer<T> serializer) where T : IReaderWriter // for file I/O
+        {
+            serializer.SerializeValue(ref info);
+            //serializer.SerializeValue(ref gameObject);
+            serializer.SerializeValue(ref canPlayBack);
         }
 
     }
@@ -242,7 +334,7 @@ public class Clip : MonoBehaviour
 
 
 
-    public Dictionary<float, int> tempDict;
+    //public Dictionary<float, int> tempDict;
 
     public void Start()
     {
@@ -259,15 +351,17 @@ public class Clip : MonoBehaviour
 
 
         //tempDict = new Dictionary<string, int> { { "Alice", 10 }, { "Bob", 20 }, { "Carol", 30 } };
-        tempDict = new Dictionary<float, int> { { .1f, 10 }, { .2f, 20 }, { .3f, 30 } };
+        //tempDict = new Dictionary<float, int> { { .1f, 10 }, { .2f, 20 }, { .3f, 30 } };
 
 
         // I/O
         clipProperties = new List<Multi.SyncedProperty>();
 
         //clipProperties.Add(new Multi.SyncedProperty(Multi.SyncedProperty.invalidIdentifier, this, netBehaviourInfos, gameObject, Multi.instance.clip, true));
-        clipProperties.Add(new Multi.SyncedProperty(Multi.SyncedProperty.invalidIdentifier, this, tempDict, gameObject, Multi.instance.clip, true));
-        //clipProperties.Add(new Multi.SyncedProperty(Multi.SyncedProperty.invalidIdentifier, this, entities, gameObject, Multi.instance.clip, true));
+        //clipProperties.Add(new Multi.SyncedProperty(Multi.SyncedProperty.invalidIdentifier, this, tempDict, gameObject, Multi.instance.clip, true));
+        
+        clipProperties.Add(new Multi.SyncedProperty(Multi.SyncedProperty.invalidIdentifier, this, entities, gameObject, Multi.instance.clip, true));
+        
         
         print("clipProperties count: " + clipProperties.Count);
     }
@@ -276,7 +370,8 @@ public class Clip : MonoBehaviour
     public static byte[] Capture<T>(in T value, int initialCap = 1024)
         where T : INetworkSerializable
     {
-        using var writer = new FastBufferWriter(initialCap, Allocator.Temp);
+        //using var writer = new FastBufferWriter(initialCap, Allocator.Temp);
+        using var writer = new FastBufferWriter( 1024, allocator: Allocator.Temp, int.MaxValue);       // grow as needed (≈2 GB)
         writer.WriteNetworkSerializable(in value);   // reuse your code
         return writer.ToArray();
     }
@@ -517,7 +612,7 @@ void updateEntityFrameCounts()  // just so I can see them in inspector
                                 //property.property.netData = Playback<Multi.INetData>(frameData); 
                                 property.property.netData = Playback<Multi.NetData>(frameData);
 
-                                property.property.setCurrentValue(property.property.netData.GetData()); // apply the data to the property
+                                property.property.setCurrentValue(property.property.netData.GetData()); // apply the data to the script variable
 
 
                             }
@@ -535,6 +630,8 @@ void updateEntityFrameCounts()  // just so I can see them in inspector
             SaveFileNow = false;
 
             print("clipProperties " + clipProperties.Count);
+
+            currentlyLoadingClip = this;
 
             //clipProperties
             foreach (var property in clipProperties)
@@ -554,15 +651,20 @@ void updateEntityFrameCounts()  // just so I can see them in inspector
 
                 //Multi.NetData temp = new Multi.NetData();
                 //temp = Playback<Multi.NetData>(bytes);
+
                 property.netData = Playback<Multi.NetData>(bytes);
 
-                Dictionary<float, int> dict = property.netData.GetData() as Dictionary<float, int>;
+                property.setCurrentValue(property.netData.GetData()); // apply the data to the script variable
 
-                print("dict count: " + dict.Count);
-                foreach (KeyValuePair<float, int> kvp in dict)   // use your real key/value types
-                {
-                    print("key = " + kvp.Key + ", value = " + kvp.Value);
-                }
+
+
+                // Dictionary<float, int> dict = property.netData.GetData() as Dictionary<float, int>;
+
+                // print("dict count: " + dict.Count);
+                // foreach (KeyValuePair<float, int> kvp in dict)   // use your real key/value types
+                // {
+                //     print("key = " + kvp.Key + ", value = " + kvp.Value);
+                // }
                 print("Done");
 
             }
