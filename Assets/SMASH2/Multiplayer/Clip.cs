@@ -115,6 +115,9 @@ public class Clip : MonoBehaviour
         [SerializeReference]    // avoid infinite loops during serialization
         public Clip parentClip;
 
+        [Tooltip("Reassigns scene refs; Dropping a NetBehaviour here will reassign these recordings to control that script/entity- If they match property counts")] 
+        public NetBehaviour reassignEntityRefs;
+
 
         //Multi.NetData netData;
 
@@ -127,10 +130,6 @@ public class Clip : MonoBehaviour
         {
 
             serializer.SerializeValue(ref info);
-            //serializer.SerializeReference(ref parentClip);
-
-            //if (serializer.IsReader)
-            //    print("Entity.NetworkSerialize: Reading info: " + info);
 
             if (serializer.IsReader)
                 parentClip = currentlyLoadingClip; // newly spawned entities don't know which clip they belong to
@@ -139,8 +138,8 @@ public class Clip : MonoBehaviour
             syncedProperty = new Multi.SyncedProperty(Multi.SyncedProperty.invalidIdentifier, this, properties, parentClip.gameObject, Multi.instance.clip, true);
             syncedProperty.netData = new Multi.NetData(syncedProperty.getCurrentValue());
 
-            byte[] bytes = Capture(syncedProperty.netData);
-            Print(bytes, "Captured Clip Property Data");
+            //byte[] bytes = Capture(syncedProperty.netData);
+            //Print(bytes, "Captured Clip Property Data");
 
             serializer.SerializeValue(ref syncedProperty.netData);
 
@@ -149,41 +148,10 @@ public class Clip : MonoBehaviour
                 //syncedProperty.netData = Playback<Multi.NetData>(bytes);
                 syncedProperty.setCurrentValue(syncedProperty.netData.GetData()); // apply the data to the script variable
 
-                print("Entity.NetworkSerialize: Reading syncedProperty.netData: " + syncedProperty.netData);
+                //print("Entity.NetworkSerialize: Reading syncedProperty.netData: " + syncedProperty.netData);
                 print("property count: " + properties.Count);
             }
 
-            // //if (properties != null)
-            // int propertiesCount = 0;
-            // if (serializer.IsWriter)
-            //     propertiesCount = properties.Count;
-            // serializer.SerializeValue(ref propertiesCount);
-
-            // if (propertiesCount > 0)
-            // {
-            //     print("propertiesCount: " + propertiesCount);
-
-            //     netData = new Multi.NetData(properties);
-
-            //     //byte[] bytes = Capture(netData);
-            //     //Print(bytes, "Captured entity's properties Data");
-
-            //     serializer.SerializeValue(ref netData);
-
-            //     if (serializer.IsReader)
-            //     {
-            //         print("Entity.NetworkSerialize: Reading netData: " + netData);
-            //         //print("Entity.NetworkSerialize: Reading netData: " + netData.GetData());
-
-
-            //     }
-
-
-            // }
-
-
-            // TODO serialize the bytes
-            // TODO deserialize too
 
         }
 
@@ -279,6 +247,13 @@ public class Clip : MonoBehaviour
 
         public Property(Entity _entity, Multi.SyncedProperty _proprerty)
         {
+            reassignPropertyRefs(_proprerty);
+
+            frames = new List<Frame>();
+        }
+
+        public void reassignPropertyRefs(Multi.SyncedProperty _proprerty)
+        {
             //parentEntity = _entity;
 
             property = _proprerty;
@@ -289,8 +264,6 @@ public class Clip : MonoBehaviour
             info = "Property: GO: " + property.gameObject.name + " AC: " + property.animatedComponent + " obj: " + property.obj;
             //else
             //    info = "Property: (No entity set) " + property.gameObject.name + " " + property.animatedComponent + " " + property.obj;
-
-            frames = new List<Frame>();
         }
 
         public void NetworkSerialize<T>(BufferSerializer<T> serializer) where T : IReaderWriter // for file I/O
@@ -298,6 +271,7 @@ public class Clip : MonoBehaviour
             serializer.SerializeValue(ref info);
             //serializer.SerializeValue(ref gameObject);
             serializer.SerializeValue(ref canPlayBack);
+            serializer.SerializeValue(ref canRecord);
         }
 
     }
@@ -345,7 +319,7 @@ public class Clip : MonoBehaviour
         if (clipName == null || clipName == "")
         {
             // Generate a default name if none is provided
-            clipName = "New Clip_ Date: " + DateTime.Now.ToString("yy/MM/dd_HH/mm/ss") + " RNG: " + Mathf.Round(UnityEngine.Random.Range(0f, 1000f)).ToString();
+            clipName = "Clip_ D: " + DateTime.Now.ToString("yy/MM/dd HH/mm/ss") + " RNG: " + Mathf.Round(UnityEngine.Random.Range(0f, 999f)).ToString();
         }
 
 
@@ -445,6 +419,35 @@ void updateEntityFrameCounts()  // just so I can see them in inspector
                         //print("Clip "+ this.gameObject +" added new entity: ");
                     }
                 }
+            }
+        }
+ 
+        // Loop all entities to check if they have a reassignEntityRefs set, use it if so
+        foreach (var entity in entities)
+        {
+            if (entity != null && entity.reassignEntityRefs != null)
+            {
+                Multi.Entity netEntity = entity.reassignEntityRefs.entity;
+                int netPropCount = netEntity.properties.Count;
+                int recPropCount = entity.properties.Count;
+                
+                if (netPropCount != recPropCount)
+                {
+                    Debug.LogError("Entity " + entity.info + "'s reassignEntityRefs: " + entity.reassignEntityRefs + " have different property counts; netPropCount " + netPropCount + " vs recPropCount " + recPropCount);
+                    entity.reassignEntityRefs = null;
+                    continue; // skip this entity if the property counts don't match
+                }
+                print("Reassigning " + netPropCount + " properties of entity " + entity.info + " to reference " + entity.reassignEntityRefs + " properties instead.");
+                //print("Reassigning " + netPropCount + " properties of entity " + entity
+
+                //reassignPropertyRefs
+                // Just lines up properties using their indices; Fragile...
+                //foreach (var property in entity.properties)
+                for (int i = 0; i < netPropCount; i++)
+                {
+                    entity.properties[i].reassignPropertyRefs(netEntity.properties[i]);
+                }
+                entity.reassignEntityRefs = null; 
             }
         }
 
