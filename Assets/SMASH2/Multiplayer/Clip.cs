@@ -30,9 +30,13 @@ public class Clip : MonoBehaviour
     
     [HideInInspector]
     /// <summary>
-    /// For backwards compability, to make it at least *kinda possible* to load old obsolete clip files in the future
+    /// For backwards compability, to make it at least *kinda possible* to load old obsolete clip files in the future. (Treat this as a const variable; don't change unless the serializer is changed)
     /// </summary>
-    public string ClipFormatVersion = "V 0.1";
+    public string CLipFileVersion = "CLipFileVersion 0.1";      // CLipFileVersion is a 'magic string' for helping identity these clip files if corrupted
+    /// <summary>
+    /// The CLipFileVersion of the clip file being loaded right now; only matters DURING loading, afterwards we're using the current, modern file version
+    /// </summary>
+    string version;
 
 
     public bool isRecording = false;
@@ -137,8 +141,11 @@ public class Clip : MonoBehaviour
         {
             Clip clip = currentlyLoadingClip;
 
+            if (serializer.IsWriter)
+                serializer.SerializeValue(ref clip.CLipFileVersion);
+                else
+                serializer.SerializeValue(ref clip.version);
 
-            serializer.SerializeValue(ref clip.ClipFormatVersion);
             serializer.SerializeValue(ref clip.clipLength);
             serializer.SerializeValue(ref clip.clipName);   // likely redundant
 
