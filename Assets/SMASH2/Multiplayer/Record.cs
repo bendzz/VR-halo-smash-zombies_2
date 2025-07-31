@@ -448,7 +448,7 @@ public class Record : MonoBehaviour
                     }
                 }
                 if (obj == null)
-                    Debug.LogError("Reflection failed for " + _animatedObject.ToString());
+                    Debug.LogError("Reflection failed for " + _animatedObject.ToString() + "; make sure the script property is public! And that animatedComponent is the class that holds the animated property!  Info: _AnimatedComponent: " + animatedComponent + " propertyOrField: " + propertyOrField + " _gameObject: " + _gameObject + " _clip: " + _clip);
 
                 finishConstructor();
             }

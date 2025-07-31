@@ -27,6 +27,12 @@ public class Clip : MonoBehaviour
     //public List<byte> byteList = new List<byte>();
     //public byte[] byteArray;
     public string filePath;
+    
+    [HideInInspector]
+    /// <summary>
+    /// For backwards compability, to make it at least *kinda possible* to load old obsolete clip files in the future
+    /// </summary>
+    public float ClipFormatVersion = 0.1f;
 
 
     public bool isRecording = false;
@@ -58,12 +64,15 @@ public class Clip : MonoBehaviour
     public static Clip currentlyLoadingClip;
 
 
+
+
+
     // FILE I/O
 
-    /// <summary>
-    /// Used to save/load the clip to/from a file; Stores all the recordings. Piggybacks off Multiplayer code, but isn't network synced
-    /// </summary>
-    List<Multi.SyncedProperty> clipProperties;
+    // /// <summary>
+    // /// Used to save/load the clip to/from a file; Stores all the recordings. Piggybacks off Multiplayer code, but isn't network synced
+    // /// </summary>
+    // List<Multi.SyncedProperty> clipProperties;
     [Tooltip("Saves to a file the moment you press this")]
     public bool SaveFileNow = false;
 
@@ -111,7 +120,61 @@ public class Clip : MonoBehaviour
 
 
 
+    ClipSerializer clipSerializer = new ClipSerializer();
 
+    //ClipFormatVersion
+
+    /// <summary>
+    /// Entry point to serialize the clip data for file I/O. (The normal Clip class can't be serialized since it's a monobehaviour; no default constructor)
+    /// </summary>
+    [Serializable]
+    public class ClipSerializer : INetworkSerializable
+    {
+        public ClipSerializer()
+        { }
+
+        public void NetworkSerialize<T>(BufferSerializer<T> serializer) where T : IReaderWriter
+        {
+            Clip clip = currentlyLoadingClip;
+
+
+            serializer.SerializeValue(ref clip.ClipFormatVersion);
+            serializer.SerializeValue(ref clip.clipLength);
+            serializer.SerializeValue(ref clip.clipName);   // likely redundant
+
+            // iffy settings to load
+            serializer.SerializeValue(ref clip.loop);
+            serializer.SerializeValue(ref clip.SaveFileOnExit);
+
+            //serializer.SerializeValue(ref info);
+
+            // if (serializer.IsReader)
+            //     parentClip = currentlyLoadingClip; // newly spawned entities don't know which clip they belong to
+
+
+            //Multi.SyncedProperty syncedProperty = new Multi.SyncedProperty(Multi.SyncedProperty.invalidIdentifier, this, clip.entities, clip.gameObject, Multi.instance.clip, true);    // Holds the entities list (and all sublists; properties, frames etc)
+            Multi.SyncedProperty syncedProperty = new Multi.SyncedProperty(Multi.SyncedProperty.invalidIdentifier, clip, clip.entities, clip.gameObject, Multi.instance.clip, true);    // Holds the entities list (and all sublists; properties, frames etc)
+            syncedProperty.netData = new Multi.NetData(syncedProperty.getCurrentValue());
+
+            //byte[] bytes = Capture(syncedProperty.netData);
+            //Print(bytes, "Captured Clip Property Data");
+
+            serializer.SerializeValue(ref syncedProperty.netData);
+
+            if (serializer.IsReader)
+            {
+                //syncedProperty.netData = Playback<Multi.NetData>(bytes);
+                syncedProperty.setCurrentValue(syncedProperty.netData.GetData()); // apply the data to the script variable
+
+                //print("property count: " + properties.Count);
+            }
+
+
+            // TODO save NetBehaviourInfos too?
+        }
+    }
+    
+    
 
 
     [Tooltip("The entities being recorded/played back")]
@@ -119,7 +182,7 @@ public class Clip : MonoBehaviour
     Dictionary<NetBehaviour, Entity> entityLookup = new Dictionary<NetBehaviour, Entity>();
 
     [Serializable]
-    public class Entity : INetworkSerializable
+    public class Entity : INetworkSerializable 
     {
         [HideInInspector]
         public string info;
@@ -377,28 +440,34 @@ public class Clip : MonoBehaviour
         //tempDict = new Dictionary<float, int> { { .1f, 10 }, { .2f, 20 }, { .3f, 30 } };
 
 
-        // I/O
-        clipProperties = new List<Multi.SyncedProperty>();
+        // // I/O
+        // clipProperties = new List<Multi.SyncedProperty>();
 
-        //clipProperties.Add(new Multi.SyncedProperty(Multi.SyncedProperty.invalidIdentifier, this, netBehaviourInfos, gameObject, Multi.instance.clip, true));
-        //clipProperties.Add(new Multi.SyncedProperty(Multi.SyncedProperty.invalidIdentifier, this, tempDict, gameObject, Multi.instance.clip, true));
+        // //clipProperties.Add(new Multi.SyncedProperty(Multi.SyncedProperty.invalidIdentifier, this, netBehaviourInfos, gameObject, Multi.instance.clip, true));
+        // //clipProperties.Add(new Multi.SyncedProperty(Multi.SyncedProperty.invalidIdentifier, this, tempDict, gameObject, Multi.instance.clip, true));
 
-        clipProperties.Add(new Multi.SyncedProperty(Multi.SyncedProperty.invalidIdentifier, this, entities, gameObject, Multi.instance.clip, true));
+        // clipProperties.Add(new Multi.SyncedProperty(Multi.SyncedProperty.invalidIdentifier, this, entities, gameObject, Multi.instance.clip, true));
 
 
-        print("clipProperties count: " + clipProperties.Count);
+        // print("clipProperties count: " + clipProperties.Count);
     }
 
 
+    /// <summary>
+    /// Runs the serialization code in a compatible object to turn it into byte code; for reusing 'Unity Netcode for Gameobjects' serialization code.
+    /// </summary>
     public static byte[] Capture<T>(in T value, int initialCap = 1024)
         where T : INetworkSerializable
     {
         //using var writer = new FastBufferWriter(initialCap, Allocator.Temp);
-        using var writer = new FastBufferWriter(1024, allocator: Allocator.Temp, int.MaxValue);       // grow as needed (≈2 GB)
+        using var writer = new FastBufferWriter(1024, allocator: Allocator.Temp, int.MaxValue);       // grow as needed (up to about 2 GB)
         writer.WriteNetworkSerializable(in value);   // reuse your code
         return writer.ToArray();
     }
 
+    /// <summary>
+    /// Deserializes the byte code into a compatible object; for reusing 'Unity Netcode for Gameobjects' serialization code. 
+    /// </summary>
     public static T Playback<T>(byte[] bytes) where T : INetworkSerializable, new()
     {
         using var reader = new FastBufferReader(bytes, Allocator.Temp);
@@ -706,54 +775,30 @@ public class Clip : MonoBehaviour
         // File I/O
         // TODO these will break horribly with more than 1 item in clipProperties! (Would need a clever serialization method to concatenate then unjoin the byte data from each property. How is it done in multiplayer?)
         {
+            string path = Path.Combine(filePath, clipName + ".dat");
+            
             if (SaveFileNow)
             {
                 SaveFileNow = false;
 
-                print("clipProperties " + clipProperties.Count);
-
                 currentlyLoadingClip = this;
 
-                //clipProperties
-                foreach (var property in clipProperties)
-                {
-                    if (property == null)
-                        continue;
 
-                    //property.netData.setData();
-                    property.netData = new Multi.NetData(property.getCurrentValue());
-
-                    byte[] bytes = Capture(property.netData);
-                    //Print(bytes, "Captured Clip Property Data");
-
-                    //Path.Combine(Application.persistentDataPath, "smashRecording.dat")
-                    //string path = Path.Combine(Application.persistentDataPath, clipName + ".dat");
-                    string path = Path.Combine(filePath, clipName + ".dat");
-
-                    File.WriteAllBytes(path, bytes);
-
-                    Debug.Log($"Saved recording to {path}");
-
-
-                    if (false)
-                    {
-                        property.netData = Playback<Multi.NetData>(bytes);
-
-                        property.setCurrentValue(property.netData.GetData()); // apply the data to the script variable
+                byte[] bytes = Capture(clipSerializer); // runs serializer
+                //Print(bytes, "Captured Clip Property Data");
 
 
 
-                        updateFrameCountsDisplay();
-                    }
-                    print("Done");
+                File.WriteAllBytes(path, bytes);
 
-                }
+                Debug.Log($"Saved recording to {path}");
+
+
             }
 
             if (LoadFileNow)
             {
                 LoadFileNow = false;
-                string path = Path.Combine(filePath, clipName + ".dat");
 
                 currentlyLoadingClip = this;
 
@@ -762,18 +807,8 @@ public class Clip : MonoBehaviour
                     byte[] bytes = File.ReadAllBytes(path);
 
 
-                    foreach (var property in clipProperties)
-                    {
-                        if (property == null)
-                            continue;
+                    Playback<ClipSerializer>(bytes);    // runs deserializer
 
-                        //property.netData = new Multi.NetData(property.getCurrentValue());
-
-                        property.netData = Playback<Multi.NetData>(bytes);
-
-                        property.setCurrentValue(property.netData.GetData()); // apply the data to the script variable
-
-                    }
 
                     updateFrameCountsDisplay();
 
@@ -792,7 +827,7 @@ public class Clip : MonoBehaviour
 
 
 
-        // Debugging: Print the captured data
+        // Debugging: Print the entities/properties of the targetNetBehaviours list
         if (targetNetBehaviours != null && targetNetBehaviours.Count > 0 && false)
         {
             foreach (var target in targetNetBehaviours)
@@ -821,6 +856,9 @@ public class Clip : MonoBehaviour
     }
 
 
+    /// <summary>
+    /// For printing byte arrays
+    /// </summary>
     public static void Print(byte[] bytes, string label = "Byte dump")
     {
         // Hex view

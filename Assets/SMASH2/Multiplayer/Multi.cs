@@ -1580,7 +1580,8 @@ public class Multi : NetworkBehaviour
             if (type == typeof(Clip.Entity)) return 11;
             if (type == typeof(Clip.Property)) return 12;
             if (type == typeof(Clip.Frame)) return 13;
-            if (type == typeof(byte)) return 14;
+            if (type == typeof(Clip.ClipSerializer)) return 14;
+            if (type == typeof(byte)) return 15;
             // ... Add other types as needed
 
             throw new ArgumentException("Unsupported type: " + type);
@@ -1606,7 +1607,8 @@ public class Multi : NetworkBehaviour
                 case 11: return typeof(Clip.Entity);
                 case 12: return typeof(Clip.Property);
                 case 13: return typeof(Clip.Frame);
-                case 14: return typeof(byte);
+                case 14: return typeof(Clip.ClipSerializer);
+                case 15: return typeof(byte);
                 // ... Add other types as needed
 
                 default: throw new ArgumentException("Unsupported code: " + code);
@@ -2012,6 +2014,7 @@ public class Multi : NetworkBehaviour
                     _data = ulongData;
                     break;
 
+
                 // Clip.cs stuff
                 case int when _dataType == TypeToInt.Int(typeof(Clip.Entity)):
                     Clip.Entity CEntityData;
@@ -2042,6 +2045,17 @@ public class Multi : NetworkBehaviour
                     serializer.SerializeValue(ref CFrameData);
                     _data = CFrameData;
                     break;
+
+                case int when _dataType == TypeToInt.Int(typeof(Clip.ClipSerializer)):
+                    Clip.ClipSerializer ClipSerializer;
+                    if (serializer.IsWriter)
+                        ClipSerializer = (Clip.ClipSerializer)_data;
+                    else
+                        ClipSerializer = new Clip.ClipSerializer();
+                    serializer.SerializeValue(ref ClipSerializer);
+                    _data = ClipSerializer;
+                    break;
+                    
 
                 // Generic types
                 case int when _dataType == TypeToInt.Int(typeof(byte)):
