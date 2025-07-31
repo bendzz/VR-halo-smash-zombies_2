@@ -32,7 +32,7 @@ public class Clip : MonoBehaviour
     /// <summary>
     /// For backwards compability, to make it at least *kinda possible* to load old obsolete clip files in the future
     /// </summary>
-    public float ClipFormatVersion = 0.1f;
+    public string ClipFormatVersion = "V 0.1";
 
 
     public bool isRecording = false;
