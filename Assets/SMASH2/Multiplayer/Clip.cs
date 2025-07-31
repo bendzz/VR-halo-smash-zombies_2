@@ -23,7 +23,7 @@ using UnityEngine;
 public class Clip : MonoBehaviour
 {
     public string clipName;
-    
+
     //public List<byte> byteList = new List<byte>();
     //public byte[] byteArray;
     public string filePath;
@@ -43,7 +43,7 @@ public class Clip : MonoBehaviour
     /// Used to check how long it was since the last frame was recorded, to add to the clipTime/length
     /// </summary>
     public float lastFrameTImestamp = 0;
-    
+
     //[HideInInspector]
     //public float startedRecordingTime = 0f;
     [Tooltip("The playback/recording time of this clip")]
@@ -51,7 +51,7 @@ public class Clip : MonoBehaviour
 
     [Tooltip("End 'end' of the clip. (Note, frames might go past this if the code screws up)")]
     public float clipLength = 0;
-    
+
     /// <summary>
     /// When a clip is loading entities/properties, the newly spawned ones don't know which clip/script they belong to, so they read this. (It's seriallizer weirdness)
     /// </summary>
@@ -128,7 +128,7 @@ public class Clip : MonoBehaviour
         [SerializeReference]    // avoid infinite loops during serialization
         public Clip parentClip;
 
-        [Tooltip("Reassigns scene refs; Dropping a NetBehaviour here will reassign these recordings to control that script/entity- If they match property counts")] 
+        [Tooltip("Reassigns scene refs; Dropping a NetBehaviour here will reassign these recordings to control that script/entity- If they match property counts")]
         public NetBehaviour reassignEntityRefs;
 
 
@@ -137,8 +137,8 @@ public class Clip : MonoBehaviour
         /// <summary>
         /// Serializes the properties list for file I/O
         /// </summary>
-        Multi.SyncedProperty syncedProperty;   
-        
+        Multi.SyncedProperty syncedProperty;
+
         public void NetworkSerialize<T>(BufferSerializer<T> serializer) where T : IReaderWriter // Not for multiplayer; for saving/loading clips to files
         {
 
@@ -146,7 +146,7 @@ public class Clip : MonoBehaviour
 
             if (serializer.IsReader)
                 parentClip = currentlyLoadingClip; // newly spawned entities don't know which clip they belong to
-                
+
 
             syncedProperty = new Multi.SyncedProperty(Multi.SyncedProperty.invalidIdentifier, this, properties, parentClip.gameObject, Multi.instance.clip, true);
             syncedProperty.netData = new Multi.NetData(syncedProperty.getCurrentValue());
@@ -340,6 +340,9 @@ public class Clip : MonoBehaviour
         }
     }
 
+    [Tooltip("WARNING! WILL DELETE CURRENT CLIP! (Loads a clip file using the clipName/path)")]
+    public bool LoadFileNow = false;
+
 
 
 
@@ -358,13 +361,14 @@ public class Clip : MonoBehaviour
     public void Start()
     {
 
-        filePath = Path.Combine(Application.persistentDataPath, "smashRecording.dat");
+        //filePath = Path.Combine(Application.persistentDataPath, "smashRecording.dat");
+        filePath = Application.persistentDataPath; ;
 
 
         if (clipName == null || clipName == "")
         {
             // Generate a default name if none is provided
-            clipName = "Clip_ D: " + DateTime.Now.ToString("yy/MM/dd HH/mm/ss") + " RNG: " + Mathf.Round(UnityEngine.Random.Range(0f, 999f)).ToString();
+            clipName = "Clip_ D_ " + DateTime.Now.ToString("yy/MM/dd HH/mm/ss") + " RNG_ " + Mathf.Round(UnityEngine.Random.Range(0f, 999f)).ToString();
         }
 
 
@@ -378,10 +382,10 @@ public class Clip : MonoBehaviour
 
         //clipProperties.Add(new Multi.SyncedProperty(Multi.SyncedProperty.invalidIdentifier, this, netBehaviourInfos, gameObject, Multi.instance.clip, true));
         //clipProperties.Add(new Multi.SyncedProperty(Multi.SyncedProperty.invalidIdentifier, this, tempDict, gameObject, Multi.instance.clip, true));
-        
+
         clipProperties.Add(new Multi.SyncedProperty(Multi.SyncedProperty.invalidIdentifier, this, entities, gameObject, Multi.instance.clip, true));
-        
-        
+
+
         print("clipProperties count: " + clipProperties.Count);
     }
 
@@ -390,7 +394,7 @@ public class Clip : MonoBehaviour
         where T : INetworkSerializable
     {
         //using var writer = new FastBufferWriter(initialCap, Allocator.Temp);
-        using var writer = new FastBufferWriter( 1024, allocator: Allocator.Temp, int.MaxValue);       // grow as needed (≈2 GB)
+        using var writer = new FastBufferWriter(1024, allocator: Allocator.Temp, int.MaxValue);       // grow as needed (≈2 GB)
         writer.WriteNetworkSerializable(in value);   // reuse your code
         return writer.ToArray();
     }
@@ -404,7 +408,7 @@ public class Clip : MonoBehaviour
 
 
 
-void updateFrameCountsDisplay()  // just so I can see them in inspector
+    void updateFrameCountsDisplay()  // just so I can see them in inspector
     {
         // loop through entities and update their frame counts
         foreach (var entity in entities)
@@ -428,7 +432,7 @@ void updateFrameCountsDisplay()  // just so I can see them in inspector
     }
 
     //public void Update()
-    public void LateUpdate() 
+    public void LateUpdate()
     {
 
         // loop through targetEntities, check if they're already contained in entities list, add them if not
@@ -437,12 +441,12 @@ void updateFrameCountsDisplay()  // just so I can see them in inspector
             foreach (var target in targetNetBehaviours)
             {
                 if (target == null)
-                    continue; 
-                    
+                    continue;
+
                 if (!netBehaviourInfos.ContainsKey(target))
                     netBehaviourInfos.Add(target, new NetBehaviourInfo(target));
-                    
-                
+
+
                 if (target.entity != null)
                 {
                     var entity = target.entity;
@@ -466,7 +470,7 @@ void updateFrameCountsDisplay()  // just so I can see them in inspector
                 }
             }
         }
- 
+
         // Loop all entities to check if they have a reassignEntityRefs set, use it if so
         foreach (var entity in entities)
         {
@@ -475,20 +479,20 @@ void updateFrameCountsDisplay()  // just so I can see them in inspector
                 Multi.Entity netEntity = entity.reassignEntityRefs.entity;
                 int netPropCount = netEntity.properties.Count;
                 int recPropCount = entity.properties.Count;
-                
+
                 if (entity.reassignEntityRefs.entity == null)
                 {
                     Debug.LogError("Entity " + entity.info + "'s reassignEntityRefs is null; skipping reassignEntityRefs");
                     entity.reassignEntityRefs = null;
                     continue; // skip this entity if the reassignEntityRefs is null
                 }
-                
+
                 if (netPropCount != recPropCount)
-                    {
-                        Debug.LogError("Entity " + entity.info + "'s reassignEntityRefs: " + entity.reassignEntityRefs + " have different property counts; netPropCount " + netPropCount + " vs recPropCount " + recPropCount);
-                        entity.reassignEntityRefs = null;
-                        continue; // skip this entity if the property counts don't match
-                    }
+                {
+                    Debug.LogError("Entity " + entity.info + "'s reassignEntityRefs: " + entity.reassignEntityRefs + " have different property counts; netPropCount " + netPropCount + " vs recPropCount " + recPropCount);
+                    entity.reassignEntityRefs = null;
+                    continue; // skip this entity if the property counts don't match
+                }
                 print("Reassigning " + netPropCount + " properties of entity " + entity.info + " to reference " + entity.reassignEntityRefs + " properties instead.");
                 //print("Reassigning " + netPropCount + " properties of entity " + entity
 
@@ -502,7 +506,7 @@ void updateFrameCountsDisplay()  // just so I can see them in inspector
                 {
                     entity.properties[i].reassignPropertyRefs(netEntity.properties[i]);
                 }
-                entity.reassignEntityRefs = null; 
+                entity.reassignEntityRefs = null;
             }
         }
 
@@ -697,53 +701,91 @@ void updateFrameCountsDisplay()  // just so I can see them in inspector
         }
 
 
+
+
         // File I/O
-        if (SaveFileNow)
+        // TODO these will break horribly with more than 1 item in clipProperties! (Would need a clever serialization method to concatenate then unjoin the byte data from each property. How is it done in multiplayer?)
         {
-            SaveFileNow = false;
-
-            print("clipProperties " + clipProperties.Count);
-
-            currentlyLoadingClip = this;
-
-            //clipProperties
-            foreach (var property in clipProperties)
+            if (SaveFileNow)
             {
-                if (property == null)
-                    continue;
+                SaveFileNow = false;
 
-                //property.netData.setData();
-                property.netData = new Multi.NetData(property.getCurrentValue());
+                print("clipProperties " + clipProperties.Count);
 
-                byte[] bytes = Capture(property.netData);
-                Print(bytes, "Captured Clip Property Data");
+                currentlyLoadingClip = this;
+
+                //clipProperties
+                foreach (var property in clipProperties)
+                {
+                    if (property == null)
+                        continue;
+
+                    //property.netData.setData();
+                    property.netData = new Multi.NetData(property.getCurrentValue());
+
+                    byte[] bytes = Capture(property.netData);
+                    //Print(bytes, "Captured Clip Property Data");
+
+                    //Path.Combine(Application.persistentDataPath, "smashRecording.dat")
+                    //string path = Path.Combine(Application.persistentDataPath, clipName + ".dat");
+                    string path = Path.Combine(filePath, clipName + ".dat");
+
+                    File.WriteAllBytes(path, bytes);
+
+                    Debug.Log($"Saved recording to {path}");
+
+
+                    if (false)
+                    {
+                        property.netData = Playback<Multi.NetData>(bytes);
+
+                        property.setCurrentValue(property.netData.GetData()); // apply the data to the script variable
 
 
 
+                        updateFrameCountsDisplay();
+                    }
+                    print("Done");
+
+                }
+            }
+
+            if (LoadFileNow)
+            {
+                LoadFileNow = false;
+                string path = Path.Combine(filePath, clipName + ".dat");
+
+                currentlyLoadingClip = this;
+
+                if (File.Exists(path))
+                {
+                    byte[] bytes = File.ReadAllBytes(path);
 
 
-                //Multi.NetData temp = new Multi.NetData();
-                //temp = Playback<Multi.NetData>(bytes);
+                    foreach (var property in clipProperties)
+                    {
+                        if (property == null)
+                            continue;
 
-                property.netData = Playback<Multi.NetData>(bytes);
+                        //property.netData = new Multi.NetData(property.getCurrentValue());
 
-                property.setCurrentValue(property.netData.GetData()); // apply the data to the script variable
+                        property.netData = Playback<Multi.NetData>(bytes);
 
+                        property.setCurrentValue(property.netData.GetData()); // apply the data to the script variable
 
+                    }
 
-                updateFrameCountsDisplay();
+                    updateFrameCountsDisplay();
 
-                // Dictionary<float, int> dict = property.netData.GetData() as Dictionary<float, int>;
-
-                // print("dict count: " + dict.Count);
-                // foreach (KeyValuePair<float, int> kvp in dict)   // use your real key/value types
-                // {
-                //     print("key = " + kvp.Key + ", value = " + kvp.Value);
-                // }
-                print("Done");
-
+                    Debug.Log($"Loaded recording from {path}");
+                }
+                else
+                {
+                    Debug.LogWarning($"File not found: {path}");
+                }
             }
         }
+
 
 
 
@@ -854,6 +896,7 @@ void updateFrameCountsDisplay()  // just so I can see them in inspector
             Debug.LogWarning($"File not found: {filePath}");
         }
     }
+    
 
 }
 
