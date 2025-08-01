@@ -755,26 +755,29 @@ public class Clip : MonoBehaviour
                                     frameIndex = 0;
                                 }
 
-                                // TODO interpolation between frames
 
                                 // Get the frame data
                                 byte[] frameData = property.frames[frameIndex].data;
 
-                                //property.mostRecentFrame = frameIndex; 
- 
 
                                 // apply frame
 
-                                //property.property.netData = Playback<Multi.INetData>(frameData); 
                                 property.property.netData = Playback<Multi.NetData>(frameData);
 
                                 object frameObject = property.property.netData.GetData();   // the deserialized frameData
+                                
+                                if (frameObject is Transform)
+                                    frameObject = new transformCopy((Transform)frameObject); // copy the transform to allow interpolation
+
 
                                 if (property.interpolateFrames && frameIndex + 1 < property.frames.Count)
                                 {
                                     float lerpPercent = (clipTime - property.frames[frameIndex].time) / (property.frames[frameIndex + 1].time - property.frames[frameIndex].time);
-                                    
-                                    frameObject = interpolateFrames(frameObject, property.frames[frameIndex + 1].data, lerpPercent);
+
+                                    object frameObject2 = Playback<Multi.NetData>(property.frames[frameIndex + 1].data).GetData();   // TODO should only read this if it's a type we can interpolate, for perf; but how to do it cleanly?
+
+                                    //frameObject = interpolateFrames(frameObject, property.frames[frameIndex + 1].data, lerpPercent);
+                                    frameObject = interpolateFrames(frameObject, frameObject2, lerpPercent);
                                 }
 
                                 //property.property.setCurrentValue(property.property.netData.GetData()); // apply the data to the script variable
@@ -925,58 +928,33 @@ public class Clip : MonoBehaviour
     }
 
 
-
+    
     /// <summary>
-    /// For interpolating between frames during playback
+    /// For interpolating between frames during playback.
+    /// WARNING can't interpolate transforms (they overwrite each other into 1 instance!) Use transformCopy instead
     /// </summary>
-    public static object interpolateFrames(object frame1, byte[] frame2Bytes, float lerpPercent)
+    //public static object interpolateFrames(object frame1, byte[] frame2Bytes, float lerpPercent)
+    public static object interpolateFrames(object frame1, object frame2, float lerpPercent)
     {
-        lerpPercent = Mathf.Clamp01(lerpPercent);  // sometimes goes super negative when the clipTime is before the first frame
+        lerpPercent = Mathf.Clamp01(lerpPercent);  // sometimes goes super negative when the clipTime is before the first frame  // unncessary?
                                                    //bool validType = false;
 
-        // if (lerpPercent == 0f)  
-        //     return frame1; 
-
-
-        // if (lerpPercent == 1f)
-        //     return frame2;
-
-        object frame2;
-        if (frame1 is Transform) 
+        if (frame1 is transformCopy)
         {
-            // print(frame1);
-            // print(frame2);
-            Transform f1 = (Transform)frame1;
 
-
-
-            Vector3 localPosition = f1.localPosition;
-            Quaternion localRotation = f1.localRotation;
-            Vector3 scale = f1.localScale;
+            transformCopy f1 = (transformCopy)frame1;
+            transformCopy f2 = null;
+            if (frame2 is Transform)
+                f2 = new transformCopy((Transform)frame2);  // idk if this object change is net faster, but it is simpler
+            else if (frame2 is transformCopy)
+                f2 = (transformCopy)frame2;
             
-            frame2 = Playback<Multi.NetData>(frame2Bytes).GetData();   // TODO should only read this if it's a type we can interpolate, for perf; but how do it cleanly?
+            //Transform f2 = (Transform)frame2; 
 
-            Transform f2 = (Transform)frame2;
+            Vector3 localPosition = Vector3.Lerp(f1.localPosition, f2.localPosition, lerpPercent);
+            Quaternion localRotation = Quaternion.Slerp(f1.localRotation, f2.localRotation, lerpPercent);
+            Vector3 scale = Vector3.Lerp(f1.localScale, f2.localScale, lerpPercent);
 
-            //if (f1.localPosition == f2.localPosition && f1.localRotation == f2.localRotation && f1.localScale == f2.localScale)
-            //    return f1;  // No need to interpolate, they are the same
-
-
-            //print("lerppercent: " + lerpPercent + " f1.localPosition: " + f1.localPosition.ToString("F5") + " f2.localPosition: " + f2.localPosition.ToString("F5") + " f1.localRotation: " + f1.localRotation.ToString("F5") + " f2.localRotation: " + f2.localRotation.ToString("F5"));
-
-
-
-            // localPosition = Vector3.Lerp(localPosition, Vector3.zero, lerpPercent);
-            // localRotation = Quaternion.Slerp(localRotation, quaternion.identity, lerpPercent);
-            // scale = Vector3.Lerp(scale, f2.localScale, lerpPercent);
-
-            localPosition = Vector3.Lerp(localPosition, f2.localPosition, lerpPercent);
-            localRotation = Quaternion.Slerp(localRotation, f2.localRotation, lerpPercent);
-            scale = Vector3.Lerp(scale, f2.localScale, lerpPercent);
-
-            // Vector3 localPosition = Vector3.Lerp(f1.localPosition, f2.localPosition, lerpPercent);
-            // Quaternion localRotation = Quaternion.Slerp(f1.localRotation, f2.localRotation, lerpPercent);
-            // Vector3 scale = Vector3.Lerp(f1.localScale, f2.localScale, lerpPercent);
 
             f1.localPosition = localPosition;
             f1.localRotation = localRotation;
@@ -987,7 +965,7 @@ public class Clip : MonoBehaviour
             return f1; // Return the modified frame1
         }
         //else
-        frame2 = Playback<Multi.NetData>(frame2Bytes).GetData();   // TODO should only read this if it's a type we can interpolate, for perf; but how do it 
+        //frame2 = Playback<Multi.NetData>(frame2Bytes).GetData();   // TODO should only read this if it's a type we can interpolate, for perf; but how do it 
         if (frame1 is float)
         {
             float f1 = (float)frame1;
@@ -1006,5 +984,30 @@ public class Clip : MonoBehaviour
         }
 
         return frame1; // Failed to interpolate
+    }
+
+    /// <summary>
+    /// Can't make copies of transforms; they overwrite each other unless you make whole gameobjects with them. So save copies in this. (For animation interpolation)
+    /// </summary>
+    public class transformCopy
+    {
+        public Vector3 localPosition;
+        public Quaternion localRotation;
+        public Vector3 localScale;
+
+        public transformCopy(Transform t)
+        {
+            localPosition = t.localPosition;
+            localRotation = t.localRotation;
+            localScale = t.localScale;
+        }
+
+        public void ApplyTo(Transform t)
+        {
+            t.localPosition = localPosition;
+            t.localRotation = localRotation;
+            t.localScale = localScale;
+        }
+
     }
 }

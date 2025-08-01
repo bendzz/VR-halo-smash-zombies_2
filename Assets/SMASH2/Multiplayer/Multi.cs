@@ -3,6 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.IO;
 using System.Reflection;
+using Unity.Android.Types;
 using Unity.Netcode;
 using Unity.Netcode.Transports.UTP;
 using Unity.VisualScripting.FullSerializer;
@@ -1443,20 +1444,25 @@ public class Multi : NetworkBehaviour
             {
                 ((PropertyInfo)obj).SetValue(animatedComponent, data);
             }
-            // TODO transforms?
             else if (obj is Transform)
             {
                 Transform tf = (Transform)obj;
 
-                // tf.position = ((Transform)data).position;
-                // tf.rotation = ((Transform)data).rotation;
-                // tf.localScale = ((Transform)data).localScale;
-                tf.localPosition = ((Transform)data).localPosition;
-                tf.localRotation = ((Transform)data).localRotation;
-                tf.localScale = ((Transform)data).localScale;
+                if (data is Transform)
+                {
+                    tf.localPosition = ((Transform)data).localPosition;
+                    tf.localRotation = ((Transform)data).localRotation;
+                    tf.localScale = ((Transform)data).localScale;
+                } else if (data is Clip.transformCopy)
+                {
+                    Clip.transformCopy copy = (Clip.transformCopy)data;
+                    copy.ApplyTo(tf);
+                }
+                else
+                    Debug.LogError("setCurrentValue: unknown data type for Transform: " + data.GetType());
 
                 if (instance.debug)
-                    print("transform! Local " + ((Transform)obj).localPosition + " " + ((Transform)obj).localRotation);
+                        print("transform! Local " + ((Transform)obj).localPosition + " " + ((Transform)obj).localRotation);
                 if (instance.debug)
                     print("transform! DATA " + ((Transform)data).position + " " + ((Transform)data).rotation);
             }
