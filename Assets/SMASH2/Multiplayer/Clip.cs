@@ -1,5 +1,6 @@
 // TODO LATER:
 // - Currently about every transform/velocity frame gets recorded; need a way to ignore tiny changes, only record unique frames
+// - Game saving/loading: Need a way to store and restore the entire game scene hierarchy, and plug it back into clip entities upon load, and add new frames as the scene changes or stuff spawns/despawns.
 
 using System;
 using System.Collections;
@@ -10,6 +11,7 @@ using Unity.Collections;
 using Unity.Collections.LowLevel.Unsafe;
 using Unity.Netcode;
 using UnityEditor.EditorTools;
+using UnityEditorInternal;
 using UnityEngine;
 
 //public class Rec : MonoBehaviour
@@ -32,7 +34,7 @@ public class Clip : MonoBehaviour
     /// <summary>
     /// For backwards compability, to make it at least *kinda possible* to load old obsolete clip files in the future. (Treat this as a const variable; don't change unless the serializer is changed)
     /// </summary>
-    public string CLipFileVersion = "CLipFileVersion 0.1";      // CLipFileVersion is a 'magic string' for helping identity these clip files if corrupted
+    public string CLipFileVersion = "CLipFileVersion 0.2";      // CLipFileVersion is a 'magic string' for helping identity these clip files if corrupted
     /// <summary>
     /// The CLipFileVersion of the clip file being loaded right now; only matters DURING loading, afterwards we're using the current, modern file version
     /// </summary>
@@ -175,7 +177,8 @@ public class Clip : MonoBehaviour
 
                 //print("property count: " + properties.Count);
             }
-
+            
+            syncedProperty.netData = null;  // save a little ram
 
             // TODO save NetBehaviourInfos too?
         }
@@ -233,7 +236,8 @@ public class Clip : MonoBehaviour
 
                 //print("property count: " + properties.Count);
             }
-
+            
+            syncedProperty.netData = null;  // save a little ram
 
         }
 
@@ -386,6 +390,7 @@ public class Clip : MonoBehaviour
                 // }
             }
 
+            syncedProperty.netData = null;  // save a little ram
         }
 
     }
@@ -818,6 +823,12 @@ public class Clip : MonoBehaviour
 
 
                     updateFrameCountsDisplay();
+
+//
+#if UNITY_EDITOR
+                    // tell the Inspector to rebuild its list   // To fix an error where if the entities list has 0 items, loading a clip will cause infinite UI errors forever
+                    InternalEditorUtility.RepaintAllViews();
+#endif
 
                     Debug.Log($"Loaded recording from {path}");
                 }

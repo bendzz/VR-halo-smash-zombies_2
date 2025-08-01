@@ -1759,6 +1759,24 @@ public class Multi : NetworkBehaviour
                     _data = dataArray;
                 }
             }
+            else if (isList && _dataType == TypeToInt.Int(typeof(byte)))    // if byte array
+            {
+                // We'll be more direct here; byte arrays are already serialized, no need to serialize them again. (Also needs to be speedy for recording/playback)
+                byte[] bytes = (byte[])_data;
+                int len = serializer.IsWriter ? bytes.Length : 0;
+                serializer.SerializeValue(ref len);
+
+                if (serializer.IsWriter)
+                {
+                    serializer.GetFastBufferWriter().WriteBytesSafe(bytes, len);
+                }
+                else
+                {
+                    bytes = new byte[len];
+                    serializer.GetFastBufferReader().ReadBytesSafe(ref bytes, len);
+                }
+
+            }
             else if (isList)
             {
                 int listCount = 0;
@@ -1828,8 +1846,8 @@ public class Multi : NetworkBehaviour
                     //_data = Activator.CreateInstance(typeof(List<>).MakeGenericType(TypeToInt.Type(_dataType)), dictCount);
                     //_data = Activator.CreateInstance(typeof(Dictionary<,>).MakeGenericType(TypeToInt.Type(_dataType), typeof(object)), dictCount);
                     //_data = Activator.CreateInstance(typeof(Dictionary<,>).MakeGenericType(TypeToInt.Type(_dataType), TypeToInt.Type(_dataType2)), dictCount);
-                    _data = Activator.CreateInstance(typeof(Dictionary<,>).MakeGenericType(keyType, valueType),dictCount);   
-                    
+                    _data = Activator.CreateInstance(typeof(Dictionary<,>).MakeGenericType(keyType, valueType), dictCount);
+
 
                 // do list
                 // Get the type of the items in the list
@@ -1868,7 +1886,7 @@ public class Multi : NetworkBehaviour
                     if (serializer.IsWriter)
                         //key = ((IDictionary)_data)[i];   // pull real key
                         //key = kvp.Key;   // pull real key
-                        key = entry.Key; 
+                        key = entry.Key;
                     key = serializeVariable(key, _dataType, serializer);
 
                     // ----- VALUE -----
@@ -1876,7 +1894,7 @@ public class Multi : NetworkBehaviour
                     if (serializer.IsWriter)
                         //value = ((IDictionary)_data)[key]; // dict lookup
                         //value = kvp.Value;  // dict lookup
-                        value = entry.Value; 
+                        value = entry.Value;
                     value = serializeVariable(value, _dataType2, serializer);
 
                     // ----- ADD TO DICT WHEN READING -----
