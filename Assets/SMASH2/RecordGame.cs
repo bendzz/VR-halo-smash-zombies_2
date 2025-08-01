@@ -14,6 +14,10 @@ public class RecordGame : MonoBehaviour
     //Dictionary<Multi.Entity, Clip.Entity> trackedEntities;
     Dictionary<NetBehaviour, Clip.Entity> trackedEntities;
 
+    [Tooltip("For debugging playback (slow mo frame interpolation etc)")]
+    [Range(0.0000001f, 1f)]
+    public float timeScale = 1f; 
+
     // Start is called before the first frame update
     void Start()
     {
@@ -33,6 +37,8 @@ public class RecordGame : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
+        Time.timeScale = timeScale;
+
 
         // grab all entities from Multi that are not already in the clip
         //var NetBehaviours = GameObject.FindObjectsOfType<NetBehaviour>();

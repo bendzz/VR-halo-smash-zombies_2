@@ -7,8 +7,10 @@ using System.Collections;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+//using Unity.Android.Gradle.Manifest;
 using Unity.Collections;
 using Unity.Collections.LowLevel.Unsafe;
+using Unity.Mathematics;
 using Unity.Netcode;
 using UnityEditor.EditorTools;
 using UnityEditorInternal;
@@ -29,7 +31,7 @@ public class Clip : MonoBehaviour
     //public List<byte> byteList = new List<byte>();
     //public byte[] byteArray;
     public string filePath;
-    
+
     [HideInInspector]
     /// <summary>
     /// For backwards compability, to make it at least *kinda possible* to load old obsolete clip files in the future. (Treat this as a const variable; don't change unless the serializer is changed)
@@ -145,7 +147,7 @@ public class Clip : MonoBehaviour
 
             if (serializer.IsWriter)
                 serializer.SerializeValue(ref clip.CLipFileVersion);
-                else
+            else
                 serializer.SerializeValue(ref clip.version);
 
             serializer.SerializeValue(ref clip.clipLength);
@@ -177,14 +179,14 @@ public class Clip : MonoBehaviour
 
                 //print("property count: " + properties.Count);
             }
-            
+
             syncedProperty.netData = null;  // save a little ram
 
             // TODO save NetBehaviourInfos too?
         }
     }
-    
-    
+
+
 
 
     [Tooltip("The entities being recorded/played back")]
@@ -192,7 +194,7 @@ public class Clip : MonoBehaviour
     Dictionary<NetBehaviour, Entity> entityLookup = new Dictionary<NetBehaviour, Entity>();
 
     [Serializable]
-    public class Entity : INetworkSerializable 
+    public class Entity : INetworkSerializable
     {
         [HideInInspector]
         public string info;
@@ -236,7 +238,7 @@ public class Clip : MonoBehaviour
 
                 //print("property count: " + properties.Count);
             }
-            
+
             syncedProperty.netData = null;  // save a little ram
 
         }
@@ -314,6 +316,9 @@ public class Clip : MonoBehaviour
 
         public bool canRecord = true;
 
+        [Tooltip("If true, will interpolate frames when playing back. Might be slower")]
+        public bool interpolateFrames = true;
+
         [HideInInspector]
         [SerializeReference]    // Tell it not to serialize the whole parent object or you get an infinite loop and unity hardlocks
         public Entity parentEntity;
@@ -328,6 +333,7 @@ public class Clip : MonoBehaviour
         [Tooltip("(Only updated periodically, or the editor lags)")]
         public int frameCount = 0;
 
+        //public int mostRecentFrame; // For other scripts overriding its playback to load the current frame quickly
 
 
         public Property()
@@ -754,23 +760,26 @@ public class Clip : MonoBehaviour
                                 // Get the frame data
                                 byte[] frameData = property.frames[frameIndex].data;
 
-
+                                //property.mostRecentFrame = frameIndex; 
+ 
 
                                 // apply frame
 
                                 //property.property.netData = Playback<Multi.INetData>(frameData); 
                                 property.property.netData = Playback<Multi.NetData>(frameData);
 
-                                property.property.setCurrentValue(property.property.netData.GetData()); // apply the data to the script variable
-                                //print("6");
-                                // if (property.gameObject.name.Contains("Body") && property.property.obj is Transform)
-                                // {
-                                //     print("Playing back property: " + property.info + " at time: " + clipTime + " frameIndex: " + frameIndex);
-                                //     print("Property data: " + property.property.netData.GetData());
-                                //     print("property.property.obj " + property.property.obj + " null: " + null);
-                                //     Print(frameData, "Playback frame data");
-                                //     //print("Property data: " + property.property.netData.GetData());
-                                // }
+                                object frameObject = property.property.netData.GetData();   // the deserialized frameData
+
+                                if (property.interpolateFrames && frameIndex + 1 < property.frames.Count)
+                                {
+                                    float lerpPercent = (clipTime - property.frames[frameIndex].time) / (property.frames[frameIndex + 1].time - property.frames[frameIndex].time);
+                                    
+                                    frameObject = interpolateFrames(frameObject, property.frames[frameIndex + 1].data, lerpPercent);
+                                }
+
+                                //property.property.setCurrentValue(property.property.netData.GetData()); // apply the data to the script variable
+                                property.property.setCurrentValue(frameObject); // apply the data to the script/component variable
+
 
 
                             }
@@ -788,7 +797,7 @@ public class Clip : MonoBehaviour
         // TODO these will break horribly with more than 1 item in clipProperties! (Would need a clever serialization method to concatenate then unjoin the byte data from each property. How is it done in multiplayer?)
         {
             string path = Path.Combine(filePath, clipName + ".dat");
-            
+
             if (SaveFileNow)
             {
                 SaveFileNow = false;
@@ -824,7 +833,7 @@ public class Clip : MonoBehaviour
 
                     updateFrameCountsDisplay();
 
-//
+                    //
 #if UNITY_EDITOR
                     // tell the Inspector to rebuild its list   // To fix an error where if the entities list has 0 items, loading a clip will cause infinite UI errors forever
                     InternalEditorUtility.RepaintAllViews();
@@ -845,31 +854,31 @@ public class Clip : MonoBehaviour
 
 
 
-        // Debugging: Print the entities/properties of the targetNetBehaviours list
-        if (targetNetBehaviours != null && targetNetBehaviours.Count > 0 && false)
-        {
-            foreach (var target in targetNetBehaviours)
-            {
-                if (target != null && target.entity != null)
-                {
-                    var entity = target.entity;
+        // // Debugging: Print the entities/properties of the targetNetBehaviours list
+        // if (targetNetBehaviours != null && targetNetBehaviours.Count > 0 && false)
+        // {
+        //     foreach (var target in targetNetBehaviours)
+        //     {
+        //         if (target != null && target.entity != null)
+        //         {
+        //             var entity = target.entity;
 
-                    var bytes = Capture(entity);
-                    Print(bytes, "Captured Entity Data");
+        //             var bytes = Capture(entity);
+        //             Print(bytes, "Captured Entity Data");
 
-                    print("entity properties count: " + entity.properties.Count);
-                    foreach (var property in entity.properties)
-                    {
-                        print("Property: gameObject " + property.gameObject + " animatedComponent " + property.animatedComponent + " obj " + property.obj);
-                        if (property.netData != null)
-                        {
-                            bytes = Capture(property.netData);
-                            Print(bytes, "Property Data");
-                        }
-                    }
-                }
-            }
-        }
+        //             print("entity properties count: " + entity.properties.Count);
+        //             foreach (var property in entity.properties)
+        //             {
+        //                 print("Property: gameObject " + property.gameObject + " animatedComponent " + property.animatedComponent + " obj " + property.obj);
+        //                 if (property.netData != null)
+        //                 {
+        //                     bytes = Capture(property.netData);
+        //                     Print(bytes, "Property Data");
+        //                 }
+        //             }
+        //         }
+        //     }
+        // }
 
     }
 
@@ -917,42 +926,85 @@ public class Clip : MonoBehaviour
 
 
 
-
-
-
-
-
-    // Method to save the byte list to a file
-    public void SaveToFile()
+    /// <summary>
+    /// For interpolating between frames during playback
+    /// </summary>
+    public static object interpolateFrames(object frame1, byte[] frame2Bytes, float lerpPercent)
     {
-        // Write the byte array to the file
-        //File.WriteAllBytes(filePath, byteArray);
+        lerpPercent = Mathf.Clamp01(lerpPercent);  // sometimes goes super negative when the clipTime is before the first frame
+                                                   //bool validType = false;
 
-        Debug.Log($"Saved recording to {filePath}");
-    }
+        // if (lerpPercent == 0f)  
+        //     return frame1; 
 
-    // Method to load the bytes from a file
-    public void LoadFromFile()
-    {
-        // Check if the file exists before trying to read
-        if (File.Exists(filePath))
+
+        // if (lerpPercent == 1f)
+        //     return frame2;
+
+        object frame2;
+        if (frame1 is Transform) 
         {
-            // Read the bytes from the file
-            byte[] byteArray = File.ReadAllBytes(filePath);
+            // print(frame1);
+            // print(frame2);
+            Transform f1 = (Transform)frame1;
 
-            // Clear the current list and add the loaded bytes
-            //byteList.Clear();
-            //byteList.AddRange(byteArray);
-            //byteList = byteArray;
 
-            Debug.Log($"Loaded recording from {filePath}");
+
+            Vector3 localPosition = f1.localPosition;
+            Quaternion localRotation = f1.localRotation;
+            Vector3 scale = f1.localScale;
+            
+            frame2 = Playback<Multi.NetData>(frame2Bytes).GetData();   // TODO should only read this if it's a type we can interpolate, for perf; but how do it cleanly?
+
+            Transform f2 = (Transform)frame2;
+
+            //if (f1.localPosition == f2.localPosition && f1.localRotation == f2.localRotation && f1.localScale == f2.localScale)
+            //    return f1;  // No need to interpolate, they are the same
+
+
+            //print("lerppercent: " + lerpPercent + " f1.localPosition: " + f1.localPosition.ToString("F5") + " f2.localPosition: " + f2.localPosition.ToString("F5") + " f1.localRotation: " + f1.localRotation.ToString("F5") + " f2.localRotation: " + f2.localRotation.ToString("F5"));
+
+
+
+            // localPosition = Vector3.Lerp(localPosition, Vector3.zero, lerpPercent);
+            // localRotation = Quaternion.Slerp(localRotation, quaternion.identity, lerpPercent);
+            // scale = Vector3.Lerp(scale, f2.localScale, lerpPercent);
+
+            localPosition = Vector3.Lerp(localPosition, f2.localPosition, lerpPercent);
+            localRotation = Quaternion.Slerp(localRotation, f2.localRotation, lerpPercent);
+            scale = Vector3.Lerp(scale, f2.localScale, lerpPercent);
+
+            // Vector3 localPosition = Vector3.Lerp(f1.localPosition, f2.localPosition, lerpPercent);
+            // Quaternion localRotation = Quaternion.Slerp(f1.localRotation, f2.localRotation, lerpPercent);
+            // Vector3 scale = Vector3.Lerp(f1.localScale, f2.localScale, lerpPercent);
+
+            f1.localPosition = localPosition;
+            f1.localRotation = localRotation;
+            f1.localScale = scale;
+
+            //print("lerped f1.localPosition: " + f1.localPosition.ToString("F5") + " f1.localRotation: " + f1.localRotation.ToString("F5"));
+
+            return f1; // Return the modified frame1
         }
-        else
+        //else
+        frame2 = Playback<Multi.NetData>(frame2Bytes).GetData();   // TODO should only read this if it's a type we can interpolate, for perf; but how do it 
+        if (frame1 is float)
         {
-            Debug.LogWarning($"File not found: {filePath}");
-        }
-    }
-    
+            float f1 = (float)frame1;
+            float f2 = (float)frame2;
 
+            float interpolatedValue = Mathf.Lerp(f1, f2, lerpPercent);
+            return interpolatedValue; // Return the interpolated value
+        }
+        else if (frame1 is Vector3)
+        {
+            Vector3 v1 = (Vector3)frame1;
+            Vector3 v2 = (Vector3)frame2;
+
+            Vector3 interpolatedValue = Vector3.Lerp(v1, v2, lerpPercent);
+            return interpolatedValue; // Return the interpolated value
+        }
+
+        return frame1; // Failed to interpolate
+    }
 }
-
