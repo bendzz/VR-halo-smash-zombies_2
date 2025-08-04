@@ -333,7 +333,7 @@ public class myInputTests : NetBehaviour
                 if (hand.lastGrabPoint == Vector3.zero)
                 {
                     hand.lastGrabPoint = hand.transform.localPosition;
-                    hand.initialBodyVelocity = body.velocity;
+                    hand.initialBodyVelocity = body.linearVelocity;
                 }
 
 
@@ -350,7 +350,7 @@ public class myInputTests : NetBehaviour
 
                 //Vector3 inPush = deltaWorld * speedDilution * 2;
 
-                Vector3 push = getPush(deltaWorld, body.velocity, 5);
+                Vector3 push = getPush(deltaWorld, body.linearVelocity, 5);
 
                 // apply results
                 body.AddForce(push, ForceMode.Acceleration);
@@ -433,7 +433,7 @@ public class myInputTests : NetBehaviour
 
 
         //Vector3 push = getPush(inPush * 5f, body.velocity, 5);
-        Vector3 push = getPush(inPush * 2f, body.velocity, 3);
+        Vector3 push = getPush(inPush * 2f, body.linearVelocity, 3);
 
         body.AddForce(push, ForceMode.Acceleration);
 

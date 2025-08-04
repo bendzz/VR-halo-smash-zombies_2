@@ -223,7 +223,7 @@ public class SmashCharacter : NetBehaviour
         //registerPlayer_Synced = entity.addSyncedMethodCall("registerPlayer", new object[] { OwnerClientId });
 
         entity.setCurrents(body, gameObject, IsOwner);  // rigidbody
-        entity.addSyncedProperty(body.velocity);
+        entity.addSyncedProperty(body.linearVelocity);
         entity.addSyncedProperty(body.angularVelocity);
         entity.addSyncedProperty(body.useGravity);
         entity.addSyncedProperty(transform);
@@ -429,14 +429,14 @@ public class SmashCharacter : NetBehaviour
                 if (feetCollider.isGrounded)
                 {
                     // todo make them bang and bounce on the ground like in smash bros
-                    body.drag = 7;
-                    body.angularDrag = 7;
+                    body.linearDamping = 7;
+                    body.angularDamping = 7;
                     feetCollider.runUpWalls = false;
                 }
                 else
                 {
-                    body.drag = 0;
-                    body.angularDrag = 0;
+                    body.linearDamping = 0;
+                    body.angularDamping = 0;
                     feetCollider.runUpWalls = true;
                 }
             }
@@ -584,7 +584,7 @@ public class SmashCharacter : NetBehaviour
 
                         ts.body.isKinematic = false;
                         ts.body.collisionDetectionMode = CollisionDetectionMode.ContinuousDynamic;
-                        ts.body.velocity = body.velocity;
+                        ts.body.linearVelocity = body.linearVelocity;
                         thrownSword.layer = LayerMask.NameToLayer("Default");
 
 
@@ -683,7 +683,7 @@ public class SmashCharacter : NetBehaviour
         }
         else    // if dead
         {
-            body.velocity = Vector3.zero;
+            body.linearVelocity = Vector3.zero;
             body.useGravity = false;
 
             body.transform.position += Vector3.up * 2 * Time.fixedDeltaTime;
@@ -757,7 +757,7 @@ public class SmashCharacter : NetBehaviour
         body.useGravity = true;
         body.transform.position = smashGame.respawnPoint.position;
         //body.transform.rotation = smashGame.respawnPoint.rotation;
-        body.velocity = Vector3.zero;
+        body.linearVelocity = Vector3.zero;
         damage = 0;
         oldDamage = damage;
         dead = false;
@@ -852,7 +852,7 @@ public class SmashCharacter : NetBehaviour
                     // face backwards
                     {
                         // Only consider the horizontal components of the velocity
-                        Vector3 horizontalVelocity = new Vector3(body.velocity.x, 0, body.velocity.z);
+                        Vector3 horizontalVelocity = new Vector3(body.linearVelocity.x, 0, body.linearVelocity.z);
 
                         // Calculate the backward direction of the velocity
                         Vector3 backwardDirection = -horizontalVelocity.normalized;
@@ -863,8 +863,8 @@ public class SmashCharacter : NetBehaviour
                         // Rotate the XR_Origin accordingly
                         input.XR_Origin.rotation *= rotation;
                     }
-                    body.position += body.velocity.normalized * 5f;
-                    body.velocity = Vector3.zero;
+                    body.position += body.linearVelocity.normalized * 5f;
+                    body.linearVelocity = Vector3.zero;
                     break;
                 }
             }

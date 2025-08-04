@@ -760,25 +760,24 @@ public class Clip : MonoBehaviour
                                 byte[] frameData = property.frames[frameIndex].data;
 
 
-                                // apply frame
-
+                                // deserialize
                                 property.property.netData = Playback<Multi.NetData>(frameData);
-
-                                object frameObject = property.property.netData.GetData();   // the deserialized frameData
-                                
-                                if (frameObject is Transform)
-                                    frameObject = new transformCopy((Transform)frameObject); // copy the transform to allow interpolation
+                                object frameObject = property.property.netData.GetData();   // the deserialized frame object
 
 
-                                if (property.interpolateFrames && frameIndex + 1 < property.frames.Count)
+                                if (property.interpolateFrames && frameIndex + 1 < property.frames.Count)   // Frame interpolation
                                 {
                                     float lerpPercent = (clipTime - property.frames[frameIndex].time) / (property.frames[frameIndex + 1].time - property.frames[frameIndex].time);
+
+                                    if (frameObject is Transform)
+                                        frameObject = new transformCopy((Transform)frameObject); // copy the transform to allow interpolation
 
                                     object frameObject2 = Playback<Multi.NetData>(property.frames[frameIndex + 1].data).GetData();   // TODO should only read this if it's a type we can interpolate, for perf; but how to do it cleanly?
 
                                     //frameObject = interpolateFrames(frameObject, property.frames[frameIndex + 1].data, lerpPercent);
                                     frameObject = interpolateFrames(frameObject, frameObject2, lerpPercent);
                                 }
+
 
                                 //property.property.setCurrentValue(property.property.netData.GetData()); // apply the data to the script variable
                                 property.property.setCurrentValue(frameObject); // apply the data to the script/component variable

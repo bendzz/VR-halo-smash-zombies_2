@@ -129,13 +129,13 @@ public class FeetCollider : MonoBehaviour
 
 
 
-        float movingAngleXZ = -Vector2.SignedAngle(Vector2.up, new Vector2(body.velocity.x, body.velocity.z));
+        float movingAngleXZ = -Vector2.SignedAngle(Vector2.up, new Vector2(body.linearVelocity.x, body.linearVelocity.z));
         //print(movingAngleXZ); 
 
         Vector3 feetPos = body.position - Vector3.up * (playerHeight * .5f);    // Where the feet would be standing still
 
 
-        Vector3 playerForce = Physics.gravity + body.velocity;
+        Vector3 playerForce = Physics.gravity + body.linearVelocity;
         //Vector3 playerForce = Physics.gravity;
         playerForce = Vector3.Normalize(playerForce);
         surfaceNormal = Vector3.zero;
@@ -335,7 +335,7 @@ public class FeetCollider : MonoBehaviour
             Vector3 travelVector = (Quaternion.Euler(0, movingAngleXZ, 0) * Vector3.forward) * sgs.x + Vector3.up * sgs.y;
             //float magnitude = Vector3.Dot(body.velocity, travelVector) * Time.deltaTime;
             //float magnitude = body.velocity.magnitude * Time.deltaTime;
-            float magnitude = body.velocity.magnitude;
+            float magnitude = body.linearVelocity.magnitude;
             yAccel = travelVector.y * magnitude;
             float minHeight = yAccel * Time.deltaTime + body.position.y;
             
@@ -399,14 +399,14 @@ public class FeetCollider : MonoBehaviour
             // travel along the groundslope; the main means of vertical movement
             if (isGrounded)
             {
-                Vector3 v = body.velocity;
+                Vector3 v = body.linearVelocity;
                 body.useGravity = false;
                 if (yAccel > 0)
                 {
                     //body.useGravity = false;
 
-                    if (body.velocity.y < yAccel)
-                        body.velocity = new Vector3(v.x, yAccel, v.z);
+                    if (body.linearVelocity.y < yAccel)
+                        body.linearVelocity = new Vector3(v.x, yAccel, v.z);
                 }
                 else
                 {
@@ -424,9 +424,9 @@ public class FeetCollider : MonoBehaviour
 
                     if (groundHeight > body.position.y - playerHeight * (.5f - downslopeLowering))
                     {
-                        if (body.velocity.y < yAccel)
+                        if (body.linearVelocity.y < yAccel)
                             //body.velocity = new Vector3(v.x, yAccel / Time.deltaTime, v.z);
-                            body.velocity = new Vector3(v.x, yAccel, v.z);
+                            body.linearVelocity = new Vector3(v.x, yAccel, v.z);
                         //print("body velocity " + (body.velocity ) + " " + yAccel);
                     }
 
@@ -439,7 +439,7 @@ public class FeetCollider : MonoBehaviour
                 }
 
                 if (debug)
-                    print("TOUCHING, Y is set to " + body.velocity.y);
+                    print("TOUCHING, Y is set to " + body.linearVelocity.y);
             } else
             {
                 //print("falling, Y: " + body.velocity.y);
@@ -471,7 +471,7 @@ public class FeetCollider : MonoBehaviour
         if (isGrounded)
         {
             float factor = Mathf.Pow(0.5f, Time.deltaTime);
-            body.velocity = body.velocity * factor;
+            body.linearVelocity = body.linearVelocity * factor;
         }
 
 

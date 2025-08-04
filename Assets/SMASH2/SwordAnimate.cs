@@ -94,7 +94,7 @@ public class SwordAnimate : NetBehaviour
 
         entity.setCurrents(body, gameObject, IsOwner);  // rigidbody
         entity.addSyncedProperty(body.isKinematic);     // otherwise it throws a bunch of "nooo you can't set velocity on kinematics!" errors
-        body_velocity = entity.addSyncedProperty(body.velocity);
+        body_velocity = entity.addSyncedProperty(body.linearVelocity);
         body_angularVelocity = entity.addSyncedProperty(body.angularVelocity);
 
         tryToSetColors();
@@ -144,8 +144,8 @@ public class SwordAnimate : NetBehaviour
         // grow respawned sword
         if (scale < 1 && held)
         {
-            //scale += Time.deltaTime * (1f/3f);
-            scale += Time.deltaTime * (1f/2f);
+            //scale += Time.deltaTime * (1f/2f);
+            scale += Time.deltaTime * 2;
             //print("scaling " + scale);
         }
         gameObject.transform.localScale = scale_Original * scale;
@@ -160,7 +160,7 @@ public class SwordAnimate : NetBehaviour
         if (!held)
         {
             //print("velocity " + body.velocity.magnitude);
-            if (body.velocity.magnitude > 5)
+            if (body.linearVelocity.magnitude > 5)
                 energized = true;
             else
                 energized = false;
@@ -254,10 +254,10 @@ public class SwordAnimate : NetBehaviour
 
                     if (!held && energized) // throw damage
                     {
-                        hitBoi.applyDamageFromDirection(20 * scale, body.velocity);
+                        hitBoi.applyDamageFromDirection(20 * scale, body.linearVelocity);
 
                         //body.velocity = -body.velocity * .5f;
-                        body.velocity = (-body.velocity.normalized + Vector3.up).normalized * body.velocity.magnitude * .5f;
+                        body.linearVelocity = (-body.linearVelocity.normalized + Vector3.up).normalized * body.linearVelocity.magnitude * .5f;
 
                         dontHitTwice = hitBoi;
                         dontHitTwiceTimer = .5f;
@@ -274,7 +274,7 @@ public class SwordAnimate : NetBehaviour
                         Vector3 tipDelta = swordTipPositions.getOldest() - swordTipPositions.getNewest();
                         //print("tipDelta.magnitude " + tipDelta.magnitude);
 
-                        Vector3 charDelta = (hitBoi.body.velocity - holder.body.velocity);
+                        Vector3 charDelta = (hitBoi.body.linearVelocity - holder.body.linearVelocity);
                         //print ("relative velocity " + charDelta.magnitude);
                         tipDelta -= charDelta * (Time.fixedDeltaTime * swordTipPositions.maxSize) * 2;  // lunging at them matters
 
