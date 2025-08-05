@@ -38,12 +38,12 @@ RenderSettings:
   m_ReflectionIntensity: 1
   m_CustomReflection: {fileID: 0}
   m_Sun: {fileID: 1024852025}
-  m_IndirectSpecularColor: {r: 0.18028378, g: 0.22571412, b: 0.30692285, a: 1}
   m_UseRadianceAmbientProbe: 0
 --- !u!157 &3
 LightmapSettings:
   m_ObjectHideFlags: 0
-  serializedVersion: 12
+  serializedVersion: 13
+  m_BakeOnSceneLoad: 0
   m_GISettings:
     serializedVersion: 2
     m_BounceScale: 1
@@ -195,6 +195,7 @@ MeshRenderer:
   m_RayTraceProcedural: 0
   m_RayTracingAccelStructBuildFlagsOverride: 0
   m_RayTracingAccelStructBuildFlags: 1
+  m_SmallMeshCulling: 1
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
@@ -304,6 +305,7 @@ MeshRenderer:
   m_RayTraceProcedural: 0
   m_RayTracingAccelStructBuildFlagsOverride: 0
   m_RayTracingAccelStructBuildFlags: 1
+  m_SmallMeshCulling: 1
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
@@ -368,6 +370,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   m_ProtocolType: 0
+  m_UseWebSockets: 0
+  m_UseEncryption: 0
   m_MaxPacketQueueSize: 128
   m_MaxPayloadSize: 6144
   m_HeartbeatTimeoutMS: 500
@@ -507,6 +511,7 @@ MeshRenderer:
   m_RayTraceProcedural: 0
   m_RayTracingAccelStructBuildFlagsOverride: 0
   m_RayTracingAccelStructBuildFlags: 1
+  m_SmallMeshCulling: 1
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
@@ -540,6 +545,67 @@ MeshFilter:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 261252756}
   m_Mesh: {fileID: 10202, guid: 0000000000000000e000000000000000, type: 0}
+--- !u!1 &299332638
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 299332640}
+  - component: {fileID: 299332639}
+  m_Layer: 0
+  m_Name: test clip for timeline visualizer
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!114 &299332639
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 299332638}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: c31689df2f9cdd844b207364329ec605, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  clipName: Temp test clip
+  filePath: 
+  CLipFileVersion: CLipFileVersion 0.2
+  isRecording: 0
+  isPlaying: 0
+  loop: 1
+  lastFrameTImestamp: 0
+  clipTime: 0
+  clipLength: 0
+  SaveFileNow: 0
+  SaveFileOnExit: 0
+  targetNetBehaviours: []
+  entities: []
+  LoadFileNow: 0
+  references:
+    version: 2
+    RefIds: []
+--- !u!4 &299332640
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 299332638}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: -6.58859, y: 0, z: -2.6539}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1001 &412925596
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -737,6 +803,7 @@ MeshRenderer:
   m_RayTraceProcedural: 0
   m_RayTracingAccelStructBuildFlagsOverride: 0
   m_RayTracingAccelStructBuildFlags: 1
+  m_SmallMeshCulling: 1
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
@@ -1150,6 +1217,7 @@ MeshRenderer:
   m_RayTraceProcedural: 0
   m_RayTracingAccelStructBuildFlagsOverride: 0
   m_RayTracingAccelStructBuildFlags: 1
+  m_SmallMeshCulling: 1
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
@@ -1259,8 +1327,12 @@ Light:
   m_BoundingSphereOverride: {x: 0, y: 0, z: 0, w: 0}
   m_UseBoundingSphereOverride: 0
   m_UseViewFrustumForShadowCasterCull: 1
+  m_ForceVisible: 0
   m_ShadowRadius: 0
   m_ShadowAngle: 0
+  m_LightUnit: 1
+  m_LuxAtDistance: 1
+  m_EnableSpotReflector: 1
 --- !u!4 &1024852026
 Transform:
   m_ObjectHideFlags: 0
@@ -1454,6 +1526,7 @@ MeshRenderer:
   m_RayTraceProcedural: 0
   m_RayTracingAccelStructBuildFlagsOverride: 0
   m_RayTracingAccelStructBuildFlags: 1
+  m_SmallMeshCulling: 1
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
@@ -1561,6 +1634,7 @@ MeshRenderer:
   m_RayTraceProcedural: 0
   m_RayTracingAccelStructBuildFlagsOverride: 0
   m_RayTracingAccelStructBuildFlags: 1
+  m_SmallMeshCulling: 1
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
@@ -1712,6 +1786,7 @@ MonoBehaviour:
   - Assets/_Project/Prefabs/NetworkStartUI.prefabNetworkStartUI
   - Assets/ExampleAssets/Prefabs/XRControllerLeft.prefabXRControllerLeft
   - Assets/ExampleAssets/Prefabs/XRControllerRight.prefabXRControllerRight
+  - Assets/Shapes/Samples/Assets/Enemy.prefabEnemy
   - Assets/SMASH2/hand Jet.prefabhand Jet
   - Assets/SMASH2/Player.prefabPlayer
   - Assets/SMASH2/stopBurstParticles.prefabstopBurstParticles
@@ -1722,6 +1797,7 @@ MonoBehaviour:
     - Prefab 1
   - Assets/TextMesh Pro/Examples & Extras/Prefabs/TextMeshPro - Prefab 2.prefabTextMeshPro
     - Prefab 2
+  - Packages/com.singularitygroup.hotreload/Runtime/HotReloadPrompts.prefabHotReloadPrompts
   - Packages/com.unity.learn.iet-framework/Tests/Editor/TestPrefab1.prefabTestPrefab1
   - Packages/com.unity.learn.iet-framework/Tests/Editor/TestPrefab2.prefabTestPrefab2
   - Packages/com.unity.xr.legacyinputhelpers/Prefabs/XRRig.prefabXRRig
@@ -1729,6 +1805,7 @@ MonoBehaviour:
   - {fileID: 6206875093998293802, guid: 4aca3efdd079e5e459bbeedfc4a32240, type: 3}
   - {fileID: 8758423527188247893, guid: 5b158b94c373d4b4f9e98cdb92789343, type: 3}
   - {fileID: 4283425761326543017, guid: 1f4d373a613d0466fbd8849470265852, type: 3}
+  - {fileID: 2573866931455553969, guid: 64ae3bdbe4c22b84492c527cfd5e4424, type: 3}
   - {fileID: 7178577322115202236, guid: 9bf6f8a8c77bd8140a41ca2844c34b3c, type: 3}
   - {fileID: 7420264138600701504, guid: 4719a346b1af1244b8a8ffc3558a1b30, type: 3}
   - {fileID: 3562877123868809897, guid: 7212a4c48f76a8643a1b9edbdd71dfc3, type: 3}
@@ -1737,6 +1814,7 @@ MonoBehaviour:
   - {fileID: 188050, guid: b06f0e6c1dfa4356ac918da1bb32c603, type: 3}
   - {fileID: 100000, guid: a6e39ced0ea046bcb636c3f0b2e2a745, type: 3}
   - {fileID: 100000, guid: fdad9d952ae84cafb74c63f2e694d042, type: 3}
+  - {fileID: 4967086677379066170, guid: 0dc8d7047b14c44b7970c5d35665dbe1, type: 3}
   - {fileID: 1973035144834676, guid: e094db015e58a40a482cc8d30e011d3e, type: 3}
   - {fileID: 1973035144834676, guid: a8c38beafbe4c408d97dfd6e0f781dae, type: 3}
   - {fileID: 5843497292548984443, guid: c116b7497ab8ca34c9188965d4295e27, type: 3}
@@ -1883,6 +1961,7 @@ MeshRenderer:
   m_RayTraceProcedural: 0
   m_RayTracingAccelStructBuildFlagsOverride: 0
   m_RayTracingAccelStructBuildFlags: 1
+  m_SmallMeshCulling: 1
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
@@ -2023,6 +2102,7 @@ MeshRenderer:
   m_RayTraceProcedural: 0
   m_RayTracingAccelStructBuildFlagsOverride: 0
   m_RayTracingAccelStructBuildFlags: 1
+  m_SmallMeshCulling: 1
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
@@ -2132,6 +2212,7 @@ MeshRenderer:
   m_RayTraceProcedural: 0
   m_RayTracingAccelStructBuildFlagsOverride: 0
   m_RayTracingAccelStructBuildFlags: 1
+  m_SmallMeshCulling: 1
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
@@ -2241,6 +2322,7 @@ MeshRenderer:
   m_RayTraceProcedural: 0
   m_RayTracingAccelStructBuildFlagsOverride: 0
   m_RayTracingAccelStructBuildFlags: 1
+  m_SmallMeshCulling: 1
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
@@ -2350,6 +2432,7 @@ MeshRenderer:
   m_RayTraceProcedural: 0
   m_RayTracingAccelStructBuildFlagsOverride: 0
   m_RayTracingAccelStructBuildFlags: 1
+  m_SmallMeshCulling: 1
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
@@ -2412,10 +2495,23 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: c31689df2f9cdd844b207364329ec605, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  byteArray: 
+  clipName: 
   filePath: 
-  targetEntities:
-  - {fileID: 0}
+  CLipFileVersion: CLipFileVersion 0.2
+  isRecording: 0
+  isPlaying: 0
+  loop: 1
+  lastFrameTImestamp: 0
+  clipTime: 0
+  clipLength: 0
+  SaveFileNow: 0
+  SaveFileOnExit: 0
+  targetNetBehaviours: []
+  entities: []
+  LoadFileNow: 0
+  references:
+    version: 2
+    RefIds: []
 --- !u!4 &2050131377
 Transform:
   m_ObjectHideFlags: 0
@@ -2444,3 +2540,4 @@ SceneRoots:
   - {fileID: 1719738973}
   - {fileID: 1283425841}
   - {fileID: 2050131377}
+  - {fileID: 299332640}

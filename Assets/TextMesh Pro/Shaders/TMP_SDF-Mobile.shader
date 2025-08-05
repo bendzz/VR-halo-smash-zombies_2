@@ -14,7 +14,7 @@ Properties {
 	_OutlineSoftness	("Outline Softness", Range(0,1)) = 0
 
 	_UnderlayColor	    ("Border Color", Color) = (0,0,0,.5)
-	_UnderlayOffsetX 	("Border OffsetX", Range(-1,1)) = 0
+	_UnderlayOffsetX 	("Border OffsetX", Range(-1,1)) = 0 
 	_UnderlayOffsetY 	("Border OffsetY", Range(-1,1)) = 0
 	_UnderlayDilate		("Border Dilate", Range(-1,1)) = 0
 	_UnderlaySoftness 	("Border Softness", Range(0,1)) = 0
@@ -174,6 +174,7 @@ SubShader {
 			#if (UNDERLAY_ON | UNDERLAY_INNER)
 			layerScale /= 1 + ((_UnderlaySoftness * _ScaleRatioC) * layerScale);
 			float layerBias = (.5 - weight) * layerScale - .5 - ((_UnderlayDilate * _ScaleRatioC) * .5 * layerScale);
+			//layerBias -= 0.9;
 
 			float x = -(_UnderlayOffsetX * _ScaleRatioC) * _GradientScale / _TextureWidth;
 			float y = -(_UnderlayOffsetY * _ScaleRatioC) * _GradientScale / _TextureHeight;

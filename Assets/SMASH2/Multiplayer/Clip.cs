@@ -16,6 +16,11 @@ using UnityEditor.EditorTools;
 using UnityEditorInternal;
 using UnityEngine;
 
+using UnityEngine;
+using Shapes;          // ← Requires “Shapes” package
+using TMPro;
+
+
 //public class Rec : MonoBehaviour
 
 /// <summary>
@@ -468,6 +473,8 @@ public class Clip : MonoBehaviour
 
 
         // print("clipProperties count: " + clipProperties.Count);
+
+        HoloLabel.SpawnLabel("PRESS TO LAUNCH", new Vector3(0, 1.4f, 2f));
     }
 
 
@@ -927,7 +934,7 @@ public class Clip : MonoBehaviour
     }
 
 
-    
+
     /// <summary>
     /// For interpolating between frames during playback.
     /// WARNING can't interpolate transforms (they overwrite each other into 1 instance!) Use transformCopy instead
@@ -947,7 +954,7 @@ public class Clip : MonoBehaviour
                 f2 = new transformCopy((Transform)frame2);  // idk if this object change is net faster, but it is simpler
             else if (frame2 is transformCopy)
                 f2 = (transformCopy)frame2;
-            
+
             //Transform f2 = (Transform)frame2; 
 
             Vector3 localPosition = Vector3.Lerp(f1.localPosition, f2.localPosition, lerpPercent);
@@ -1008,5 +1015,69 @@ public class Clip : MonoBehaviour
             t.localScale = localScale;
         }
 
+    }
+}
+
+
+
+public class HoloLabel : MonoBehaviour
+{
+    [Header("Look & feel")]
+    public Color textColor = new(0.85f, 0.95f, 1f);   // near-white
+    public Color outlineColor = new(0.45f, 0.60f, 0.75f); // grey-blue
+    public Color glowColor = new(0.25f, 0.45f, 0.75f);
+    public Color panelColor = new(0.08f, 0.12f, 0.16f, 0.55f); // translucent
+    public float cornerRadius = 0.02f;     // metres
+    public Vector2 padding = new(0.04f, 0.02f);
+
+    public static HoloLabel SpawnLabel(string message, Vector3 pos)
+    {
+        var go = new GameObject($"Label:{message}");
+        var label = go.AddComponent<HoloLabel>();
+        label.Init(message);
+        go.transform.position = pos;
+        return label;
+    }
+
+    void Init(string message)
+    {
+        // ---------- Text ----------
+        var tmpGO = new GameObject("TMP");
+        tmpGO.transform.SetParent(transform, false);
+        var tmp = tmpGO.AddComponent<TextMeshPro>();
+        tmp.fontSize = 0.6f;  // metres
+        tmp.text = message;
+        tmp.alignment = TextAlignmentOptions.Center;
+        tmp.color = textColor;
+
+        // Outline & glow (use SDF params)
+        tmp.fontSharedMaterial = Instantiate(tmp.fontSharedMaterial);
+        tmp.fontSharedMaterial.SetFloat("_OutlineWidth", 0.21f);
+        tmp.fontSharedMaterial.SetColor("_OutlineColor", outlineColor);
+        tmp.fontSharedMaterial.SetFloat("_GlowPower", 0.0f);    // enable glow
+        tmp.fontSharedMaterial.SetFloat("_GlowOuter", 0.45f);
+        tmp.fontSharedMaterial.SetColor("_GlowColor", glowColor);
+
+        // ---------- Shapes panel (rounded rect) ----------
+        var panelGO = new GameObject("Panel");
+        panelGO.transform.SetParent(transform, false);
+        var shape = panelGO.AddComponent<ShapeRenderer>();
+        var rect = panelGO.AddComponent<Rectangle>();
+
+        // Size the rectangle after TMP generates its bounds
+        StartCoroutine(DelaySize(panelGO.transform, tmp, rect));
+    }
+
+    System.Collections.IEnumerator DelaySize(Transform t, TextMeshPro tmp, Rectangle rect)
+    {
+        yield return null; // wait 1 frame for TMP to populate textBounds
+        var b = tmp.textBounds.size;
+        //rect.Size = new Vector2(b.x, b.y) + padding * 2;
+        rect.CornerRadius = cornerRadius;
+        rect.Color = panelColor;
+        rect.Thickness = 0f;         // filled
+        //rect.Rounded = true;
+        rect.BlendMode = ShapesBlendMode.Transparent;
+        rect.transform.localPosition = Vector3.back * 0.001f; // tiny push so panel is behind text
     }
 }
