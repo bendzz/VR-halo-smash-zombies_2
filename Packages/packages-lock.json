@@ -1,5 +1,13 @@
 {
   "dependencies": {
+    "com.community.netcode.extensions": {
+      "version": "file:com.community.netcode.networkdiscovery",
+      "depth": 0,
+      "source": "embedded",
+      "dependencies": {
+        "com.unity.netcode.gameobjects": "1.0.2"
+      }
+    },
     "com.singularitygroup.hotreload": {
       "version": "file:com.singularitygroup.hotreload",
       "depth": 0,

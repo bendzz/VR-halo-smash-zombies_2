@@ -4,7 +4,7 @@ using Unity.Netcode;
 using Unity.Netcode.Transports.UTP;
 using UnityEngine;
 using UnityEngine.Events;
-
+ 
 [RequireComponent(typeof(NetworkManager))]
 public class ExampleNetworkDiscovery : NetworkDiscovery<DiscoveryBroadcastData, DiscoveryResponseData>
 {
@@ -12,7 +12,7 @@ public class ExampleNetworkDiscovery : NetworkDiscovery<DiscoveryBroadcastData, 
     public class ServerFoundEvent : UnityEvent<IPEndPoint, DiscoveryResponseData>
     {
     };
-
+ 
     NetworkManager m_NetworkManager;
     
     [SerializeField]

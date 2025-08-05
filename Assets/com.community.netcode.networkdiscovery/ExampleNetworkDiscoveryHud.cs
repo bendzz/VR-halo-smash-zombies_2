@@ -9,7 +9,7 @@ using Object = UnityEngine.Object;
 using UnityEditor;
 using UnityEditor.Events;
 #endif
-
+ 
 [RequireComponent(typeof(ExampleNetworkDiscovery))]
 [RequireComponent(typeof(NetworkManager))]
 public class ExampleNetworkDiscoveryHud : MonoBehaviour
