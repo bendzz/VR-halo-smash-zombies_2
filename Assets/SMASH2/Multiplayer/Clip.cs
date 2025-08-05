@@ -12,11 +12,14 @@ using Unity.Collections;
 using Unity.Collections.LowLevel.Unsafe;
 using Unity.Mathematics;
 using Unity.Netcode;
-using UnityEditor.EditorTools;
+//using UnityEditor.EditorTools;
+#if UNITY_EDITOR
 using UnityEditorInternal;
-using UnityEngine;
+#endif
 
 using UnityEngine;
+
+//using UnityEngine;
 using Shapes;          // ← Requires “Shapes” package
 using TMPro;
 
