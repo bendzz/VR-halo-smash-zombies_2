@@ -10,18 +10,19 @@ using System.Linq;
 //using Unity.Android.Gradle.Manifest;
 using Unity.Collections;
 using Unity.Collections.LowLevel.Unsafe;
-using Unity.Mathematics;
-using Unity.Netcode;
+//using Unity.Mathematics;
+//using Unity.Netcode;
 //using UnityEditor.EditorTools;
 #if UNITY_EDITOR
 using UnityEditorInternal;
 #endif
-
+ 
 using UnityEngine;
 
 //using UnityEngine;
 using Shapes;          // ← Requires “Shapes” package
 using TMPro;
+using Unity.Netcode;
 
 
 //public class Rec : MonoBehaviour
@@ -275,7 +276,7 @@ public class Clip : MonoBehaviour
             this.entity = entity;
             this.parentClip = clip;
 
-
+ 
             if (entity.parentScript != null)
                 //info = "Entity. parentScript: " + entity.parentScript + " Gameobject: " + entity.parentScript.gameObject.name + "";
                 info = "Entity: parentScript: " + entity.parentScript;
@@ -307,7 +308,7 @@ public class Clip : MonoBehaviour
     }
 
 
-
+ 
 
     [Serializable]
     public class Property : INetworkSerializable

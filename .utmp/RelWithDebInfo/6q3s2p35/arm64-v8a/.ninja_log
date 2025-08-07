@@ -1,0 +1,10 @@
+# ninja log v5
+26	861	7761848001383608	GameActivity/CMakeFiles/game.dir/UGAEntry.cpp.o	db98405846e12bc6
+47	867	7761848001383608	GameActivity/CMakeFiles/game.dir/UGAInputKeyEvent.cpp.o	6b25d6b8077c39b1
+6	889	7761848001673041	GameActivity/CMakeFiles/game.dir/UGAConfiguration.cpp.o	ff3b4ed0129bef27
+33	890	7761848001673041	GameActivity/CMakeFiles/game.dir/UGAInputMotionEvent.cpp.o	5fe5bd22a7007b5
+0	929	7761848002067239	GameActivity/CMakeFiles/game.dir/UGADebug.cpp.o	16a1262db5325e66
+39	1061	7761848003393272	GameActivity/CMakeFiles/game.dir/UGASoftKeyboard.cpp.o	254f49c3c8643d70
+19	1101	7761848003791427	GameActivity/CMakeFiles/game.dir/UGAInput.cpp.o	eee30fcc379ed8b6
+13	1178	7761848004536920	GameActivity/CMakeFiles/game.dir/UGAApplication.cpp.o	79fc1cf520a74f3e
+1178	1314	7761848005920812	C:/Users/Mike/Dropbox/PC (2)/Documents/Unity 2023/VR halo-smash-zombies_2/Library/Bee/Android/Prj/IL2CPP/Gradle/unityLibrary/build/intermediates/cxx/RelWithDebInfo/6q3s2p35/obj/arm64-v8a/libgame.so	10370a64ec68ac89

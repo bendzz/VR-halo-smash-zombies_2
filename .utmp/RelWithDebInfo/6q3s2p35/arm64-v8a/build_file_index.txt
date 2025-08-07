@@ -1,0 +1,2 @@
+C:\Users\Mike\Dropbox\PC (2)\Documents\Unity 2023\VR halo-smash-zombies_2\Library\Bee\Android\Prj\IL2CPP\Gradle\unityLibrary\src\main\cpp\CMakeLists.txt
+C:\Users\Mike\Dropbox\PC (2)\Documents\Unity 2023\VR halo-smash-zombies_2\Library\Bee\Android\Prj\IL2CPP\Gradle\unityLibrary\src\main\cpp\GameActivity\CMakeLists.txt
