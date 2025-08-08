@@ -1,4 +1,4 @@
-# Install script for directory: C:/Users/Mike/Dropbox/PC (2)/Documents/Unity 2023/VR halo-smash-zombies_2/Library/PramData/AndroidApplicationController/Cache/com.VR_Dev.VRhalosmashzombies_2/gradle-project/unityLibrary/src/main/cpp
+# Install script for directory: C:/Users/Mike/Dropbox/PC (2)/Documents/Unity 2023/VR halo-smash-zombies_2/Library/Bee/Android/Prj/IL2CPP/Gradle/unityLibrary/src/main/cpp
 
 # Set the install prefix
 if(NOT DEFINED CMAKE_INSTALL_PREFIX)

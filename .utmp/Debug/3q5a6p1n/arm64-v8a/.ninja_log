@@ -1,10 +1,10 @@
 # ninja log v5
-10	1390	7761898500284992	GameActivity/CMakeFiles/game.dir/UGAConfiguration.cpp.o	5d3adb902cc7820f
-37	1401	7761898500350022	GameActivity/CMakeFiles/game.dir/UGAEntry.cpp.o	5fa6331ae1deaabf
-66	1417	7761898500550313	GameActivity/CMakeFiles/game.dir/UGAInputKeyEvent.cpp.o	3649deada5abe240
-0	1430	7761898500664788	GameActivity/CMakeFiles/game.dir/UGADebug.cpp.o	24aa5c9d61a12955
-47	1440	7761898500798312	GameActivity/CMakeFiles/game.dir/UGAInputMotionEvent.cpp.o	3ce0e8f694f27e53
-26	1538	7761898501752738	GameActivity/CMakeFiles/game.dir/UGAInput.cpp.o	bb676006b0de044e
-19	1567	7761898502045193	GameActivity/CMakeFiles/game.dir/UGAApplication.cpp.o	d8736b5bd17ffd27
-56	1582	7761898502155796	GameActivity/CMakeFiles/game.dir/UGASoftKeyboard.cpp.o	78bf7af2bbc21399
-1583	1684	7761898503220983	C:/Users/Mike/Dropbox/PC (2)/Documents/Unity 2023/VR halo-smash-zombies_2/Library/PramData/AndroidApplicationController/Cache/com.VR_Dev.VRhalosmashzombies_2/gradle-project/unityLibrary/build/intermediates/cxx/Debug/3q5a6p1n/obj/arm64-v8a/libgame.so	fe3de0b58b1acc67
+0	1057	7763533704043019	GameActivity/CMakeFiles/game.dir/UGAConfiguration.cpp.o	63fb311b4f10de7b
+22	1067	7763533704148334	GameActivity/CMakeFiles/game.dir/UGAEntry.cpp.o	3b855e312503dda
+35	1068	7763533704158368	GameActivity/CMakeFiles/game.dir/UGAInputMotionEvent.cpp.o	7f875e95122be9dc
+50	1076	7763533704254046	GameActivity/CMakeFiles/game.dir/UGAInputKeyEvent.cpp.o	a597c5ffc1958a7f
+8	1091	7763533704409868	GameActivity/CMakeFiles/game.dir/UGADebug.cpp.o	924062bd4ad78dab
+28	1144	7763533704913530	GameActivity/CMakeFiles/game.dir/UGAInput.cpp.o	70e9ee188ffa814
+14	1184	7763533705303614	GameActivity/CMakeFiles/game.dir/UGAApplication.cpp.o	cfd2e0235404d604
+42	1284	7763533706299565	GameActivity/CMakeFiles/game.dir/UGASoftKeyboard.cpp.o	2dd481ae3ee708b2
+1284	1394	7763533707407443	C:/Users/Mike/Dropbox/PC (2)/Documents/Unity 2023/VR halo-smash-zombies_2/Library/Bee/Android/Prj/IL2CPP/Gradle/unityLibrary/build/intermediates/cxx/Debug/3q5a6p1n/obj/arm64-v8a/libgame.so	499de23347d6a63b

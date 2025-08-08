@@ -1761,6 +1761,7 @@ GameObject:
   - component: {fileID: 1247451035}
   - component: {fileID: 1247451037}
   - component: {fileID: 1247451038}
+  - component: {fileID: 1247451039}
   m_Layer: 0
   m_Name: LobbyMultiplayer
   m_TagString: Untagged
@@ -1866,6 +1867,19 @@ MonoBehaviour:
   - {fileID: 1973035144834676, guid: a8c38beafbe4c408d97dfd6e0f781dae, type: 3}
   - {fileID: 5843497292548984443, guid: c116b7497ab8ca34c9188965d4295e27, type: 3}
   updateDict: 0
+--- !u!114 &1247451039
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1247451034}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 6bb97a0b4e08ac44685fd43eac41c7bc, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  enableVrOnQuest: 1
 --- !u!1 &1283425838
 GameObject:
   m_ObjectHideFlags: 0

@@ -18,6 +18,8 @@ public class myInputTests : NetBehaviour
     public Transform XR_Origin;
     public Transform XR_Headset;
 
+
+
     public Transform leftHandObject;
     public Transform rightHandObject;
 
@@ -29,7 +31,7 @@ public class myInputTests : NetBehaviour
     public SmashCharacter smashCharacter;
 
 
-    public float runAccelerate = 10;
+    public float runAccelerate = 10; 
     public float runMax = 19.6f;    // usain bolt
 
     [Tooltip("degrees per second turn with joystick")]

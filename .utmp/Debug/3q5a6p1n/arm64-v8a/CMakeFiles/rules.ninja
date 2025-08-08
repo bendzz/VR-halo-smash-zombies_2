@@ -42,7 +42,7 @@ rule CXX_SHARED_LIBRARY_LINKER__game_Debug
 # Rule for re-running cmake.
 
 rule RERUN_CMAKE
-  command = "C:\Program Files\Unity\Hub\Editor\6000.1.15f1\Editor\Data\PlaybackEngines\AndroidPlayer\SDK\cmake\3.22.1\bin\cmake.exe" --regenerate-during-build -S"C:\Users\Mike\Dropbox\PC (2)\Documents\Unity 2023\VR halo-smash-zombies_2\Library\PramData\AndroidApplicationController\Cache\com.VR_Dev.VRhalosmashzombies_2\gradle-project\unityLibrary\src\main\cpp" -B"C:\Users\Mike\Dropbox\PC (2)\Documents\Unity 2023\VR halo-smash-zombies_2\.utmp\Debug\3q5a6p1n\arm64-v8a"
+  command = "C:\Program Files\Unity\Hub\Editor\6000.1.15f1\Editor\Data\PlaybackEngines\AndroidPlayer\SDK\cmake\3.22.1\bin\cmake.exe" --regenerate-during-build -S"C:\Users\Mike\Dropbox\PC (2)\Documents\Unity 2023\VR halo-smash-zombies_2\Library\Bee\Android\Prj\IL2CPP\Gradle\unityLibrary\src\main\cpp" -B"C:\Users\Mike\Dropbox\PC (2)\Documents\Unity 2023\VR halo-smash-zombies_2\.utmp\Debug\3q5a6p1n\arm64-v8a"
   description = Re-running CMake...
   generator = 1
 

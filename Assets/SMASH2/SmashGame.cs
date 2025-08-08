@@ -30,6 +30,7 @@ public class SmashGame : NetBehaviour
         instance = this;
 
         playerStats = new Dictionary<string, PlayerStats>();
+        
 
         // playerStats TODO. Server auth? Needs net syncing too
 

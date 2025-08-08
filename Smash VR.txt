@@ -241,3 +241,10 @@ TODO Oct 31:
 -when a property gets Synced locally or receives a Sync over the net, (record which it was) and save a frame to its AnimatedProperty list
 
 
+
+
+
+
+
+
+CAMPGROUND GAME Aug 2025

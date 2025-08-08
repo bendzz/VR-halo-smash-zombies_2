@@ -1,6 +1,8 @@
 // TODO LATER:
 // - Currently about every transform/velocity frame gets recorded; need a way to ignore tiny changes, only record unique frames
 // - Game saving/loading: Need a way to store and restore the entire game scene hierarchy, and plug it back into clip entities upon load, and add new frames as the scene changes or stuff spawns/despawns.
+// - Smoother interpolation
+//   - Instead of linear frame interpolation, use the blender style keyframe interpolation algorithm O3 described. (Lost the chat, just ask it again)
 
 using System;
 using System.Collections;
@@ -266,7 +268,7 @@ public class Clip : MonoBehaviour
         // bool old_IsOwner = false;   // TODO
 
 
-
+  
         public Entity()
         { properties = new List<Property>(); }  // default constructor for serialization
 
@@ -275,7 +277,7 @@ public class Clip : MonoBehaviour
         {
             this.entity = entity;
             this.parentClip = clip;
-
+ 
  
             if (entity.parentScript != null)
                 //info = "Entity. parentScript: " + entity.parentScript + " Gameobject: " + entity.parentScript.gameObject.name + "";
