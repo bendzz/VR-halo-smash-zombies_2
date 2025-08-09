@@ -56,5 +56,5 @@
         "temp/": true,
         "Temp/": true
     },
-    "dotnet.defaultSolution": "VR halo-smash-zombies_2.sln"
+    "dotnet.defaultSolution": "VR-halo-smash-zombies_2.sln"
 }

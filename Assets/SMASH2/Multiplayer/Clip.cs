@@ -18,7 +18,7 @@ using Unity.Collections.LowLevel.Unsafe;
 #if UNITY_EDITOR
 using UnityEditorInternal;
 #endif
- 
+
 using UnityEngine;
 
 //using UnityEngine;
@@ -268,7 +268,7 @@ public class Clip : MonoBehaviour
         // bool old_IsOwner = false;   // TODO
 
 
-  
+
         public Entity()
         { properties = new List<Property>(); }  // default constructor for serialization
 
@@ -277,8 +277,8 @@ public class Clip : MonoBehaviour
         {
             this.entity = entity;
             this.parentClip = clip;
- 
- 
+
+
             if (entity.parentScript != null)
                 //info = "Entity. parentScript: " + entity.parentScript + " Gameobject: " + entity.parentScript.gameObject.name + "";
                 info = "Entity: parentScript: " + entity.parentScript;
@@ -310,7 +310,7 @@ public class Clip : MonoBehaviour
     }
 
 
- 
+
 
     [Serializable]
     public class Property : INetworkSerializable
