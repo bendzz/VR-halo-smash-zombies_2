@@ -144,9 +144,6 @@ PlayerSettings:
   bundleVersion: 0.1
   preloadedAssets:
   - {fileID: 0}
-  - {fileID: -8196854396901781169, guid: 1a4c68ca72a83449f938d669337cb305, type: 2}
-  - {fileID: 11400000, guid: bfa1182bd221b4ca89619141f66f1260, type: 2}
-  - {fileID: 6352883888543907935, guid: 5f796a71304180241a63094800ac98f5, type: 2}
   metroInputSource: 0
   wsaTransparentSwapchain: 0
   m_HolographicPauseOnTrackingLoss: 1
@@ -268,7 +265,7 @@ PlayerSettings:
   useCustomGradlePropertiesTemplate: 0
   useCustomGradleSettingsTemplate: 0
   useCustomProguardFile: 0
-  AndroidTargetArchitectures: 2
+  AndroidTargetArchitectures: 0
   AndroidSplashScreenScale: 0
   androidSplashScreen: {fileID: 2800000, guid: 5337c46c99f9f4347945fccb701af809, type: 3}
   AndroidKeystoreName: 
@@ -748,11 +745,12 @@ PlayerSettings:
   scriptingBackend:
     Android: 1
     Standalone: 0
-  il2cppCompilerConfiguration: {}
+  il2cppCompilerConfiguration:
+    Android: 1
   il2cppCodeGeneration: {}
   il2cppStacktraceInformation: {}
   managedStrippingLevel:
-    Android: 1
+    Android: 4
     Bratwurst: 1
     EmbeddedLinux: 1
     GameCoreScarlett: 1

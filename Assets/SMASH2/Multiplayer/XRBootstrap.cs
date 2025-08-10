@@ -1,12 +1,15 @@
 // XRBootstrap.cs — drop into Assets/SMA5H2/Multiplayer/ (or anywhere in project)
 // Purpose: Start XR only on Quest devices. Keep XR off on phones. Safe in Editor.
 
+// NOTE: I don't think XR Boostrap does anything.
+
 using System;
 using System.Collections;
 using UnityEngine;
 #if UNITY_XR_MANAGEMENT
 using UnityEngine.XR.Management;
 #endif
+
 
 public class XRBootstrap : MonoBehaviour
 {
@@ -104,7 +107,7 @@ public class XRBootstrap : MonoBehaviour
 
 // ------------------------------------------------------------
 // AndroidMulticastLock.cs — add to your LAN scene when using discovery on Android/Quest
- 
+
 #if UNITY_ANDROID && !UNITY_EDITOR
 public class AndroidMulticastLock : MonoBehaviour
 {
@@ -119,6 +122,7 @@ public class AndroidMulticastLock : MonoBehaviour
             _lock = wifi.Call<AndroidJavaObject>("createMulticastLock", "lan-discovery");
             _lock.Call("setReferenceCounted", true);
             _lock.Call("acquire");
+            print("Lan enabled");
         }
         catch (Exception e)
         {
