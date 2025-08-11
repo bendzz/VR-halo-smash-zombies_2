@@ -498,6 +498,11 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   settingsText: {fileID: 0}
+  selectedOption:
+    normal: {r: 0.3, g: 0.6, b: 1, a: 1}
+    hovered: {r: 0.5, g: 0.8, b: 1, a: 1}
+    held: {r: 1, g: 1, b: 0, a: 1}
+    released: {r: 1, g: 1, b: 1, a: 1}
   lanPort: 7777
 --- !u!1 &261252756
 GameObject:
@@ -691,10 +696,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 8b69de092dcf01e4083e86b0f0e9b8c7, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  textPrefab: {fileID: 8168818072944280804, guid: f0df5b8d9066f8f48bb986476ead4b86,
-    type: 3}
-  _text: {fileID: 0}
-  _hovered: -1
 --- !u!114 &299332642
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -713,8 +714,8 @@ MonoBehaviour:
   defaultLinkColors:
     normal: {r: 0.3, g: 0.6, b: 1, a: 1}
     hovered: {r: 0.5, g: 0.8, b: 1, a: 1}
-    clicked: {r: 1, g: 1, b: 1, a: 1}
     held: {r: 1, g: 1, b: 0, a: 1}
+    released: {r: 1, g: 1, b: 1, a: 1}
 --- !u!114 &299332643
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -727,10 +728,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: ae83bde1f978de544901edbb0bb6b6b8, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  padding: {x: 0.01, y: 0.006}
-  _tmp: {fileID: 0}
-  _col: {fileID: 0}
-  _hoveredLink: -1
 --- !u!65 &299332644
 BoxCollider:
   m_ObjectHideFlags: 0
@@ -1489,8 +1486,8 @@ MonoBehaviour:
   defaultLinkColors:
     normal: {r: 0.3, g: 0.6, b: 1, a: 1}
     hovered: {r: 0.5, g: 0.8, b: 1, a: 1}
-    clicked: {r: 1, g: 1, b: 1, a: 1}
     held: {r: 1, g: 1, b: 0, a: 1}
+    released: {r: 1, g: 1, b: 1, a: 1}
 --- !u!1 &731708216
 GameObject:
   m_ObjectHideFlags: 0
@@ -1752,6 +1749,11 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   settingsText: {fileID: 0}
+  selectedOption:
+    normal: {r: 0.3, g: 0.6, b: 1, a: 1}
+    hovered: {r: 0.5, g: 0.8, b: 1, a: 1}
+    held: {r: 1, g: 1, b: 0, a: 1}
+    released: {r: 1, g: 1, b: 1, a: 1}
   lanPort: 7777
 --- !u!1 &953836202
 GameObject:
@@ -2848,10 +2850,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: ae83bde1f978de544901edbb0bb6b6b8, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  padding: {x: 0.01, y: 0.006}
-  _tmp: {fileID: 0}
-  _col: {fileID: 0}
-  _hoveredLink: -1
 --- !u!65 &1403784531
 BoxCollider:
   m_ObjectHideFlags: 0
@@ -3688,8 +3686,8 @@ MonoBehaviour:
   defaultLinkColors:
     normal: {r: 0.5424528, g: 0.73927486, b: 1, a: 1}
     hovered: {r: 0.5019608, g: 1, b: 0.83079696, a: 1}
-    clicked: {r: 1, g: 1, b: 1, a: 1}
     held: {r: 1, g: 1, b: 0, a: 1}
+    released: {r: 1, g: 0, b: 0, a: 1}
 --- !u!4 &2107284083
 Transform:
   m_ObjectHideFlags: 0
@@ -3719,6 +3717,11 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   settingsText: {fileID: 1214112044}
+  selectedOption:
+    normal: {r: 1, g: 0.2980392, b: 0.94617385, a: 1}
+    hovered: {r: 1, g: 0.65833175, b: 0.28773582, a: 1}
+    held: {r: 1, g: 1, b: 0, a: 1}
+    released: {r: 1, g: 0, b: 0, a: 1}
   lanPort: 7777
 --- !u!1001 &6425680081795039562
 PrefabInstance:

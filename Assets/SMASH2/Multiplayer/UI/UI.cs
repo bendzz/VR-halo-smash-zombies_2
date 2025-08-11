@@ -53,7 +53,7 @@ public class UI : MonoBehaviour
         /// <summary>
         /// Modify to override link colors
         /// </summary>
-        public LinkColors linkColors = null;
+        public LinkColors colors = null;
 
         //public static Dictionary<TMP_Text, 
 
@@ -78,18 +78,105 @@ public class UI : MonoBehaviour
     [System.Serializable]
     public class LinkColors
     {
-        //[SerializeField]
         public Color normal = new Color(0.3f, 0.6f, 1f); // nice blue
-        //[SerializeField]
         public Color hovered = new Color(0.5f, 0.8f, 1f); // lighter blue
         //Color clicked = new Color(0.1f, 0.4f, 0.8f); // dark blue
-        //[SerializeField]
-        public Color clicked = new Color(1, 1, 1);
-        //[SerializeField]
         public Color held = new Color(1, 1, 0);   // yellow
+        public Color released = new Color(1, 1, 1);
+
+        public LinkColors() { }
+        public LinkColors(Color normal, Color hovered, Color held, Color released)
+        {
+            this.normal = normal;
+            this.hovered = hovered;
+            this.held = held;
+            this.released = released;
+        }
+
     }
 
     public LinkColors defaultLinkColors;
+    public LinkColors selectedOption = new LinkColors(Color.hotPink, Color.orange, Color.yellow, Color.red);
+
+
+    /// <summary>
+    /// Pick one from a list of links; it will be highlighted, the rest won't. Can query to see the selection.
+    /// </summary>
+    public class PickOneOption
+    {
+        public static List<PickOneOption> AllPickOneOptions = new List<PickOneOption>();
+
+        public List<Link> links = new List<Link>();
+        public int selection = 0;
+
+        // public void AddLink(Link link)
+        // { links.Add(link); }
+
+        /// <summary>
+        /// Run every frame after links are updated
+        /// </summary>
+        public static void updateAll()
+        {
+            foreach (var pickOne in AllPickOneOptions)
+            {
+                pickOne.updateLinks();
+            }
+        }
+        void updateLinks()
+        {
+            for (int i = 0; i < links.Count; i++)
+            {
+                bool dirty = false;
+                if (links[i].clickReleased)
+                {
+                    selection = i;
+                    //print($"PickOneOption: Selected link {links[i].id} at index {i}");
+                }
+                if (i == selection)
+                {
+                    if (links[i].colors == null)
+                        dirty = true;
+                    links[i].colors = UI.instance.selectedOption; // highlight selected
+                }
+                else
+                {
+                    if (links[i].colors != null)
+                        dirty = true;
+                    links[i].colors = null; // unhighlight others
+                }
+                if (dirty)
+                    links[i].updateColors();
+
+                //links[i].colors = (i == selection) ? UI.instance.selectedOption : null;
+            }
+        }
+
+
+        // public PickOneOption(List<Link> _links)
+        // { links = _links; }
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="gameObject">The gameobject all the links are associated with</param>
+        /// <param name="_linkIDs">The linkIDs to search from the global dictionary</param>
+        public PickOneOption(GameObject gameObject, List<string> _linkIDs)
+        {
+            links = new List<Link>();
+            foreach (var id in _linkIDs)
+            {
+                if (UI.Links.TryGetValue(gameObject, out var linkDict) && linkDict.TryGetValue(id, out var link))
+                {
+                    links.Add(link);
+                    print($"PickOneOption: Added link '{id}' from {gameObject.name}");
+                }
+                else
+                {
+                    Debug.LogWarning($"PickOneOption: Link '{id}' not found on {gameObject.name}");
+                }
+            }
+            AllPickOneOptions.Add(this);
+        }
+    }
 
 
     // /// <summary>
@@ -258,7 +345,7 @@ public class UI : MonoBehaviour
         // Pick the color
         //string hex = ColorUtility.ToHtmlStringRGBA(new Color(0.3f, 0.6f, 1f));
         // Use default link colors if not overridden
-        LinkColors linkColors = link.linkColors ?? instance.defaultLinkColors;
+        LinkColors linkColors = link.colors ?? instance.defaultLinkColors;
 
         Color color = linkColors.normal;
         if (link.hovered)
@@ -266,7 +353,7 @@ public class UI : MonoBehaviour
         if (link.clickHeld)
             color = linkColors.held;
         if (link.clickReleased)
-            color = linkColors.clicked;
+            color = linkColors.released;
 
         string hex = ColorUtility.ToHtmlStringRGBA(color);
 
@@ -443,7 +530,7 @@ public class UI : MonoBehaviour
             // }
         }
 
-
+        PickOneOption.updateAll();
     }
 
 

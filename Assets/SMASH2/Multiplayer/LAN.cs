@@ -8,11 +8,17 @@ using System.Net.NetworkInformation;
 using System.Net.Sockets;
 using TMPro;
 using System;
+using System.Collections.Generic;
 
 public class LAN : MonoBehaviour
 {
     public TMP_Text settingsText;
 
+    public UI.LinkColors selectedOption;
+
+
+    UI.PickOneOption game;
+    UI.PickOneOption multiplayer;
 
     private void OnEnable()
     {
@@ -31,22 +37,18 @@ public class LAN : MonoBehaviour
 
 
         UI.addLinks(settingsText);
+
+
+        game = new UI.PickOneOption(gameObject, new List<string> { "Camping '25", "SmashVR" });
+        multiplayer = new UI.PickOneOption(gameObject, new List<string> { "LAN", "Online" });
     }
 
     void Update()
     {
-        this.Clicked("startgame");
+        // TODO
+        //this.Clicked("startgame");  // TODO click checker method
+        //UI.Links[gameObject]["Start New Lobby"];
 
-        // UI.Link link = UI.Links[gameObject]["Online"];
-        // link.linkColors = new UI.LinkColors
-        // {
-        //     normal = new Color(1f, 0.6f, 1f),
-        //     hovered = new Color(0.5f, 0.8f, 1f),
-        //     clicked = new Color(1, 1, 1),
-        //     held = new Color(1, 1, 0)
-        // };
-        // UI.Links[gameObject]["Online"] = link;
-        // UI.updateLinkColors(link);
     }
 
 
