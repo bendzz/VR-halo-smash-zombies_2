@@ -535,6 +535,7 @@ public class Clip : MonoBehaviour
     public void LateUpdate()
     {
 
+
         // loop through targetEntities, check if they're already contained in entities list, add them if not
         if (targetNetBehaviours != null && targetNetBehaviours.Count > 0)
         {

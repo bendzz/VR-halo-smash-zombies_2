@@ -6,10 +6,14 @@ using System.Linq;
 using System.Net;
 using System.Net.NetworkInformation;
 using System.Net.Sockets;
+using TMPro;
 
 
 public class LAN : MonoBehaviour
 {
+    public TMP_Text settingsText;
+
+
     private void OnEnable()
     {
         // Start LAN discovery
@@ -25,6 +29,24 @@ public class LAN : MonoBehaviour
 
         AndroidMulticastLock_Start();
 
+
+        UI.addLinks(settingsText);
+    }
+
+    void Update()
+    {
+        this.Clicked("startgame");
+
+        UI.Link link = UI.Links[gameObject]["Online"];
+        link.linkColors = new UI.LinkColors
+        {
+            normal = new Color(1f, 0.6f, 1f),
+            hovered = new Color(0.5f, 0.8f, 1f),
+            clicked = new Color(1, 1, 1),
+            held = new Color(1, 1, 0)
+        };
+        UI.Links[gameObject]["Online"] = link;
+        UI.updateLinkColors(link);
     }
 
 
