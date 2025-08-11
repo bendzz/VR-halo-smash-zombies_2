@@ -35,12 +35,20 @@ public class UI : MonoBehaviour
         public int linkIndex;
         public GameObject owner;
 
-        // status
+        // STATUS
         public bool hovered;
         public bool oldHovered;
 
-        public bool clicked;
-        public bool oldClicked;
+        // Clicked?
+        /// <summary>
+        /// Like the button was just pressed this frame
+        /// </summary>
+        public bool clickStart;
+        public bool clickHeld;
+        public bool oldHeld;
+        public bool clickReleased;
+
+
 
         /// <summary>
         /// Modify to override link colors
@@ -83,6 +91,11 @@ public class UI : MonoBehaviour
 
     public LinkColors defaultLinkColors;
 
+
+    // /// <summary>
+    // /// The link that's currently being clicked and held
+    // /// </summary>
+    // public static Link heldLink = null;
 
 
     /// <summary>
@@ -242,6 +255,7 @@ public class UI : MonoBehaviour
         int contentStart = openEnd;
         int contentEnd = close.Index;
 
+        // Pick the color
         //string hex = ColorUtility.ToHtmlStringRGBA(new Color(0.3f, 0.6f, 1f));
         // Use default link colors if not overridden
         LinkColors linkColors = link.linkColors ?? instance.defaultLinkColors;
@@ -249,11 +263,15 @@ public class UI : MonoBehaviour
         Color color = linkColors.normal;
         if (link.hovered)
             color = linkColors.hovered;
-        else if (link.clicked)
+        if (link.clickHeld)
+            color = linkColors.held;
+        if (link.clickReleased)
             color = linkColors.clicked;
 
         string hex = ColorUtility.ToHtmlStringRGBA(color);
 
+
+        // Apply color
         // Case A: already wrapped exactly by <color>...</color> at the link boundaries
         var mColorOpen = RxColorAtStart.Match(s, contentStart);
         if (mColorOpen.Success)
@@ -290,8 +308,11 @@ public class UI : MonoBehaviour
 
 
 
+
+
     void Update()
     {
+
         // reset all links
         foreach (var kvp in Links)   // loop all links
         {
@@ -300,14 +321,29 @@ public class UI : MonoBehaviour
                 //print($"UI.Update: Reset link {link.id} on {kvp.Key.name} " + link.hovered);
                 if (link.text == null) continue;
 
-                link.oldClicked = link.clicked;
+                bool dirty = false;
+                if (link.clickReleased)
+                    dirty = true;
+                if (link.oldHeld != link.clickHeld)
+                    dirty = true;
+                if (link.oldHovered != link.hovered)
+                    dirty = true;
+
+
+                link.clickStart = false;
+
+                link.oldHeld = link.clickHeld;
+                link.clickHeld = false;
+
                 link.oldHovered = link.hovered;
-
                 link.hovered = false;
-                link.clicked = false;
 
-                if (link.oldClicked != link.clicked || link.oldHovered != link.hovered)
-                    link.updateColors();// update colors if changed
+                link.clickReleased = false;
+
+
+                //if (link.oldClicked != link.clicked || link.oldHovered != link.hovered)
+                if (dirty)
+                    link.updateColors();
             }
         }
 
@@ -353,6 +389,7 @@ public class UI : MonoBehaviour
         // Check for link touches and clicks
         // Find the best link selection; the most centered one or nearest the camera    // TODO. (Use the depth from cam.WorldToScreenPoint?)
         Link touchedLink = null;
+        Touch touch = default;    // android touches
         foreach (var text in textMeshPros)
         {
             // go through all input devices
@@ -360,37 +397,50 @@ public class UI : MonoBehaviour
             if (index != -1)
                 touchedLink = text.Value[index];
 
-            index = CheckTouchesOverLinks(text.Key, cam);
+            index = CheckTouchesOverLinks(text.Key, cam, out touch);
             if (index != -1)
                 touchedLink = text.Value[index];
+
+            // TODO other inputs; VR pointers, VR gaze
         }
 
-
-        // foreach (var kvp in Links)   // loop all links
-        // {
-        //     //var GO = kvp.Key;
-        //     foreach (var linkKvp in kvp.Value)
-        //     {
-        //         var link = linkKvp.Value;
-        //         if (link.text == null) continue; // skip if text is missing
-
-        //         if (CheckMouseOverLink(link.text, cam))
-        //             touchedLink = link;
+        //Time.timeScale = .001f;
 
 
-
-        //         // TODO other inputs; VR pointers, VR gaze
-        //     }
-        // }
         if (touchedLink != null)
         {
-            //print($"Mouse over link: {touchedLink.id}");
+            // Mouseover
             if (!touchedLink.hovered)
             {
                 touchedLink.hovered = true;
-                //updateLinkColors(touchedLink);
                 touchedLink.updateColors();
             }
+
+            // Click held?
+            //if (Input.GetMouseButtonDown(0) || (touch.phase == TouchPhase.Ended))
+            if (Input.GetMouseButton(0) || (touch.phase == TouchPhase.Moved || touch.phase == TouchPhase.Stationary))
+            {
+                //print($"UI.Update: Clicked link {touchedLink.id} on {touchedLink.owner.name} " + Input.GetMouseButton(0));
+                if (!touchedLink.oldHeld)
+                    touchedLink.clickStart = true; // clicked this frame
+
+                touchedLink.clickHeld = true;
+                touchedLink.updateColors();
+                //heldLink = touchedLink;
+            }
+
+            // Click released
+            if (Input.GetMouseButtonUp(0) || (touch.phase == TouchPhase.Ended))
+            {
+                print($"UI.Update: Released link {touchedLink.id} on {touchedLink.owner.name}");
+                touchedLink.clickHeld = false;
+                touchedLink.clickReleased = true; // released this frame
+                touchedLink.updateColors();
+            }
+            // else
+            // {
+            //     touchedLink.clickReleased = false;
+            // }
         }
 
 
@@ -417,8 +467,9 @@ public class UI : MonoBehaviour
     }
 
     // --- Touch (Android/iOS) ---
-    public static int CheckTouchesOverLinks(TMP_Text tmp, Camera cam)
+    public static int CheckTouchesOverLinks(TMP_Text tmp, Camera cam, out Touch touch)
     {
+        touch = default;
         foreach (var t in Input.touches)
         {
             var ray = cam.ScreenPointToRay(t.position);
@@ -429,7 +480,10 @@ public class UI : MonoBehaviour
             if (link == -1)
                 continue;
             else
+            {
+                touch = t;
                 return link;    // TODO no multitouch support here!
+            }
 
             // string id = tmp.textInfo.linkInfo[link].GetLinkID();
             // switch (t.phase)
