@@ -2469,13 +2469,13 @@ MonoBehaviour:
       m_Calls: []
   m_text: '<size=5>GAME SETUP</size>
 
-    <b>Game:</b> <link>SmashVR</link>, <link>Camping
-    ''25</link>, <link>SmashVR</link>
+    <b>Game:</b> <link>Camping ''25</link>,
+    <link>SmashVR</link>
 
-    <b>Mode:</b> <link=lan>LAN</link>,<link>
-    Online</link>
+    <b>Mode:</b> <link>LAN</link>,<link> Online</link>
 
-    <link>Start New Lobby</link>
+    <link>Start
+    New Lobby</link>
 
     <b>Join Lobby:</b>'
   m_isRightToLeft: 0

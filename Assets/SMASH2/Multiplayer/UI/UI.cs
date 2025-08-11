@@ -21,6 +21,10 @@ public class UI : MonoBehaviour
 
 
     public static Dictionary<GameObject, Dictionary<string, Link>> Links;
+    /// <summary>
+    /// All the texts containing all the links, for checking which links are moused over (and retrieving the links)
+    /// </summary>
+    public static Dictionary<TMP_Text, List<Link>> textMeshPros;
 
     public class Link
     {
@@ -43,6 +47,8 @@ public class UI : MonoBehaviour
         /// </summary>
         public LinkColors linkColors = null;
 
+        //public static Dictionary<TMP_Text, 
+
 
         //public Link(string _id, TMP_Text _textMeshPro, GameObject _owner, TMP_LinkInfo _LinkInfo)
         public Link(string _id, TMP_Text _textMeshPro, GameObject _owner, int _linkIndex)
@@ -53,6 +59,10 @@ public class UI : MonoBehaviour
             linkIndex = _linkIndex;
         }
 
+        public void updateColors()
+        {
+            updateLinkColors(this);
+        }
 
         // TODO custom link/click colors for different links (to show which is selected etc)
     }
@@ -92,6 +102,7 @@ public class UI : MonoBehaviour
         cam = Camera.main;
 
         Links = new Dictionary<GameObject, Dictionary<string, Link>>();
+        textMeshPros = new Dictionary<TMP_Text, List<Link>>();
     }
 
     public static bool Clicked(GameObject gameObject, string id)
@@ -112,6 +123,8 @@ public class UI : MonoBehaviour
         addLinks(text, text.transform.parent.gameObject);
     }
 
+    // TODO a remove links thing; remove from Links and textMeshPros
+
     /// <summary>
     /// Add links to global dictionary, update text colors.
     /// (Note: Links with no ID, like <link>myLink</link>, will substitute in the myLink text as the ID)
@@ -125,6 +138,12 @@ public class UI : MonoBehaviour
         var ti = text.textInfo;
         if (ti.linkCount == 0) { Debug.LogWarning("No <link> tags found in " + text.text); return; }
 
+        {   // save refs
+            if (!textMeshPros.ContainsKey(text))
+                textMeshPros.Add(text, new List<Link>());
+            else
+                textMeshPros[text].Clear();
+        }
 
         // Fill in blank link IDs
         string s = text.text;
@@ -157,9 +176,10 @@ public class UI : MonoBehaviour
             if (string.IsNullOrEmpty(id)) continue; // skip empty IDs
 
             links[id] = new Link(id, text, GO, i);
+            textMeshPros[text].Add(links[id]);
+
             print($"UI.addLinks: Added link '{id}' to {GO.name} with text '{li.GetLinkText()}'");
         }
-
 
 
         // Add links to Links
@@ -224,11 +244,14 @@ public class UI : MonoBehaviour
 
         //string hex = ColorUtility.ToHtmlStringRGBA(new Color(0.3f, 0.6f, 1f));
         // Use default link colors if not overridden
-        Color color = UI.instance.defaultLinkColors.normal;
-        if (link.linkColors != null)
-        {
-            color = link.linkColors.normal;
-        }
+        LinkColors linkColors = link.linkColors ?? instance.defaultLinkColors;
+
+        Color color = linkColors.normal;
+        if (link.hovered)
+            color = linkColors.hovered;
+        else if (link.clicked)
+            color = linkColors.clicked;
+
         string hex = ColorUtility.ToHtmlStringRGBA(color);
 
         // Case A: already wrapped exactly by <color>...</color> at the link boundaries
@@ -265,170 +288,29 @@ public class UI : MonoBehaviour
     }
 
 
-    // static Regex RxOpen = new(@"(?i)<link\b[^>]*>");
-    // static Regex RxClose = new(@"(?i)</link>");
-    // static string StripTags(string x) => Regex.Replace(x, @"<[^>]+>", "");
-    // static string EscAttr(string x) => x.Replace("\"", "&quot;");
-    // public static void updateLinkColors(Link link, bool ForceMeshUpdate = true)
-    // {
-
-    //     // Cache all opening-tag matches once
-    //     string s = link.text.text;
-    //     var opens = RxOpen.Matches(s);
-
-    //     var ti = link.text.textInfo;
-
-
-    //     {
-    //         var li = ti.linkInfo[link.linkIndex];
-    //         var open = opens[link.linkIndex];
-
-    //         int openEnd = open.Index + open.Length;    // where inner content starts (for color insert)
-
-    //         // // If ID is blank, set it to the link body (visible text)
-    //         // if (string.IsNullOrEmpty(li.GetLinkID()))
-    //         // {
-    //         //     string bodyVis = StripTags(li.GetLinkText()).Trim();
-    //         //     if (string.IsNullOrEmpty(bodyVis)) bodyVis = "link";
-    //         //     string newOpen = $"<link=\"{EscAttr(bodyVis)}\">";
-
-    //         //     s = s.Remove(open.Index, open.Length)
-    //         //         .Insert(open.Index, newOpen);
-
-    //         //     openEnd = open.Index + newOpen.Length; // opener length changed
-    //         // }
-
-    //         // color the links
-    //         {
-    //             string hex = ColorUtility.ToHtmlStringRGBA(new Color(0.3f, 0.6f, 1f));
-    //             s = s.Insert(openEnd, $"<color=#{hex}>");
-
-    //             // find this link's closing tag AFTER the opener we just wrote
-    //             var close = new Regex(RxClose.ToString(), RegexOptions.IgnoreCase).Match(s, openEnd);
-    //             if (close.Success)
-    //                 s = s.Insert(close.Index, "</color>");
-    //         }
-    //     }
-
-
-
-
-    //     link.text.text = s;
-    //     if (ForceMeshUpdate)
-    //         link.text.ForceMeshUpdate();
-    // }
-
-
-
-    // /// <summary>
-    // /// Add links to global dictionary, update text colors.
-    // /// (Note: Links with no ID, like <link>myLink</link>, will substitute in the myLink text as the ID)
-    // /// </summary>
-    // /// <param name="text"></param>
-    // public static void updateLinkColors(TMP_Text text)
-    // {
-
-    //     if (text == null) { Debug.LogWarning("addLinks: text is null"); return; }
-
-
-    //     text.ForceMeshUpdate();
-    //     var ti = text.textInfo;
-    //     if (ti.linkCount == 0) { Debug.LogWarning("No <link> tags found in " + text.text); return; }
-
-
-
-
-    //     Regex RxOpen = new(@"(?i)<link\b[^>]*>");
-    //     Regex RxClose = new(@"(?i)</link>");
-    //     string StripTags(string x) => Regex.Replace(x, @"<[^>]+>", "");
-    //     string EscAttr(string x) => x.Replace("\"", "&quot;");
-
-    //     // Cache all opening-tag matches once
-    //     string s = text.text;
-    //     var opens = RxOpen.Matches(s);
-
-
-    //     // Iterate backwards so earlier indices stay valid
-    //     for (int i = ti.linkCount - 1; i >= 0; i--)
-    //     {
-    //         var li = ti.linkInfo[i];
-    //         var open = opens[i];
-
-    //         int openEnd = open.Index + open.Length;    // where inner content starts (for color insert)
-
-    //         // If ID is blank, set it to the link body (visible text)
-    //         if (string.IsNullOrEmpty(li.GetLinkID()))
-    //         {
-    //             string bodyVis = StripTags(li.GetLinkText()).Trim();
-    //             if (string.IsNullOrEmpty(bodyVis)) bodyVis = "link";
-    //             string newOpen = $"<link=\"{EscAttr(bodyVis)}\">";
-
-    //             s = s.Remove(open.Index, open.Length)
-    //                 .Insert(open.Index, newOpen);
-
-    //             openEnd = open.Index + newOpen.Length; // opener length changed
-    //         }
-
-    //         // color the links
-    //         {
-    //             string hex = ColorUtility.ToHtmlStringRGBA(new Color(0.3f, 0.6f, 1f));
-    //             s = s.Insert(openEnd, $"<color=#{hex}>");
-
-    //             // find this link's closing tag AFTER the opener we just wrote
-    //             var close = new Regex(RxClose.ToString(), RegexOptions.IgnoreCase).Match(s, openEnd);
-    //             if (close.Success)
-    //                 s = s.Insert(close.Index, "</color>");
-    //         }
-    //     }
-
-    //     text.text = s;
-    //     text.ForceMeshUpdate();
-    // }
-
-    //     text.ForceMeshUpdate();                       // ensure textInfo is current
-    //     var ti = text.textInfo;
-    //     //var fullText = text.text;
-    //     int count = ti.linkCount;
-
-    //     if (count == 0) { Debug.Log("No <link> tags found in " + text.text); return; }
-
-    //     for (int i = 0; i < count; i++)
-    //     {
-    //         TMP_LinkInfo li = ti.linkInfo[i];
-    //         string id = li.GetLinkID();
-    //         string body = li.GetLinkText();
-    //         // Debug.Log($"Link[{i}] id='{id}' text=\"{body}\" " +
-    //         //           $"firstChar={li.linkTextfirstCharacterIndex} len={li.linkTextLength}");
-
-    //         if (id == "")
-    //         {
-    //             print($"Link[{i}] has no ID, using text as ID: \"{body}\"");
-    //             //text.text = text.text.Replace(body, $"<link={body}>{body}</link>");
-    //         }
-
-
-
-    //         var col = new Color(0.3f, 0.6f, 1f); // nice blue
-    //         string hex = ColorUtility.ToHtmlStringRGBA(col);
-
-
-
-    //     }
-
-    //         string s = text.text;
-    //                 // Add <color=...> right after each <link ...>
-    //         s = Regex.Replace(s, @"(?i)(<link\b[^>]*>)", $"$1<color=#{hex}>");
-
-    //         // Close the color before </link>
-    //         s = Regex.Replace(s, @"(?i)</link>", "</color></link>");
-    //         text.ForceMeshUpdate();
-    //         text.text = s;
-    // }
-
 
 
     void Update()
     {
+        // reset all links
+        foreach (var kvp in Links)   // loop all links
+        {
+            foreach (var link in kvp.Value.Values)
+            {
+                //print($"UI.Update: Reset link {link.id} on {kvp.Key.name} " + link.hovered);
+                if (link.text == null) continue;
+
+                link.oldClicked = link.clicked;
+                link.oldHovered = link.hovered;
+
+                link.hovered = false;
+                link.clicked = false;
+
+                if (link.oldClicked != link.clicked || link.oldHovered != link.hovered)
+                    link.updateColors();// update colors if changed
+            }
+        }
+
 
 
         //print("FindIntersectingLink " + TMP_TextUtilities.FindIntersectingLink(text, testtransform.position, Camera.main));
@@ -467,8 +349,107 @@ public class UI : MonoBehaviour
             }
         }
 
+
+        // Check for link touches and clicks
+        // Find the best link selection; the most centered one or nearest the camera    // TODO. (Use the depth from cam.WorldToScreenPoint?)
+        Link touchedLink = null;
+        foreach (var text in textMeshPros)
+        {
+            // go through all input devices
+            int index = CheckMouseOverLink(text.Key, cam);
+            if (index != -1)
+                touchedLink = text.Value[index];
+
+            index = CheckTouchesOverLinks(text.Key, cam);
+            if (index != -1)
+                touchedLink = text.Value[index];
+        }
+
+
+        // foreach (var kvp in Links)   // loop all links
+        // {
+        //     //var GO = kvp.Key;
+        //     foreach (var linkKvp in kvp.Value)
+        //     {
+        //         var link = linkKvp.Value;
+        //         if (link.text == null) continue; // skip if text is missing
+
+        //         if (CheckMouseOverLink(link.text, cam))
+        //             touchedLink = link;
+
+
+
+        //         // TODO other inputs; VR pointers, VR gaze
+        //     }
+        // }
+        if (touchedLink != null)
+        {
+            //print($"Mouse over link: {touchedLink.id}");
+            if (!touchedLink.hovered)
+            {
+                touchedLink.hovered = true;
+                //updateLinkColors(touchedLink);
+                touchedLink.updateColors();
+            }
+        }
+
+
     }
 
+
+    // INPUT DEVICES
+
+    // --- Mouse ---
+    public static int CheckMouseOverLink(TMP_Text tmp, Camera cam)
+    {
+        var ray = cam.ScreenPointToRay(Input.mousePosition);
+        if (!rayHitTextPlane(tmp, ray.origin, ray.direction, out var worldHit)) return -1;
+
+        var screen = cam.WorldToScreenPoint(worldHit);
+        int link = TMP_TextUtilities.FindIntersectingLink(tmp, screen, cam);
+        if (link != -1)
+        {
+            string id = tmp.textInfo.linkInfo[link].GetLinkID();
+            //Debug.Log($"Mouse over link: {id}");
+            return link;
+        }
+        return -1;
+    }
+
+    // --- Touch (Android/iOS) ---
+    public static int CheckTouchesOverLinks(TMP_Text tmp, Camera cam)
+    {
+        foreach (var t in Input.touches)
+        {
+            var ray = cam.ScreenPointToRay(t.position);
+            if (!rayHitTextPlane(tmp, ray.origin, ray.direction, out var worldHit)) continue;
+
+            var screen = cam.WorldToScreenPoint(worldHit);
+            int link = TMP_TextUtilities.FindIntersectingLink(tmp, screen, cam);
+            if (link == -1)
+                continue;
+            else
+                return link;    // TODO no multitouch support here!
+
+            // string id = tmp.textInfo.linkInfo[link].GetLinkID();
+            // switch (t.phase)
+            // {
+            //     case TouchPhase.Began:      Debug.Log($"Touch BEGAN on {id}"); break;
+            //     case TouchPhase.Moved:
+            //     case TouchPhase.Stationary: Debug.Log($"Touch HELD on {id}");  break;
+            //     case TouchPhase.Ended:
+            //     case TouchPhase.Canceled:   Debug.Log($"Touch ENDED on {id}"); break;
+            // }
+        }
+        return -1;
+    }
+
+
+
+
+
+
+    // RAYCAST MATH
 
     /// <summary>
     /// Does the ray hit the text's plane within the bounding box, and if so where?
@@ -490,8 +471,6 @@ public class UI : MonoBehaviour
     }
 
 
-
-    // RAYCAST MATH
     // Ray vs arbitrary plane defined by point+normal
     public static bool RayPlaneIntersect(
         Vector3 rayStartPosition, Vector3 rayDirection, Vector3 planePoint, Vector3 planeNormal,
@@ -532,42 +511,6 @@ public class UI : MonoBehaviour
         local.z = b.center.z;
         return b.Contains(local);
     }
-
-
-
-    // void OnEnable()
-    // {
-    //     LinkBus.HoverEnter += OnHoverEnter;
-    //     LinkBus.HoverExit += OnHoverExit;
-    //     LinkBus.Click += OnClick;
-    // }
-    // void OnDisable()
-    // {
-    //     LinkBus.HoverEnter -= OnHoverEnter;
-    //     LinkBus.HoverExit -= OnHoverExit;
-    //     LinkBus.Click -= OnClick;
-    // }
-
-    // void OnHoverEnter(LinkBus.LinkContext ctx)
-    // {
-    //     // e.g., highlight the word
-    //     Debug.Log($"Hover ENTER {ctx.id} on {ctx.owner.name}");
-    // }
-
-    // void OnHoverExit(LinkBus.LinkContext ctx)
-    // {
-    //     // e.g., remove highlight
-    //     Debug.Log($"Hover EXIT {ctx.id}");
-    // }
-
-    // void OnClick(LinkBus.LinkContext ctx)
-    // {
-    //     // Route by prefix like an input action
-    //     // if (ctx.id.StartsWith("open:")) OpenThing(ctx.id.Substring(5), ctx.owner);
-    //     // else if (ctx.id == "equip:sword") EquipSword();
-
-    //     Debug.Log($"Click {ctx.id} on {ctx.owner.name} at {ctx.screenPos}");
-    // }
 
 
 

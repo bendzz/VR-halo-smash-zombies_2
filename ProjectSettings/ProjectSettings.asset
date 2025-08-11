@@ -266,7 +266,7 @@ PlayerSettings:
   useCustomGradlePropertiesTemplate: 0
   useCustomGradleSettingsTemplate: 0
   useCustomProguardFile: 0
-  AndroidTargetArchitectures: 0
+  AndroidTargetArchitectures: 2
   AndroidSplashScreenScale: 0
   androidSplashScreen: {fileID: 2800000, guid: 5337c46c99f9f4347945fccb701af809, type: 3}
   AndroidKeystoreName: 
