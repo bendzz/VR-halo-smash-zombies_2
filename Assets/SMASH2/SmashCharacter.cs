@@ -91,7 +91,7 @@ public class SmashCharacter : NetBehaviour
     // temp
     //[SerializeField] Vector3 swordStart;
     //[SerializeField] Vector3 swordEnd;
-    Vector3 swordStart = new Vector3(0,0,-120);
+    Vector3 swordStart = new Vector3(0, 0, -120);
     Vector3 swordEnd = new Vector3(0, -30, -297);
     //Vector3 swordEnd = new Vector3(0, 0, -297);
 
@@ -103,7 +103,7 @@ public class SmashCharacter : NetBehaviour
     /// </summary>
     //public static List<SmashCharacter> characters = new List<SmashCharacter>();
     public static Dictionary<ulong, SmashCharacter> characters = new Dictionary<ulong, SmashCharacter>();   // TODO make this a Multi.getEntityByClientId() function
-    
+
     public static Dictionary<string, SmashCharacter> characters_byPlayerId = new Dictionary<string, SmashCharacter>();   // TODO make this a Multi.getEntityByClientId() function
 
     public Color playerColor;
@@ -124,8 +124,8 @@ public class SmashCharacter : NetBehaviour
     InfoCard infoCardHUD;
 
     // multiplayer use
-    public Multi.SyncedProperty applyDamageSynced;  
-    public Multi.SyncedProperty registerPlayer_Synced;  
+    public Multi.SyncedProperty applyDamageSynced;
+    public Multi.SyncedProperty registerPlayer_Synced;
 
     //MeshRenderer meshRenderer;
     Material glowMaterial;
@@ -218,7 +218,7 @@ public class SmashCharacter : NetBehaviour
         //applyDamageSynced = entity.addSyncedMethodCall("applyDamage", parameters);
 
         //applyDamage(float Damage, Vector3 throwBack)
-        applyDamageSynced = entity.addSyncedMethodCall("applyDamage", new object[] {42.2f, Vector3.zero});
+        applyDamageSynced = entity.addSyncedMethodCall("applyDamage", new object[] { 42.2f, Vector3.zero });
 
         //registerPlayer_Synced = entity.addSyncedMethodCall("registerPlayer", new object[] { OwnerClientId });
 
@@ -228,7 +228,7 @@ public class SmashCharacter : NetBehaviour
         entity.addSyncedProperty(body.useGravity);
         entity.addSyncedProperty(transform);
 
-        foreach(Hand hand in hands)
+        foreach (Hand hand in hands)
         {
             entity.setCurrents(hand, gameObject, IsOwner);
             entity.addSyncedProperty(hand.transform);
@@ -274,7 +274,7 @@ public class SmashCharacter : NetBehaviour
         // register player to dicts
         if (!characters.ContainsKey(OwnerClientId))
             characters.Add(OwnerClientId, this);
-        else 
+        else
             print("duplicate key! " + OwnerClientId);
 
         smashGame = SmashGame.instance;
@@ -298,7 +298,7 @@ public class SmashCharacter : NetBehaviour
 
         List<Color> unusedColors = new List<Color>();
 
-        foreach(Color color in playerColors)
+        foreach (Color color in playerColors)
         {
             if (!inUsePlayerColors.ContainsKey(color))
                 unusedColors.Add(color);
@@ -307,7 +307,7 @@ public class SmashCharacter : NetBehaviour
         if (unusedColors.Count == 0)
             unusedColors = playerColors;
 
-        Color newColor = unusedColors[Random.Range(0, unusedColors.Count-1)];
+        Color newColor = unusedColors[Random.Range(0, unusedColors.Count - 1)];
 
         return newColor;
     }
@@ -904,7 +904,7 @@ public class SmashCharacter : NetBehaviour
     public void applyDamage(float Damage, Vector3 throwBack)
     {
         print("Damage applied: " + Damage + " with throwback " + (throwBack).ToString());
-        
+
 
         damage += Damage;
         body.AddForce(throwBack, ForceMode.Impulse);

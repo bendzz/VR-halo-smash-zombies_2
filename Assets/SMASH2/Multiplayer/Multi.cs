@@ -39,7 +39,7 @@ public class Multi : NetworkBehaviour
     /// All prefab instances that have server IDs (ie the same on all clients). 
     /// (Note, prefab here means 'spawned instance'; if u want the original prefab ref, look in its entities)
     /// </summary>
-    public Dictionary<int,GameObject> syncedPrefabs { get; private set; }
+    public Dictionary<int, GameObject> syncedPrefabs { get; private set; }
 
     /// <summary>
     /// Prefab instances that have been spawned locally but are still waiting on a global ID from the server
@@ -96,13 +96,13 @@ public class Multi : NetworkBehaviour
             // send all the current scene prefabs to the new client
             print("New client joined! Syncing " + syncedPrefabs.Count + " prefabs");
 
-            foreach(KeyValuePair<int, GameObject> prefabInstance in syncedPrefabs)
+            foreach (KeyValuePair<int, GameObject> prefabInstance in syncedPrefabs)
             {
                 if (debug)
                     print("Sending prefab " + prefabInstance.Value.name + ", ID " + prefabInstance.Key);
                 //if (prefabInstance.Value.GetComponentInChildren<SmashCharacter>())
                 //    print("is smashCharacter for " + prefabInstance.Value.GetComponentInChildren<SmashCharacter>().playerName); // debug
-                
+
                 if (prefabInstance.Value != null)
                     sendExistingPrefab(clientId, prefabInstance.Value, prefabInstance.Key);
                 // TODO sync up properties to initial values (they might not be updating every frame)
@@ -124,7 +124,7 @@ public class Multi : NetworkBehaviour
         if (prefabEntities[0].ownerClientID == newClientId)
         {
             if (instance.debug)
-                Debug.Log(Go.name + ", key "+ GoKey + " has ownerClientID#" + prefabEntities[0].ownerClientID + ", same as newClientId " + newClientId + ". Prefab " +
+                Debug.Log(Go.name + ", key " + GoKey + " has ownerClientID#" + prefabEntities[0].ownerClientID + ", same as newClientId " + newClientId + ". Prefab " +
                 "probably already exists over there, aborting send");
             return;
         }
@@ -170,7 +170,7 @@ public class Multi : NetworkBehaviour
             //entity.propertiesCount = entity.properties.Count;
         }
 
-         data.setData(prefabEntities);
+        data.setData(prefabEntities);
 
 
         // send to only the new client
@@ -208,7 +208,7 @@ public class Multi : NetworkBehaviour
     // Rec testRec;
 
 
-    public override void OnNetworkSpawn() 
+    public override void OnNetworkSpawn()
     {
         if (instance != null)
             Debug.LogError("More than one Multi singleton in scene");
@@ -277,7 +277,7 @@ public class Multi : NetworkBehaviour
 
 
 
-    
+
 
     // SPAWNING:
 
@@ -341,7 +341,7 @@ public class Multi : NetworkBehaviour
         var clientId = NetworkManager.Singleton.LocalClientId;
 
         if (instance.debug)
-            print("Spawning Client (ID: " + clientId + "): netSpawnPrefab_ToServer complete for: " + prefab.name + 
+            print("Spawning Client (ID: " + clientId + "): netSpawnPrefab_ToServer complete for: " + prefab.name +
             ", sent " + prefabEntities.Count + " entity to the server for global IDs");
 
 
@@ -408,7 +408,7 @@ public class Multi : NetworkBehaviour
             if (debug)
                 print("Entity found, has " + entity.propertiesCount + " properties, local_entityID " + entity.local_entityID);
             entity.syncedPrefabId = uniquePrefabID;
-            
+
             entity.serverEntityId = Entity.getUniqueServerIdentifier();
             Entity.serverEntities.Add(entity.serverEntityId, entity);
 
@@ -474,7 +474,7 @@ public class Multi : NetworkBehaviour
     [ClientRpc]
     public void netSpawnPrefab_ClientRpc(string prefabString, ulong originalSender, NetData data, ClientRpcParams pars = default)
     {
-        
+
         // WARNING the datastream seems to be getting corrupted after the NetData?? TODO
         var thisClientId = NetworkManager.Singleton.LocalClientId;
         // TODO originalSender is broken! 0!
@@ -517,7 +517,7 @@ public class Multi : NetworkBehaviour
 
                 if (localEnt.properties.Count != serverEnt.PropertyIDs.Count)
                     Debug.LogError("Different property counts for entity " + i + "! localEnt.propertiesCount" + localEnt.properties.Count + " serverEnt.PropertyIDs.Count " + serverEnt.PropertyIDs.Count);
-                
+
                 for (int p = 0; p < localEnt.properties.Count; p++)
                 {
                     //SyncedProperty localProp = SyncedProperty.SyncedProperties[i];
@@ -530,12 +530,13 @@ public class Multi : NetworkBehaviour
                 }
             }
 
-        } else
+        }
+        else
         {
             IsOwner = true;
             int localPrefabID = serverPrefabEntities[0].localPrefabId;    // find original spawned prefab
             c = localPrefabs[localPrefabID];
-            
+
             print("prefab " + c.name + " FOUND on original client, SyncedPrefabID " + serverPrefabEntities[0].syncedPrefabId);
 
             // connect to original entities, transfer server IDs
@@ -568,7 +569,7 @@ public class Multi : NetworkBehaviour
 
         //if (IsServer)
         //{
-            syncedPrefabs.Add(syncedPrefabId, c);
+        syncedPrefabs.Add(syncedPrefabId, c);
         if (debug)
             print("added syncedPrefab to list: " + syncedPrefabId + ", " + c.name);
         //}
@@ -738,7 +739,7 @@ public class Multi : NetworkBehaviour
         /// <summary>
         /// only for serialization, not neccessarily accurate
         /// </summary>
-        public int propertiesCount;    
+        public int propertiesCount;
 
 
         // helpers
@@ -919,7 +920,7 @@ public class Multi : NetworkBehaviour
 
             serializer.SerializeValue(ref localPrefabId);
 
-            serializer.SerializeValue(ref local_entityID);   
+            serializer.SerializeValue(ref local_entityID);
 
             serializer.SerializeValue(ref serverSendToClients);
 
@@ -953,7 +954,7 @@ public class Multi : NetworkBehaviour
                         id = PropertyIDs[i];
 
                     serializer.SerializeValue(ref id);
-                    
+
                     if (serializer.IsReader)
                         PropertyIDs.Add(id);
                 }
@@ -1014,7 +1015,7 @@ public class Multi : NetworkBehaviour
 
 
     // TODO this runs for both methods and variable updates atm; for methods it should be Reliable, to ensure net syncing. For variables it should only run if they've changed?
-    
+
     /// <summary>
     /// Replicate a method?
     /// Because you can't do network RPCs in classes that don't fucking inherit from NetworkBehaviour, and those are hard/expensive to spawn
@@ -1095,7 +1096,7 @@ public class Multi : NetworkBehaviour
 
     // Inspired by my old Record.AnimatedProperty class
     // TODO decouple from Record.cs
-    
+
     /// <summary>
     /// Multiplayer synced and recorded/played-back property, for animating a (public) variable or method in another script
     /// (Doesn't seem to work when you make one for a variable in the current script, only other scripts? Can't read its data? Idk. TODO, test more) (EDIT I think this works fine now)
@@ -1453,7 +1454,8 @@ public class Multi : NetworkBehaviour
                     tf.localPosition = ((Transform)data).localPosition;
                     tf.localRotation = ((Transform)data).localRotation;
                     tf.localScale = ((Transform)data).localScale;
-                } else if (data is Clip.transformCopy)
+                }
+                else if (data is Clip.transformCopy)
                 {
                     Clip.transformCopy copy = (Clip.transformCopy)data;
                     copy.ApplyTo(tf);
@@ -1462,7 +1464,7 @@ public class Multi : NetworkBehaviour
                     Debug.LogError("setCurrentValue: unknown data type for Transform: " + data.GetType());
 
                 if (instance.debug)
-                        print("transform! Local " + ((Transform)obj).localPosition + " " + ((Transform)obj).localRotation);
+                    print("transform! Local " + ((Transform)obj).localPosition + " " + ((Transform)obj).localRotation);
                 if (instance.debug)
                     print("transform! DATA " + ((Transform)data).position + " " + ((Transform)data).rotation);
             }
@@ -1563,7 +1565,7 @@ public class Multi : NetworkBehaviour
 
 
     // Why did I make a custom serializer for these sorts of primitives? I know the built in serializer can do ints etc
-    
+
     /// <summary>
     /// For passing variable Types over the network with minimal bandwidth. Speedy, uses IFs/switches
     /// </summary>
@@ -2079,7 +2081,7 @@ public class Multi : NetworkBehaviour
                     serializer.SerializeValue(ref ClipSerializer);
                     _data = ClipSerializer;
                     break;
-                    
+
 
                 // Generic types
                 case int when _dataType == TypeToInt.Int(typeof(byte)):
@@ -2099,7 +2101,7 @@ public class Multi : NetworkBehaviour
                     break;
             }
             return _data;
-        }   
+        }
     }
 
 }
@@ -2115,7 +2117,7 @@ public class Multi : NetworkBehaviour
 /// REPLACEMENT for unity NetworkBehaviour (since I need to set IsOwner manually on manual spawns, and they locked that off, f*ckers)
 /// </summary>
 public abstract class NetBehaviour : MonoBehaviour
- {
+{
     //     public static HashSet<NetBehaviour> AllNetBehaviours = new HashSet<NetBehaviour>();
 
 
@@ -2168,7 +2170,7 @@ public abstract class NetBehaviour : MonoBehaviour
 // /// </summary>
 // public class Clip
 // {
-    
+
 // }
 
 

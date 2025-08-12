@@ -296,7 +296,7 @@ public class UI : MonoBehaviour
             links[id] = new Link(id, text, GO, i);
             textMeshPros[text].Add(links[id]);
 
-            print($"UI.addLinks: Added link '{id}' to {GO.name} with text '{li.GetLinkText()}'");
+            //print($"UI.addLinks: Added link '{id}' to {GO.name} with text '{li.GetLinkText()}'");
         }
 
 

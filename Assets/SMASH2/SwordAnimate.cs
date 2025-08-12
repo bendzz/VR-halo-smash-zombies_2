@@ -124,6 +124,7 @@ public class SwordAnimate : NetBehaviour
     void Update()
     {
 
+
         if (dying)
         {
             lifeTimer -= Time.deltaTime;
@@ -181,10 +182,12 @@ public class SwordAnimate : NetBehaviour
                 dontHitTwiceTimer -= Time.deltaTime;
         }
 
-        if (held) {
+        if (held)
+        {
             body_velocity.syncingEnabled = false;
             body_angularVelocity.syncingEnabled = false;
-        } else
+        }
+        else
         {
             //print("enabling sword sync for " + gameObject.name);
             //print(body_velocity);
@@ -206,7 +209,7 @@ public class SwordAnimate : NetBehaviour
                 return;
             if (SmashCharacter.characters_byPlayerId.ContainsKey(holder_PlayerId))
                 holder = SmashCharacter.characters_byPlayerId[holder_PlayerId];
-            else 
+            else
                 Debug.Log("holder_PlayerId " + holder_PlayerId + " not found in SmashCharacter.characters_byPlayerId");
             print("holder_PlayerId " + holder_PlayerId);
         }
@@ -261,7 +264,8 @@ public class SwordAnimate : NetBehaviour
 
                         dontHitTwice = hitBoi;
                         dontHitTwiceTimer = .5f;
-                    } else if (held)    // schwing
+                    }
+                    else if (held)    // schwing
                     {
 
 
