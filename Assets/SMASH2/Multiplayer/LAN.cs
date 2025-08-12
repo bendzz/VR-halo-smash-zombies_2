@@ -12,13 +12,8 @@ using System.Collections.Generic;
 
 public class LAN : MonoBehaviour
 {
-    public TMP_Text settingsText;
-
-    public UI.LinkColors selectedOption;
 
 
-    UI.PickOneOption game;
-    UI.PickOneOption multiplayer;
 
     private void OnEnable()
     {
@@ -36,18 +31,12 @@ public class LAN : MonoBehaviour
         AndroidMulticastLock_Start();
 
 
-        UI.addLinks(settingsText);
 
-
-        game = new UI.PickOneOption(gameObject, new List<string> { "Camping '25", "SmashVR" });
-        multiplayer = new UI.PickOneOption(gameObject, new List<string> { "LAN", "Online" });
     }
 
     void Update()
     {
-        // TODO
-        //this.Clicked("startgame");  // TODO click checker method
-        //UI.Links[gameObject]["Start New Lobby"];
+
 
     }
 

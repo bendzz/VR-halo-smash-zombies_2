@@ -31,7 +31,7 @@ public class myInputTests : NetBehaviour
     public SmashCharacter smashCharacter;
 
 
-    public float runAccelerate = 10; 
+    public float runAccelerate = 10;
     public float runMax = 19.6f;    // usain bolt
 
     [Tooltip("degrees per second turn with joystick")]
@@ -93,10 +93,10 @@ public class myInputTests : NetBehaviour
 
         //print("used XR dummies");
 
-            //XR_Headset = SmashMulti.instance.XR_Headset;
+        //XR_Headset = SmashMulti.instance.XR_Headset;
 
-            //leftHandObject = SmashMulti.instance.leftHandObject;
-            //rightHandObject = SmashMulti.instance.rightHandObject;
+        //leftHandObject = SmashMulti.instance.leftHandObject;
+        //rightHandObject = SmashMulti.instance.rightHandObject;
         //} else
         //{
         //    // spawn network synced dummy objects representing the other player's hands  
@@ -137,7 +137,7 @@ public class myInputTests : NetBehaviour
         leftie.update();
         rightie.update();
 
-          
+
         // get the player rotated right before applying movement acceleration
         syncPlayerAndHeadset();
 
@@ -192,7 +192,8 @@ public class myInputTests : NetBehaviour
         int deviceCount = 0;
 
         public Hand(Transform sceneObject, bool IsLeft)
-        { transform = sceneObject;
+        {
+            transform = sceneObject;
             isLeft = IsLeft;
         }
 
@@ -330,7 +331,7 @@ public class myInputTests : NetBehaviour
         // calc each Hand
         foreach (Hand hand in hands)
         {
-            if (hand.trigger > .5f) 
+            if (hand.trigger > .5f)
             {
                 if (hand.lastGrabPoint == Vector3.zero)
                 {
@@ -346,9 +347,9 @@ public class myInputTests : NetBehaviour
 
                 //Vector3 deltaWorld = delta.magnitude * worldDirection * 600;    // map the local space Hand movement to world space
                 Vector3 deltaWorld = (delta.magnitude * worldDirection * 15) / Time.deltaTime;    // map the local space Hand movement to world space
-                ////float speedDilution = Mathf.Clamp01(Vector3.Dot((deltaWorld - body.velocity * 10), deltaWorld));    // so you can only accelerate so fast in 1 direction, but can stop instantly
-                //float speedDilution = Mathf.Clamp01(Vector3.Dot((deltaWorld - body.velocity * 5), deltaWorld));    // so you can only accelerate so fast in 1 direction, but can stop instantly
-                
+                                                                                                  ////float speedDilution = Mathf.Clamp01(Vector3.Dot((deltaWorld - body.velocity * 10), deltaWorld));    // so you can only accelerate so fast in 1 direction, but can stop instantly
+                                                                                                  //float speedDilution = Mathf.Clamp01(Vector3.Dot((deltaWorld - body.velocity * 5), deltaWorld));    // so you can only accelerate so fast in 1 direction, but can stop instantly
+
 
                 //Vector3 inPush = deltaWorld * speedDilution * 2;
 
@@ -380,7 +381,8 @@ public class myInputTests : NetBehaviour
                 //print("speedDilution " + speedDilution);
                 //print("inPush " + inPush);
                 hand.lastGrabPoint = hand.transform.localPosition;
-            } else
+            }
+            else
             {
                 hand.lastGrabPoint = Vector3.zero;
                 hand.initialBodyVelocity = Vector3.zero;
@@ -442,7 +444,7 @@ public class myInputTests : NetBehaviour
 
         // smash visuals
         {
-            foreach(SmashCharacter.Hand hand in smashCharacter.hands)
+            foreach (SmashCharacter.Hand hand in smashCharacter.hands)
             {
                 hand.thruster = (inPush.normalized.magnitude * Time.deltaTime) * 15;
                 hand.thrusterDirection = -inPush.normalized;
@@ -456,13 +458,14 @@ public class myInputTests : NetBehaviour
     void PC_mouseRunning()
     {
         extraRotation = extraRotation * Quaternion.Euler(0, Input.GetAxis("Mouse X") * turnSpeed * Time.deltaTime, 0);
-        cameraTilt = cameraTilt * Quaternion.Euler(-Input.GetAxis("Mouse Y") * turnSpeed * Time.deltaTime,0,0);
-        
+        cameraTilt = cameraTilt * Quaternion.Euler(-Input.GetAxis("Mouse Y") * turnSpeed * Time.deltaTime, 0, 0);
+
         if (!disableMouseVertical)
         {
             XR_Headset.parent.localRotation = Quaternion.identity * cameraTilt;
             //Cursor.lockState = CursorLockMode.Locked;
-        } else
+        }
+        else
         {
             //Cursor.lockState = CursorLockMode.None;
         }
@@ -480,7 +483,7 @@ public class myInputTests : NetBehaviour
         //    print("found PC!");
         //}    
 
-        vel = Quaternion.Euler(0,body.rotation.eulerAngles.y, 0) * vel;
+        vel = Quaternion.Euler(0, body.rotation.eulerAngles.y, 0) * vel;
         body.AddForce(vel, ForceMode.Acceleration);
     }
 

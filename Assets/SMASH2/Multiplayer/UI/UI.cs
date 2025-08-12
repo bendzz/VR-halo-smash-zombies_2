@@ -205,10 +205,28 @@ public class UI : MonoBehaviour
         textMeshPros = new Dictionary<TMP_Text, List<Link>>();
     }
 
+    /// <summary>
+    /// Check if this link was just clickReleased
+    /// </summary>
+    /// <param name="gameObject"></param>
+    /// <param name="id"></param>
+    /// <returns></returns>
     public static bool Clicked(GameObject gameObject, string id)
     {
         //print($"Clicked {id} on {gameObject.name}");
-        /* your lookup */
+
+        if (Links.TryGetValue(gameObject, out var linkDict) && linkDict.TryGetValue(id, out var link))
+        {
+            if (link.clickReleased)
+            {
+                return true; // clicked this frame
+            }
+        }
+        else
+        {
+            Debug.LogError($"UI.Clicked: Link '{id}' not found on {gameObject.name}");
+        }
+
         return false;
     }
 
